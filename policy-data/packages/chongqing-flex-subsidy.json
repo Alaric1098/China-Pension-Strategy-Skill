@@ -1,0 +1,498 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "package_id": "cn-pension/chongqing/flex-subsidy-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-50",
+  "topic": "flexible_employment_subsidy",
+  "effective_from": "2024-09-12",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "cq-subsidy-standard",
+      "url": "https://www.cqspb.gov.cn/bm/qrlsbj_63800/jczwgk_080514/jycy/jyyz/gyxgwbtsl/202409/t20240912_13620169.html",
+      "issuing_authority": "重庆市沙坪坝区人力资源和社会保障局（转发市级通知）",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": "重庆市人社局、市财政局优化调整社保补贴通知",
+      "publication_date": "2024-09-12",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "重庆灵活就业社保补贴标准与期限（2/3，3年）",
+      "source_digest": "sha256:95d86980e2f0139296524e5a7291d79fe3e24ee2fafa5a7a3c60f2f9819b27e7"
+    },
+    {
+      "source_id": "cq-base-limits-2025",
+      "url": "https://rlsbj.cq.gov.cn/zwgk_182/zfxxgkml/zcwj_145360/jfxzgfxwj/202509/t20250919_15024385.html",
+      "issuing_authority": "重庆市人力资源和社会保障局、市财政局、市医保局、市税务局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": "渝人社发2025年度基数通知",
+      "publication_date": "2025-09-17",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "2025基数上下限（22017/4404）",
+      "source_digest": "sha256:8d593e052bb9921e4a18f74dddbb415fc8def59d3be910d9208ebc9ed516653f"
+    },
+    {
+      "source_id": "guofa-2005-38",
+      "url": "https://www.gov.cn/zhengce/zhengceku/2008-03/28/content_7376.htm",
+      "issuing_authority": "国务院",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国发〔2005〕38号",
+      "publication_date": "2005-12-03",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业人员缴费比例20%（8%入个人账户）",
+      "source_digest": "sha256:c02c96993045d842ea02e3d788bf33795691a8d330967e0c88d9f6dc301264a4"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "chongqing-subsidy-eligibility",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "chongqing employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-09-12",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "cq-subsidy-standard"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "employment_difficulty_recognized",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "recognized",
+          "input_ref": "employment_difficulty_recognized",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "eligible",
+          "output_field": "subsidy_eligible",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-eligible",
+          "input": {
+            "employment_difficulty_recognized": true
+          },
+          "expected": {
+            "subsidy_eligible": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "chongqing-subsidy-duration",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "chongqing employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-09-12",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "cq-subsidy-standard"
+      ],
+      "rule_type": "DECISION_TABLE",
+      "inputs": [
+        {
+          "input_id": "months_to_retirement",
+          "value_type": "INTEGER",
+          "required": true
+        },
+        {
+          "input_id": "subsidy_months_used",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "within-five-years-of-retirement",
+          "input_ref": "months_to_retirement",
+          "operator": "<",
+          "value_type": "INTEGER",
+          "value": 60
+        },
+        {
+          "condition_id": "months-used-nonnegative",
+          "input_ref": "subsidy_months_used",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "results": [
+        {
+          "result_id": "duration",
+          "output_field": "subsidy_duration_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 36
+          }
+        }
+      ],
+      "parameters": {
+        "standard_duration_months": {
+          "value_type": "INTEGER",
+          "value": 36
+        },
+        "extension_threshold_months": {
+          "value_type": "INTEGER",
+          "value": 60
+        }
+      },
+      "input_domains": {
+        "months_to_retirement": [
+          36,
+          59,
+          60,
+          61
+        ],
+        "subsidy_months_used": [
+          0
+        ]
+      },
+      "decision_rows": [
+        {
+          "row_id": "row-36-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-36",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 36
+            },
+            {
+              "condition_id": "used-zero-36",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-59-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-59",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 59
+            },
+            {
+              "condition_id": "used-zero-59",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 59
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-60-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-60",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 60
+            },
+            {
+              "condition_id": "used-zero-60",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-61-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-61",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 61
+            },
+            {
+              "condition_id": "used-zero-61",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        }
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "v-duration-36",
+          "input": {
+            "months_to_retirement": 36,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        },
+        {
+          "vector_id": "v-duration-59",
+          "input": {
+            "months_to_retirement": 59,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 59
+          }
+        },
+        {
+          "vector_id": "v-duration-60",
+          "input": {
+            "months_to_retirement": 60,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        },
+        {
+          "vector_id": "v-duration-61",
+          "input": {
+            "months_to_retirement": 61,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "chongqing-subsidy-start-offset",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "chongqing employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-09-12",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "cq-subsidy-standard"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "application_month",
+          "value_type": "YEAR_MONTH",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "application-not-predated",
+          "input_ref": "application_month",
+          "operator": ">=",
+          "value_type": "YEAR_MONTH",
+          "value": "2024-01"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "start-offset",
+          "output_field": "subsidy_start_offset_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 1
+          }
+        }
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-start-offset",
+          "input": {
+            "application_month": "2026-08"
+          },
+          "expected": {
+            "subsidy_start_offset_months": 1
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "chongqing-subsidy-total-amount",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "chongqing employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-09-12",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "cq-subsidy-standard",
+        "cq-base-limits-2025"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "pension_paid",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "pension-paid-first",
+          "input_ref": "pension_paid",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "subsidy-amount",
+          "output_field": "monthly_subsidy_total",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "587.20"
+          }
+        }
+      ],
+      "parameters": {
+        "subsidy_ratio": {
+          "value_type": "DECIMAL",
+          "value": "0.6666666667"
+        },
+        "base_floor": {
+          "value_type": "DECIMAL",
+          "value": "4404.00"
+        },
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-amount",
+          "input": {
+            "pension_paid": true
+          },
+          "expected": {
+            "monthly_subsidy_total": "587.20"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:35a91beedff3e06e8bcb25aaf597e6dea34e7a29192c2f8115deca9eedc63ee3"
+}

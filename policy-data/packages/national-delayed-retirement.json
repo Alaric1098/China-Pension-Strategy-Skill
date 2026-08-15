@@ -1,0 +1,392 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "cn-pension/national/delayed-retirement-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN",
+  "topic": "retirement_age",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "effective_from": "2025-01-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "retire-delay-decision-2024",
+      "url": "https://legalinfo.moj.gov.cn/zhfxfzzx/fzzxyw/202409/t20240913_506025.html",
+      "issuing_authority": "全国人民代表大会常务委员会",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "渐进式延迟法定退休年龄的决定",
+      "publication_date": "2024-09-13",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "节奏表、弹性提前、2030最低年限、施行日期",
+      "source_digest": "sha256:ed869e4b75d976ae247da59b3cc3dc89326cf005d3c4d4e2ff38cda3446d0bbf"
+    },
+    {
+      "source_id": "retire-elastic-method-2025",
+      "url": "https://www.gov.cn/zhengce/202501/content_6995749.htm",
+      "issuing_authority": "人力资源社会保障部、中共中央组织部、财政部",
+      "authority_level": "NATIONAL_MINISTRY",
+      "document_number": "实施弹性退休制度暂行办法（答记者问）",
+      "publication_date": "2025-01-01",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "弹性提前/延迟规则",
+      "source_digest": "sha256:51c1d0c08a8652651044fee176213a605d2ee9a5174a2fe7cba9867c3230bed9"
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "rules": [
+    {
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "retirement_age",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "retire-delay-decision-2024"
+      ],
+      "rule_id": "national-delayed-retirement-pace-male-60",
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "gender",
+          "value_type": "STRING",
+          "required": true
+        },
+        {
+          "input_id": "original_retirement_age",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "gender-male",
+          "input_ref": "gender",
+          "operator": "=",
+          "value_type": "STRING",
+          "value": "male"
+        },
+        {
+          "condition_id": "age-60",
+          "input_ref": "original_retirement_age",
+          "operator": "=",
+          "value_type": "INTEGER",
+          "value": 60
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pace",
+          "output_field": "pace_denominator_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 4
+          }
+        },
+        {
+          "result_id": "target",
+          "output_field": "target_age",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 63
+          }
+        }
+      ],
+      "parameters": {
+        "delay_start": {
+          "value_type": "YEAR_MONTH",
+          "value": "2025-01"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-male-60",
+          "input": {
+            "gender": "male",
+            "original_retirement_age": 60
+          },
+          "expected": {
+            "pace_denominator_months": 4,
+            "target_age": 63
+          }
+        }
+      ]
+    },
+    {
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "retirement_age",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "retire-delay-decision-2024"
+      ],
+      "rule_id": "national-delayed-retirement-pace-female-50",
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "gender",
+          "value_type": "STRING",
+          "required": true
+        },
+        {
+          "input_id": "original_retirement_age",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "gender-female",
+          "input_ref": "gender",
+          "operator": "=",
+          "value_type": "STRING",
+          "value": "female"
+        },
+        {
+          "condition_id": "age-50",
+          "input_ref": "original_retirement_age",
+          "operator": "=",
+          "value_type": "INTEGER",
+          "value": 50
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pace",
+          "output_field": "pace_denominator_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 2
+          }
+        },
+        {
+          "result_id": "target",
+          "output_field": "target_age",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 55
+          }
+        }
+      ],
+      "parameters": {
+        "delay_start": {
+          "value_type": "YEAR_MONTH",
+          "value": "2025-01"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-female-50",
+          "input": {
+            "gender": "female",
+            "original_retirement_age": 50
+          },
+          "expected": {
+            "pace_denominator_months": 2,
+            "target_age": 55
+          }
+        }
+      ]
+    },
+    {
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "retirement_age",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "retire-delay-decision-2024"
+      ],
+      "rule_id": "national-delayed-retirement-pace-female-55",
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "gender",
+          "value_type": "STRING",
+          "required": true
+        },
+        {
+          "input_id": "original_retirement_age",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "gender-female",
+          "input_ref": "gender",
+          "operator": "=",
+          "value_type": "STRING",
+          "value": "female"
+        },
+        {
+          "condition_id": "age-55",
+          "input_ref": "original_retirement_age",
+          "operator": "=",
+          "value_type": "INTEGER",
+          "value": 55
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pace",
+          "output_field": "pace_denominator_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 4
+          }
+        },
+        {
+          "result_id": "target",
+          "output_field": "target_age",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 58
+          }
+        }
+      ],
+      "parameters": {
+        "delay_start": {
+          "value_type": "YEAR_MONTH",
+          "value": "2025-01"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-female-55",
+          "input": {
+            "gender": "female",
+            "original_retirement_age": 55
+          },
+          "expected": {
+            "pace_denominator_months": 4,
+            "target_age": 58
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "national-elastic-retirement-window",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "retirement_age",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "retire-elastic-method-2025",
+        "retire-delay-decision-2024"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "months_to_statutory_retirement",
+          "value_type": "INTEGER",
+          "required": false
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "always",
+          "input_ref": "months_to_statutory_retirement",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "results": [
+        {
+          "result_id": "early",
+          "output_field": "elastic_early_max_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 36
+          }
+        },
+        {
+          "result_id": "delay",
+          "output_field": "elastic_delay_max_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 36
+          }
+        }
+      ],
+      "parameters": {
+        "elastic_early_max_months": {
+          "value_type": "INTEGER",
+          "value": 36
+        },
+        "elastic_delay_max_months": {
+          "value_type": "INTEGER",
+          "value": 36
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-elastic",
+          "input": {
+            "months_to_statutory_retirement": 120
+          },
+          "expected": {
+            "elastic_early_max_months": 36,
+            "elastic_delay_max_months": 36
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:7235f252f6e07e42efbec979c2b2265aa59dafa6b397a381875d0fd1440e9f9d"
+}

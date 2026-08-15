@@ -1,0 +1,11 @@
+{
+  "source_id": "beijing-unemployment-rate-page",
+  "url": "https://www.beijing.gov.cn/fuwu/bmfw/bmdh/sb/sybx/sybxbs/sybxdy/202107/t20210705_2429007.html",
+  "issuing_authority": "首都之窗",
+  "authority_level": "BEIJING_MUNICIPAL_GOVERNMENT",
+  "document_number": null,
+  "publication_date": "2021-07-05",
+  "retrieved_at": "2026-08-11T09:00:00Z",
+  "locator": "失业保险缴费基数及比例",
+  "source_digest": "sha256:c6593f87e58b5d05d93b379c4addecff458b22c151bfdc59a712832b6f10b6a7"
+}

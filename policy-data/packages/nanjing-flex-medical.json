@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "package_id": "cn-pension/nanjing/flex-medical-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-3201",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2023-04-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "nj-medical-rate-2023",
+      "url": "https://www.nanjing.gov.cn/hdjl/xwfbh/xwfbhjdgyjdzgjbylbxdwjfldtz/mtbd/202304/t20230411_3885287.html",
+      "issuing_authority": "南京市人民政府门户（新闻发布会）",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": "关于降低职工基本医疗保险单位缴费率的通知",
+      "publication_date": "2023-04-11",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "2023-04-01 起灵活就业医保缴费率由 9% 降为 8%",
+      "source_digest": "sha256:74de64f247300f4f8e28fda53df13784e72b4cff094f8bcd8c20719caadb2d6d"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "nanjing-flex-medical-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "nanjing flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2023-04-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "nj-medical-rate-2023"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.08"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "medical_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.08"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical",
+          "input": {
+            "contribution_base": "5000.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "400.00"
+          }
+        }
+      ]
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "content_digest": "sha256:32d31922e0d17448736d49f3eac85f74d406aa75882f0c2c90af892b2f7d24f7"
+}

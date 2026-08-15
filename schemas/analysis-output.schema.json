@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/china-pension-strategy/analysis-output/1.0.0",
+  "title": "Analysis output document",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "scheme",
+    "as_of",
+    "reconciliation",
+    "scenarios",
+    "recommendation"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0.0" },
+    "case_id": { "type": "string", "minLength": 1 },
+    "scheme": { "type": "string", "minLength": 1 },
+    "as_of": { "type": "string", "format": "date" },
+    "reconciliation": { "type": "object" },
+    "scenarios": { "type": "object" },
+    "recommendation": { "type": ["object", "null"] },
+    "pension_estimation": { "type": ["object", "null"] },
+    "back_payment": { "type": ["object", "null"] },
+    "residents_pension": { "type": ["object", "null"] },
+    "cross_region_comparison": { "type": ["object", "null"] },
+    "sensitivity_analysis": { "type": ["object", "null"] },
+    "personal_pension_tax": { "type": ["object", "null"] }
+  }
+}

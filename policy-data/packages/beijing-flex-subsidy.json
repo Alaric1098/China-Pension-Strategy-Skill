@@ -1,0 +1,716 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "cn-pension/beijing/flex-subsidy-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-11",
+  "topic": "flexible_employment_subsidy",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "effective_from": "2024-10-10",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "content_digest": "sha256:e4e0ffd495d50d4af9030848189a19fe56667213bbcb8874b88a930dc6ec6ef7",
+  "provenance": [
+    {
+      "source_id": "beijing-subsidy-recognition-2024",
+      "url": "https://rsj.beijing.gov.cn/xxgk/2024zcwj/202410/t20241009_3914906.html",
+      "issuing_authority": "北京市人力资源和社会保障局",
+      "authority_level": "BEIJING_HRSS",
+      "document_number": "京人社评发〔2024〕13号",
+      "publication_date": "2024-10-09",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "第五条、第六条、第七条、第十八条",
+      "source_digest": "sha256:fe4528d4250dd004175d0c2c589143436adb739b94abc4e3628ba9cc39051815"
+    },
+    {
+      "source_id": "beijing-subsidy-qa-2026",
+      "url": "https://rsj.beijing.gov.cn/fuwu/zxbs/202601/t20260104_4396682.html",
+      "issuing_authority": "北京市人力资源和社会保障局",
+      "authority_level": "BEIJING_HRSS",
+      "document_number": null,
+      "publication_date": "2026-01-04",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "二、五（补贴期限与起算）",
+      "source_digest": "sha256:e66fbef5ca31a3c5c88e903ff21abd00204d548518ce2b71e707971c4143a3f5"
+    },
+    {
+      "source_id": "beijing-subsidy-disbursement-2025",
+      "url": "https://www.beijing.gov.cn/fuwu/bmfw/bmzt/lhjyry/202507/t20250709_4145233.html",
+      "issuing_authority": "首都之窗",
+      "authority_level": "BEIJING_MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2025-07-09",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "补贴金额与拨付",
+      "source_digest": "sha256:ba8910386069fcd5e90eb1cef6cf31b38c19cbb949c07452fd95af7e94879874"
+    },
+    {
+      "source_id": "beijing-subsidy-cap-2026",
+      "url": "https://www.beijing.gov.cn/fuwu/bmfw/sy/jrts/202604/t20260402_4573222.html",
+      "issuing_authority": "首都之窗",
+      "authority_level": "BEIJING_MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2026-04-02",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业社保补贴问答",
+      "source_digest": "sha256:8dcb28bc3553ff09b9e8d4936c955a662dedf3c4edefe93c9d7a9a0b6b666c8f"
+    },
+    {
+      "source_id": "beijing-2025-base-limits",
+      "url": "https://rsj.beijing.gov.cn/xxgk/2024zcwj/202509/t20250918_4204880.html",
+      "issuing_authority": "北京市人力资源和社会保障局、北京市医疗保障局、国家税务总局北京市税务局",
+      "authority_level": "BEIJING_HRSS",
+      "document_number": "京人社发〔2025〕11号",
+      "publication_date": "2025-09-18",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "一、三（缴费基数上下限与医疗固定费额）",
+      "source_digest": "sha256:12fc29f8dff38e5ecdbf9616c32fcc39c5d70fad6cef4709b74ea3bf16b94e27"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "beijing-subsidy-eligibility",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing employment-difficulty flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "employment_difficulty_recognized",
+          "value_type": "BOOLEAN",
+          "required": true
+        },
+        {
+          "input_id": "employment_registration_days",
+          "value_type": "INTEGER",
+          "required": true
+        },
+        {
+          "input_id": "has_earned_income",
+          "value_type": "BOOLEAN",
+          "required": true
+        },
+        {
+          "input_id": "paid_unemployment_premium_before",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "recognized",
+          "input_ref": "employment_difficulty_recognized",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        },
+        {
+          "condition_id": "registered-thirty-days",
+          "input_ref": "employment_registration_days",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 30
+        },
+        {
+          "condition_id": "has-income",
+          "input_ref": "has_earned_income",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        },
+        {
+          "condition_id": "paid-unemployment-before",
+          "input_ref": "paid_unemployment_premium_before",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "eligible",
+          "output_field": "subsidy_eligible",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2024-10-10",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-subsidy-recognition-2024",
+        "beijing-subsidy-qa-2026"
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-eligible-at-thirty",
+          "input": {
+            "employment_difficulty_recognized": true,
+            "employment_registration_days": 30,
+            "has_earned_income": true,
+            "paid_unemployment_premium_before": true
+          },
+          "expected": {
+            "subsidy_eligible": true
+          }
+        },
+        {
+          "vector_id": "v-eligible-past-thirty",
+          "input": {
+            "employment_difficulty_recognized": true,
+            "employment_registration_days": 45,
+            "has_earned_income": true,
+            "paid_unemployment_premium_before": true
+          },
+          "expected": {
+            "subsidy_eligible": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "beijing-subsidy-duration",
+      "rule_type": "DECISION_TABLE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing employment-difficulty flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "months_to_retirement",
+          "value_type": "INTEGER",
+          "required": true
+        },
+        {
+          "input_id": "subsidy_months_used",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "within-five-years-of-retirement",
+          "input_ref": "months_to_retirement",
+          "operator": "<",
+          "value_type": "INTEGER",
+          "value": 60
+        },
+        {
+          "condition_id": "months-used-nonnegative",
+          "input_ref": "subsidy_months_used",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "results": [
+        {
+          "result_id": "duration",
+          "output_field": "subsidy_duration_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 36
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2024-10-10",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-subsidy-qa-2026",
+        "beijing-subsidy-cap-2026",
+        "beijing-subsidy-recognition-2024"
+      ],
+      "parameters": {
+        "standard_duration_months": {
+          "value_type": "INTEGER",
+          "value": 36
+        },
+        "extension_threshold_months": {
+          "value_type": "INTEGER",
+          "value": 60
+        }
+      },
+      "input_domains": {
+        "months_to_retirement": [
+          36,
+          59,
+          60,
+          61
+        ],
+        "subsidy_months_used": [
+          0
+        ]
+      },
+      "decision_rows": [
+        {
+          "row_id": "row-36-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-36",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 36
+            },
+            {
+              "condition_id": "used-zero-36",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-59-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-59",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 59
+            },
+            {
+              "condition_id": "used-zero-59",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 59
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-60-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-60",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 60
+            },
+            {
+              "condition_id": "used-zero-60",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-61-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-61",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 61
+            },
+            {
+              "condition_id": "used-zero-61",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        }
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "v-duration-59",
+          "input": {
+            "months_to_retirement": 59,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 59
+          }
+        },
+        {
+          "vector_id": "v-duration-60",
+          "input": {
+            "months_to_retirement": 60,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        },
+        {
+          "vector_id": "v-duration-61",
+          "input": {
+            "months_to_retirement": 61,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "beijing-subsidy-start-offset",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing employment-difficulty flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "application_month",
+          "value_type": "YEAR_MONTH",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "application-not-predated",
+          "input_ref": "application_month",
+          "operator": ">=",
+          "value_type": "YEAR_MONTH",
+          "value": "2024-10"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "start-offset",
+          "output_field": "subsidy_start_offset_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 1
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2024-10-10",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-subsidy-qa-2026"
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-start-offset",
+          "input": {
+            "application_month": "2026-08"
+          },
+          "expected": {
+            "subsidy_start_offset_months": 1
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "beijing-subsidy-pension-amount",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing employment-difficulty flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "pension_paid",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "pension-paid-first",
+          "input_ref": "pension_paid",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pension-subsidy",
+          "output_field": "monthly_subsidy_pension",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "954.93"
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-subsidy-disbursement-2025",
+        "beijing-2025-base-limits"
+      ],
+      "parameters": {
+        "pension_subsidy_amount": {
+          "value_type": "DECIMAL",
+          "value": "954.93"
+        },
+        "pension_floor_base": {
+          "value_type": "DECIMAL",
+          "value": "7162.00"
+        },
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        },
+        "subsidy_cap_ratio": {
+          "value_type": "DECIMAL",
+          "value": "0.6666666667"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-pension-subsidy",
+          "input": {
+            "pension_paid": true
+          },
+          "expected": {
+            "monthly_subsidy_pension": "954.93"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "beijing-subsidy-medical-amount",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing employment-difficulty flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "medical_paid",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "medical-paid-first",
+          "input_ref": "medical_paid",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-subsidy",
+          "output_field": "monthly_subsidy_medical",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "389.95"
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-subsidy-disbursement-2025",
+        "beijing-2025-base-limits"
+      ],
+      "parameters": {
+        "medical_subsidy_amount": {
+          "value_type": "DECIMAL",
+          "value": "389.95"
+        },
+        "medical_monthly_fixed": {
+          "value_type": "DECIMAL",
+          "value": "584.92"
+        },
+        "subsidy_cap_ratio": {
+          "value_type": "DECIMAL",
+          "value": "0.6666666667"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical-subsidy",
+          "input": {
+            "medical_paid": true
+          },
+          "expected": {
+            "monthly_subsidy_medical": "389.95"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "beijing-subsidy-unemployment-amount",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing employment-difficulty flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "unemployment_paid",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "unemployment-paid-first",
+          "input_ref": "unemployment_paid",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "unemployment-subsidy",
+          "output_field": "monthly_subsidy_unemployment",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "47.75"
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-subsidy-disbursement-2025",
+        "beijing-2025-base-limits"
+      ],
+      "parameters": {
+        "unemployment_subsidy_amount": {
+          "value_type": "DECIMAL",
+          "value": "47.75"
+        },
+        "unemployment_floor_base": {
+          "value_type": "DECIMAL",
+          "value": "7162.00"
+        },
+        "unemployment_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.01"
+        },
+        "subsidy_cap_ratio": {
+          "value_type": "DECIMAL",
+          "value": "0.6666666667"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-unemployment-subsidy",
+          "input": {
+            "unemployment_paid": true
+          },
+          "expected": {
+            "monthly_subsidy_unemployment": "47.75"
+          }
+        }
+      ]
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null
+}

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/china-pension-strategy/run-manifest/2.0.0",
+  "title": "Immutable analysis run manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "manifest_version", "run_id", "parent_run_id", "created_at",
+    "analysis_mode", "review_statuses", "component_versions", "policy_rulesets",
+    "adapter_versions", "digests", "validation", "publication_status",
+    "input_snapshot_digest", "assumption_set_digest", "objective_digest",
+    "engine_version", "rounding_profile", "validation_suite", "validation_status",
+    "output_digest", "artifact_digests", "warnings_count",
+    "unresolved_conflicts_count", "duration_ms"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0.0" },
+    "manifest_version": { "const": "2.0.0" },
+    "run_id": { "$ref": "#/$defs/id" },
+    "parent_run_id": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "analysis_mode": { "enum": ["LOCAL_MVP", "PRODUCTION"] },
+    "review_statuses": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "enum": ["MVP_REVIEWED", "PRODUCTION_APPROVED"] }
+    },
+    "component_versions": { "$ref": "#/$defs/componentVersions" },
+    "policy_rulesets": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/policyRuleset" } },
+    "adapter_versions": { "$ref": "#/$defs/adapterVersions" },
+    "digests": { "$ref": "#/$defs/digests" },
+    "validation": { "$ref": "#/$defs/validation" },
+    "publication_status": { "enum": ["LOCAL_ONLY", "VALIDATED", "RENDERED", "PUBLISHED"] },
+    "input_snapshot_digest": { "$ref": "#/$defs/digest" },
+    "assumption_set_digest": { "$ref": "#/$defs/digest" },
+    "objective_digest": { "$ref": "#/$defs/digest" },
+    "engine_version": { "$ref": "#/$defs/version" },
+    "rounding_profile": { "$ref": "#/$defs/id" },
+    "validation_suite": { "$ref": "#/$defs/id" },
+    "validation_status": { "const": "passed" },
+    "output_digest": { "$ref": "#/$defs/digest" },
+    "artifact_digests": { "type": "array", "items": { "$ref": "#/$defs/digest" } },
+    "warnings_count": { "type": "integer", "minimum": 0 },
+    "unresolved_conflicts_count": { "type": "integer", "minimum": 0 },
+    "duration_ms": { "type": "integer", "minimum": 0 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "review_statuses": { "contains": { "const": "MVP_REVIEWED" } } }, "required": ["review_statuses"] },
+      "then": {
+        "properties": {
+          "analysis_mode": { "const": "LOCAL_MVP" },
+          "publication_status": { "enum": ["LOCAL_ONLY", "VALIDATED", "RENDERED"] }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "analysis_mode": { "const": "PRODUCTION" } }, "required": ["analysis_mode"] },
+      "then": { "properties": { "review_statuses": { "items": { "const": "PRODUCTION_APPROVED" } } } }
+    }
+  ],
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "componentVersions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engine", "input_schema", "output_schema", "manifest_schema", "rounding_profile"],
+      "properties": {
+        "engine": { "$ref": "#/$defs/version" },
+        "input_schema": { "$ref": "#/$defs/version" },
+        "output_schema": { "$ref": "#/$defs/version" },
+        "manifest_schema": { "const": "2.0.0" },
+        "rounding_profile": { "$ref": "#/$defs/id" }
+      }
+    },
+    "policyRuleset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package_id", "ruleset_id", "version", "digest"],
+      "properties": {
+        "package_id": { "$ref": "#/$defs/id" },
+        "ruleset_id": { "$ref": "#/$defs/id" },
+        "version": { "$ref": "#/$defs/version" },
+        "digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "adapterVersions": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Za-z][A-Za-z0-9_]*$": { "$ref": "#/$defs/version" }
+      },
+      "additionalProperties": false
+    },
+    "digests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "rules", "assumptions", "objective", "output", "artifacts"],
+      "properties": {
+        "input": { "$ref": "#/$defs/digest" },
+        "rules": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/digest" } },
+        "assumptions": { "$ref": "#/$defs/digest" },
+        "objective": { "$ref": "#/$defs/digest" },
+        "output": { "$ref": "#/$defs/digest" },
+        "artifacts": { "type": "array", "items": { "$ref": "#/$defs/digest" } }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_schema_valid", "policy_schema_valid", "output_schema_valid", "invariants_valid"],
+      "properties": {
+        "input_schema_valid": { "const": true },
+        "policy_schema_valid": { "const": true },
+        "output_schema_valid": { "const": true },
+        "invariants_valid": { "const": true }
+      }
+    }
+  }
+}

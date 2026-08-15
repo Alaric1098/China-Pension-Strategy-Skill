@@ -1,0 +1,49 @@
+China Pension Strategy
+Copyright (c) 2026 Alaric1098
+
+License boundaries
+------------------
+
+The following code is licensed under the MIT License in LICENSE:
+
+- src/
+- tests/
+- scripts/
+- schemas/
+- conftest.py
+- audit_architecture.py
+- test_design_contracts.py
+- verify_design_docs.py
+
+The following data, evidence archives, documentation, and project materials are
+made available under CC0 1.0 Universal in LICENSE-DATA:
+
+- policy-data/
+- references/
+- evals/fixtures/
+- docs/
+- README.md
+- SKILL.md
+- CHANGELOG.md
+
+Government materials
+--------------------
+
+This project does not claim copyright in quoted laws, regulations, resolutions,
+decisions, orders, or official translations issued by Chinese state organs.
+Article 5 of the Copyright Law of the People's Republic of China excludes these
+official materials from copyright protection. CC0 applies only to rights the
+project's contributors may hold in the project's selection, structure,
+annotations, and other original material.
+
+Source mirrors
+--------------
+
+Some evidence was retrieved through reposted or mirrored pages for
+cross-verification, including a Tianjin subsidy notice mirrored by a legal
+database and a Guangdong subsidy list reposted by Heyuan authorities. The
+authoritative gov.cn URL recorded in the corresponding source metadata controls.
+If a mirror operator claims rights in its compilation or presentation, its own
+terms continue to apply.
+
+Project home: https://github.com/Alaric1098/China-Pension-Strategy-Skill

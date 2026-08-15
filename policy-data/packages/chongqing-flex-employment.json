@@ -1,0 +1,293 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "package_id": "cn-pension/chongqing/flex-employment-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-50",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2025-01-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "provenance": [
+    {
+      "source_id": "cq-base-limits-2025",
+      "url": "https://rlsbj.cq.gov.cn/zwgk_182/zfxxgkml/zcwj_145360/jfxzgfxwj/202509/t20250919_15024385.html",
+      "issuing_authority": "重庆市人力资源和社会保障局、市财政局、市医保局、市税务局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": "渝人社发2025年度基数通知",
+      "publication_date": "2025-09-17",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "2025基数上下限（22017/4404）",
+      "source_digest": "sha256:8d593e052bb9921e4a18f74dddbb415fc8def59d3be910d9208ebc9ed516653f"
+    },
+    {
+      "source_id": "guofa-2005-38",
+      "url": "https://www.gov.cn/zhengce/zhengceku/2008-03/28/content_7376.htm",
+      "issuing_authority": "国务院",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国发〔2005〕38号",
+      "publication_date": "2005-12-03",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业人员缴费比例20%（8%入个人账户）",
+      "source_digest": "sha256:c02c96993045d842ea02e3d788bf33795691a8d330967e0c88d9f6dc301264a4"
+    },
+    {
+      "source_id": "cq-medical-rate-2025",
+      "url": "https://ylbzj.cq.gov.cn/zwgk_535/zcjd/wzjd/202412/t20241224_14017314_wap.html",
+      "issuing_authority": "重庆市医疗保障局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": "渝医保发〔2024〕47号（政策解读）",
+      "publication_date": "2024-12-24",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "2025 年个人身份参加职工医保：一档 3075 元/年、二档 6765 元/年",
+      "source_digest": "sha256:c2feb2ff17fdae8e54a008bf88ab2cdad1902c670ead82575a5d87b91d5a8e8c"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "chongqing-flex-base-limits",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "chongqing flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "cq-base-limits-2025"
+      ],
+      "rule_type": "PARAMETER_TABLE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "at-or-above-floor",
+          "input_ref": "contribution_base",
+          "operator": ">=",
+          "value_type": "DECIMAL",
+          "value": "4404.00"
+        },
+        {
+          "condition_id": "at-or-below-ceiling",
+          "input_ref": "contribution_base",
+          "operator": "<=",
+          "value_type": "DECIMAL",
+          "value": "22017.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "within-limits",
+          "output_field": "base_within_limits",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "parameters": {
+        "base_floor": {
+          "value_type": "DECIMAL",
+          "value": "4404.00"
+        },
+        "base_ceiling": {
+          "value_type": "DECIMAL",
+          "value": "22017.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-floor",
+          "input": {
+            "contribution_base": "4404.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        },
+        {
+          "vector_id": "v-ceiling",
+          "input": {
+            "contribution_base": "22017.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "chongqing-flex-pension-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "chongqing flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2006-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "guofa-2005-38"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pension-contribution",
+          "output_field": "monthly_pension_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.20"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-pension",
+          "input": {
+            "contribution_base": "4404.00"
+          },
+          "expected": {
+            "monthly_pension_contribution": "880.80"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "chongqing-flex-medical-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "chongqing flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "cq-medical-rate-2025"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "256.25"
+          }
+        }
+      ],
+      "parameters": {
+        "medical_grade": {
+          "value_type": "INTEGER",
+          "value": 1
+        },
+        "medical_monthly_amount_grade1": {
+          "value_type": "DECIMAL",
+          "value": "256.25"
+        },
+        "medical_monthly_amount_grade2": {
+          "value_type": "DECIMAL",
+          "value": "563.75"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical-grade1",
+          "input": {
+            "contribution_base": "4404.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "256.25"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:afaacb42f28d99bdf32fa0319fc963b79957b81e7844f2df6d2acae5626d877a",
+  "transaction_to": null
+}

@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "package_id": "cn-pension/wuhan/flex-medical-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-4201",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2022-11-26",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "wh-medical-rate-2022",
+      "url": "https://www.wuhan.gov.cn/zwgk/xxgk/zcwd/202211/t20221126_2103298.shtml",
+      "issuing_authority": "武汉市医疗保障局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": "政策问答",
+      "publication_date": "2022-11-26",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业人员以缴费基数的 6% 按月缴纳职工基本医疗保险费",
+      "source_digest": "sha256:f5bb99406894f1cc7a5dfd2eb01bd9342d123d01d6f68def373927001ffbc313"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "wuhan-flex-medical-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "wuhan flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2022-11-26",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "wh-medical-rate-2022"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.06"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "medical_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.06"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical",
+          "input": {
+            "contribution_base": "5000.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "300.00"
+          }
+        }
+      ]
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "content_digest": "sha256:d82ca1bd13a95dfbdb5fb31f9c42cba84d6c56e1d7b4a067fd182cdac578a8f0"
+}

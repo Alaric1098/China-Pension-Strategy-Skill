@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/china-pension-strategy/person-input/1.0.0",
+  "title": "Person analysis input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "analysis_mode",
+    "classification",
+    "purpose",
+    "consent_id",
+    "created_at",
+    "expires_at",
+    "deletion_status",
+    "requested_capabilities",
+    "facts"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "case_id": { "$ref": "#/$defs/id" },
+    "region": {
+      "type": "string",
+      "enum": [
+        "beijing", "shanghai", "guangzhou", "shenzhen",
+        "hangzhou", "chengdu", "wuhan", "nanjing", "tianjin", "chongqing"
+      ],
+      "default": "beijing"
+    },
+    "analysis_mode": { "enum": ["LOCAL_MVP", "PRODUCTION"] },
+    "classification": { "enum": ["S1-INTERNAL", "S2-CONFIDENTIAL"] },
+    "purpose": { "const": "pension_strategy_analysis" },
+    "consent_id": { "$ref": "#/$defs/id" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "deletion_status": { "enum": ["ACTIVE", "EXPIRED", "DELETED"] },
+    "requested_capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/capability" }
+    },
+    "facts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fact" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "capability": {
+      "enum": [
+        "CONTRIBUTION_RECONCILIATION",
+        "CONTRIBUTION_GAP",
+        "FLEXIBLE_EMPLOYMENT_CONTRIBUTION",
+        "SUBSIDY_ELIGIBILITY",
+        "SUBSIDY_TIMING",
+        "SCENARIO_COMPARISON",
+        "RECOMMENDATION",
+        "RETIREMENT_AGE",
+        "PENSION_ESTIMATION",
+        "BACK_PAYMENT",
+        "RESIDENTS_PENSION",
+        "CROSS_REGION_COMPARISON",
+        "SENSITIVITY_ANALYSIS",
+        "PERSONAL_PENSION_TAX"
+      ]
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_id", "fact_type", "value", "as_of_date", "source_ref", "required_for"],
+      "properties": {
+        "fact_id": { "$ref": "#/$defs/id" },
+        "fact_type": { "$ref": "#/$defs/id" },
+        "value": { "type": ["string", "number", "integer", "boolean", "null"] },
+        "as_of_date": { "type": "string", "format": "date" },
+        "source_ref": { "$ref": "#/$defs/id" },
+        "required_for": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/capability" }
+        }
+      }
+    }
+  }
+}

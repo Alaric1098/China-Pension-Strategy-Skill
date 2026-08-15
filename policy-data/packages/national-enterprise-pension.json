@@ -1,0 +1,175 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "cn-pension/national/enterprise-minimum-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN",
+  "topic": "minimum_contribution",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "effective_from": "2011-07-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "content_digest": "sha256:8aad1a0d88a32fad3c97e6edfab1ee5c62d396fc716229051e81d4e1b949958f",
+  "provenance": [
+    {
+      "source_id": "social-insurance-law-2010",
+      "url": "https://www.gov.cn/zhengce/2010-10/28/content_2602247.htm",
+      "issuing_authority": "全国人民代表大会常务委员会",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "主席令第三十五号",
+      "publication_date": "2010-10-28",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "第二章基本养老保险 第十六条",
+      "source_digest": "sha256:dd350372582fe17a15d1364172d541a26a3db72dc444be2ba9960b3a9df3bd04"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "national-minimum-180-months",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "minimum_contribution",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "inputs": [
+        {
+          "input_id": "confirmed_months",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "confirmed-nonnegative",
+          "input_ref": "confirmed_months",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "results": [
+        {
+          "result_id": "requirement",
+          "output_field": "requirement_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 180
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2011-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "social-insurance-law-2010"
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-179",
+          "input": {
+            "confirmed_months": 179
+          },
+          "expected": {
+            "requirement_months": 180
+          }
+        },
+        {
+          "vector_id": "v-180",
+          "input": {
+            "confirmed_months": 180
+          },
+          "expected": {
+            "requirement_months": 180
+          }
+        },
+        {
+          "vector_id": "v-181",
+          "input": {
+            "confirmed_months": 181
+          },
+          "expected": {
+            "requirement_months": 180
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "national-continue-until-full",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "minimum_contribution",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "inputs": [
+        {
+          "input_id": "confirmed_months",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "below-minimum",
+          "input_ref": "confirmed_months",
+          "operator": "<",
+          "value_type": "INTEGER",
+          "value": 180
+        }
+      ],
+      "results": [
+        {
+          "result_id": "continue",
+          "output_field": "may_continue_contributing",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2011-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "social-insurance-law-2010"
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-179-continue",
+          "input": {
+            "confirmed_months": 179
+          },
+          "expected": {
+            "may_continue_contributing": true
+          }
+        }
+      ]
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null
+}

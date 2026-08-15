@@ -1,0 +1,167 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "cn-pension/national/personal-pension-tax-2026.1",
+  "version": "1.0.0",
+  "scheme": "personal_pension",
+  "jurisdiction": "CN",
+  "topic": "personal_pension_tax",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "effective_from": "2024-12-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "personal-pension-tax-2024-21",
+      "url": "https://fgk.chinatax.gov.cn/zcfgk/c102416/c5237110/content.html",
+      "issuing_authority": "财政部、国家税务总局",
+      "authority_level": "NATIONAL_MINISTRY",
+      "document_number": "财政部 税务总局公告2024年第21号",
+      "publication_date": "2024-12-01",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "缴费环节12000元限额；领取环节3%单独计税",
+      "source_digest": "sha256:1bd29ff979410e65cb9064ff1c61de7469c27387fcfdeb1423babdb5b96aca5c"
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "rules": [
+    {
+      "rule_id": "personal-pension-contribution-limit",
+      "scheme": "personal_pension",
+      "topic": "personal_pension_tax",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "individual participants",
+      "exceptions": [],
+      "effective_from": "2024-12-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MINISTRY_RULE",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "personal-pension-tax-2024-21"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "months",
+          "value_type": "INTEGER",
+          "required": false
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "always",
+          "input_ref": "months",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "results": [
+        {
+          "result_id": "limit",
+          "output_field": "annual_contribution_limit",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "12000.00"
+          }
+        }
+      ],
+      "parameters": {
+        "annual_limit": {
+          "value_type": "DECIMAL",
+          "value": "12000.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-limit",
+          "input": {
+            "months": 12
+          },
+          "expected": {
+            "annual_contribution_limit": "12000.00"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "personal-pension-withdrawal-tax-rate",
+      "scheme": "personal_pension",
+      "topic": "personal_pension_tax",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "individual participants",
+      "exceptions": [],
+      "effective_from": "2024-12-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MINISTRY_RULE",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "personal-pension-tax-2024-21"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "months",
+          "value_type": "INTEGER",
+          "required": false
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "always",
+          "input_ref": "months",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "results": [
+        {
+          "result_id": "rate",
+          "output_field": "withdrawal_tax_rate",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "0.03"
+          }
+        }
+      ],
+      "parameters": {
+        "withdrawal_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.03"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-rate",
+          "input": {
+            "months": 12
+          },
+          "expected": {
+            "withdrawal_tax_rate": "0.03"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:b5a470998436fd5c65a78fd426f85ae590ebef0b4669928c6ce7cf84d5d6aca4"
+}

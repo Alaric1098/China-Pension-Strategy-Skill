@@ -1,0 +1,497 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "cn-pension/tianjin/flex-subsidy-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-12",
+  "topic": "flexible_employment_subsidy",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "effective_from": "2025-01-01",
+  "effective_to": "2027-12-31",
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "tj-subsidy-standard",
+      "url": "https://hrss.tj.gov.cn/zhengwugongkai/zhengcezhinan/zxwjnew/202501/t20250108_6827946.html",
+      "issuing_authority": "天津市人力资源和社会保障局、市财政局、市医保局、市税务局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": "津人社规2025补贴通知（完善就业困难人员灵活就业社会保险补贴政策）",
+      "publication_date": "2024-12-31",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "二、补贴标准 三、补贴期限",
+      "source_digest": "sha256:53d4e24f422d3e65ff65b278a517ac11341a04a45156375ef414625a04cb787b"
+    },
+    {
+      "source_id": "tj-base-limits-2025",
+      "url": "https://hrss.tj.gov.cn/zhengwugongkai/zhengcezhinan/zxwjnew/202509/t20250918_7136642.html",
+      "issuing_authority": "天津市人力资源和社会保障局、市医保局、市税务局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": "津人社发2025年度标准通知",
+      "publication_date": "2025-09-18",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "2025基数上下限（5124/25620）",
+      "source_digest": "sha256:bf25f841925bb4fb7336830628d6c12445e2a45e6093a9793bf567e9f32f087e"
+    },
+    {
+      "source_id": "guofa-2005-38",
+      "url": "https://www.gov.cn/zhengce/zhengceku/2008-03/28/content_7376.htm",
+      "issuing_authority": "国务院",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国发〔2005〕38号",
+      "publication_date": "2005-12-03",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业人员缴费比例20%（8%入个人账户）",
+      "source_digest": "sha256:c02c96993045d842ea02e3d788bf33795691a8d330967e0c88d9f6dc301264a4"
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "rules": [
+    {
+      "rule_id": "tianjin-subsidy-eligibility",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "tianjin employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "tj-subsidy-standard"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "employment_difficulty_recognized",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "recognized",
+          "input_ref": "employment_difficulty_recognized",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "eligible",
+          "output_field": "subsidy_eligible",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-eligible",
+          "input": {
+            "employment_difficulty_recognized": true
+          },
+          "expected": {
+            "subsidy_eligible": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "tianjin-subsidy-duration",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "tianjin employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "tj-subsidy-standard"
+      ],
+      "rule_type": "DECISION_TABLE",
+      "inputs": [
+        {
+          "input_id": "months_to_retirement",
+          "value_type": "INTEGER",
+          "required": true
+        },
+        {
+          "input_id": "subsidy_months_used",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "within-five-years",
+          "input_ref": "months_to_retirement",
+          "operator": "<",
+          "value_type": "INTEGER",
+          "value": 60
+        },
+        {
+          "condition_id": "used-nonnegative",
+          "input_ref": "subsidy_months_used",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "results": [
+        {
+          "result_id": "duration",
+          "output_field": "subsidy_duration_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 36
+          }
+        }
+      ],
+      "parameters": {
+        "standard_duration_months": {
+          "value_type": "INTEGER",
+          "value": 36
+        },
+        "extension_threshold_months": {
+          "value_type": "INTEGER",
+          "value": 60
+        }
+      },
+      "input_domains": {
+        "months_to_retirement": [
+          36,
+          59,
+          60,
+          61
+        ],
+        "subsidy_months_used": [
+          0
+        ]
+      },
+      "decision_rows": [
+        {
+          "row_id": "row-36",
+          "conditions": [
+            {
+              "condition_id": "ret-36",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 36
+            },
+            {
+              "condition_id": "used0-36",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-59",
+          "conditions": [
+            {
+              "condition_id": "ret-59",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 59
+            },
+            {
+              "condition_id": "used0-59",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 59
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-60",
+          "conditions": [
+            {
+              "condition_id": "ret-60",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 60
+            },
+            {
+              "condition_id": "used0-60",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-61",
+          "conditions": [
+            {
+              "condition_id": "ret-61",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 61
+            },
+            {
+              "condition_id": "used0-61",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        }
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "v-dur-36",
+          "input": {
+            "months_to_retirement": 36,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        },
+        {
+          "vector_id": "v-dur-59",
+          "input": {
+            "months_to_retirement": 59,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 59
+          }
+        },
+        {
+          "vector_id": "v-dur-60",
+          "input": {
+            "months_to_retirement": 60,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        },
+        {
+          "vector_id": "v-dur-61",
+          "input": {
+            "months_to_retirement": 61,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "tianjin-subsidy-start-offset",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "tianjin employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "tj-subsidy-standard"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "application_month",
+          "value_type": "YEAR_MONTH",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "not-predated",
+          "input_ref": "application_month",
+          "operator": ">=",
+          "value_type": "YEAR_MONTH",
+          "value": "2025-01"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "start-offset",
+          "output_field": "subsidy_start_offset_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 1
+          }
+        }
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-start",
+          "input": {
+            "application_month": "2026-08"
+          },
+          "expected": {
+            "subsidy_start_offset_months": 1
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "tianjin-subsidy-total-amount",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "tianjin employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "tj-subsidy-standard"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "pension_paid",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "pension-paid",
+          "input_ref": "pension_paid",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "amount",
+          "output_field": "monthly_subsidy_total",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "600.00"
+          }
+        }
+      ],
+      "parameters": {
+        "pension_subsidy_amount": {
+          "value_type": "DECIMAL",
+          "value": "600.00"
+        },
+        "medical_subsidy_amount": {
+          "value_type": "DECIMAL",
+          "value": "200.00"
+        },
+        "both_subsidy_amount": {
+          "value_type": "DECIMAL",
+          "value": "800.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-amount",
+          "input": {
+            "pension_paid": true
+          },
+          "expected": {
+            "monthly_subsidy_total": "600.00"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:f21e0ca0addffe6da1dcb8acb91cc3bb6bdd0f0294869a866655f2a839aeb0ad"
+}

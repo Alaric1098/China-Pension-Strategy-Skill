@@ -1,0 +1,392 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/china-pension-strategy/policy-package/1.0.0",
+  "title": "Executable policy package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "package_id", "version", "scheme", "jurisdiction", "topic",
+    "review_status", "execution_modes", "local_only", "engine_compatibility",
+    "effective_from", "effective_to", "transaction_from", "transaction_to",
+    "content_digest", "provenance", "rules", "engineering_review", "production_approval"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "package_id": { "$ref": "#/$defs/plainId" },
+    "version": { "$ref": "#/$defs/version" },
+    "scheme": { "$ref": "#/$defs/id" },
+    "jurisdiction": { "$ref": "#/$defs/id" },
+    "topic": { "$ref": "#/$defs/id" },
+    "review_status": { "enum": ["MVP_REVIEWED", "PRODUCTION_APPROVED"] },
+    "execution_modes": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "enum": ["LOCAL_MVP", "PRODUCTION"] }
+    },
+    "local_only": { "type": "boolean" },
+    "historical": { "type": "boolean", "default": false },
+    "engine_compatibility": { "type": "string", "minLength": 1 },
+    "effective_from": { "type": "string", "format": "date" },
+    "effective_to": { "type": ["string", "null"], "format": "date" },
+    "transaction_from": { "type": "string", "format": "date-time" },
+    "transaction_to": { "type": ["string", "null"], "format": "date-time" },
+    "content_digest": { "$ref": "#/$defs/digest" },
+    "provenance": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/provenance" } },
+    "rules": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/rule" } },
+    "engineering_review": { "$ref": "#/$defs/engineeringReview" },
+    "production_approval": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/productionApproval" }]
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "review_status": { "const": "MVP_REVIEWED" } }, "required": ["review_status"] },
+      "then": {
+        "properties": {
+          "execution_modes": { "const": ["LOCAL_MVP"] },
+          "local_only": { "const": true },
+          "production_approval": { "type": "null" },
+          "engineering_review": {
+            "allOf": [
+              { "$ref": "#/$defs/engineeringReview" },
+              { "properties": { "schema_validation_passed": { "const": true }, "rule_tests_passed": { "const": true } } }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "review_status": { "const": "PRODUCTION_APPROVED" } }, "required": ["review_status"] },
+      "then": {
+        "properties": {
+          "execution_modes": { "contains": { "const": "PRODUCTION" } },
+          "local_only": { "const": false },
+          "production_approval": { "$ref": "#/$defs/productionApproval" },
+          "engineering_review": {
+            "allOf": [
+              { "$ref": "#/$defs/engineeringReview" },
+              { "properties": { "schema_validation_passed": { "const": true }, "rule_tests_passed": { "const": true } } }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "plainId": { "type": "string", "minLength": 1, "pattern": "^[^:]+$" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "url", "issuing_authority", "authority_level", "document_number", "publication_date", "retrieved_at", "locator", "source_digest"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/id" },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://([A-Za-z0-9-]+\\.)*gov\\.cn(?::[0-9]+)?(?:/|$)"
+        },
+        "issuing_authority": { "$ref": "#/$defs/id" },
+        "authority_level": {
+          "enum": ["NATIONAL_GOVERNMENT", "NATIONAL_MINISTRY", "PROVINCIAL_HRSS", "BEIJING_MUNICIPAL_GOVERNMENT", "BEIJING_HRSS", "MUNICIPAL_GOVERNMENT", "MUNICIPAL_HRSS"]
+        },
+        "document_number": { "type": ["string", "null"] },
+        "publication_date": { "type": "string", "format": "date" },
+        "retrieved_at": { "type": "string", "format": "date-time" },
+        "locator": { "$ref": "#/$defs/id" },
+        "source_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule_id", "rule_type", "scheme", "topic", "jurisdiction_role", "population_scope",
+        "inputs", "conditions", "results", "exceptions", "effective_from", "effective_to",
+        "transaction_from", "transaction_to", "legal_hierarchy", "explicit_override_refs",
+        "source_refs", "parameters", "test_vectors"
+      ],
+      "properties": {
+        "rule_id": { "$ref": "#/$defs/plainId" },
+        "rule_type": { "enum": ["POLICY_RULE", "DECISION_TABLE", "PARAMETER_TABLE"] },
+        "scheme": { "$ref": "#/$defs/id" },
+        "topic": { "$ref": "#/$defs/id" },
+        "jurisdiction_role": { "enum": ["NATIONAL_BASELINE", "LOCAL_IMPLEMENTATION", "LOCAL_EXCEPTION"] },
+        "population_scope": { "$ref": "#/$defs/id" },
+        "inputs": { "type": "array", "minItems": 1, "maxItems": 12, "items": { "$ref": "#/$defs/ruleInput" } },
+        "conditions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/ruleCondition" } },
+        "results": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/ruleResult" } },
+        "exceptions": { "type": "array", "items": { "$ref": "#/$defs/ruleException" } },
+        "effective_from": { "type": "string", "format": "date" },
+        "effective_to": { "type": ["string", "null"], "format": "date" },
+        "transaction_from": { "type": "string", "format": "date-time" },
+        "transaction_to": { "type": ["string", "null"], "format": "date-time" },
+        "legal_hierarchy": {
+          "enum": ["NATIONAL_LAW", "NATIONAL_REGULATION", "MINISTRY_RULE", "MUNICIPAL_REGULATION", "MUNICIPAL_IMPLEMENTING_RULE"]
+        },
+        "explicit_override_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[^:]+(:[^:]+)?$" }
+        },
+        "source_refs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "parameters": {
+          "type": "object",
+          "patternProperties": { "^[A-Za-z][A-Za-z0-9_]*$": { "$ref": "#/$defs/typedParameter" } },
+          "additionalProperties": false
+        },
+        "test_vectors": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/testVector" } },
+        "input_domains": { "$ref": "#/$defs/inputDomains" },
+        "decision_rows": { "type": "array", "minItems": 1, "maxItems": 100000, "items": { "$ref": "#/$defs/decisionRow" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "rule_type": { "const": "DECISION_TABLE" } }, "required": ["rule_type"] },
+          "then": { "required": ["input_domains", "decision_rows"] },
+          "else": {
+            "properties": {
+              "input_domains": false,
+              "decision_rows": false
+            }
+          }
+        }
+      ]
+    },
+    "valueType": {
+      "enum": ["STRING", "INTEGER", "DECIMAL", "BOOLEAN", "DATE", "YEAR_MONTH", "NULL"]
+    },
+    "typedValue": {
+      "type": ["string", "number", "integer", "boolean", "null"]
+    },
+    "typedValueConsistency": {
+      "allOf": [
+        {
+          "if": { "properties": { "value_type": { "const": "DECIMAL" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "type": "string", "pattern": "^-?(0|[1-9][0-9]*)\\.[0-9]+$" } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "INTEGER" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "type": "integer" } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "BOOLEAN" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "type": "boolean" } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "STRING" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "type": "string" } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "DATE" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "type": "string", "format": "date" } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "YEAR_MONTH" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "NULL" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "type": "null" } } }
+        }
+      ]
+    },
+    "ruleInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_id", "value_type", "required"],
+      "properties": {
+        "input_id": { "$ref": "#/$defs/id" },
+        "value_type": { "$ref": "#/$defs/valueType" },
+        "required": { "type": "boolean" }
+      }
+    },
+    "ruleCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["condition_id", "input_ref", "operator", "value_type", "value"],
+      "properties": {
+        "condition_id": { "$ref": "#/$defs/id" },
+        "input_ref": { "$ref": "#/$defs/id" },
+        "operator": { "enum": ["=", "!=", "<", "<=", ">", ">="] },
+        "value_type": { "$ref": "#/$defs/valueType" },
+        "value": { "$ref": "#/$defs/typedValue" }
+      },
+      "allOf": [{ "$ref": "#/$defs/typedValueConsistency" }]
+    },
+    "ruleResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result_id", "output_field", "value_type", "value"],
+      "properties": {
+        "result_id": { "$ref": "#/$defs/id" },
+        "output_field": { "$ref": "#/$defs/id" },
+        "value_type": { "$ref": "#/$defs/valueType" },
+        "value": { "$ref": "#/$defs/valueExpression" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "value_type": { "const": "DECIMAL" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "properties": { "value_type": { "const": "DECIMAL" } }, "required": ["value_type"] } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "INTEGER" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "properties": { "value_type": { "const": "INTEGER" } }, "required": ["value_type"] } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "BOOLEAN" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "properties": { "value_type": { "const": "BOOLEAN" } }, "required": ["value_type"] } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "STRING" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "properties": { "value_type": { "const": "STRING" } }, "required": ["value_type"] } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "DATE" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "properties": { "value_type": { "const": "DATE" } }, "required": ["value_type"] } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "YEAR_MONTH" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "properties": { "value_type": { "const": "YEAR_MONTH" } }, "required": ["value_type"] } } }
+        },
+        {
+          "if": { "properties": { "value_type": { "const": "NULL" } }, "required": ["value_type"] },
+          "then": { "properties": { "value": { "properties": { "value_type": { "const": "NULL" } }, "required": ["value_type"] } } }
+        }
+      ]
+    },
+    "valueExpression": {
+      "oneOf": [
+        { "$ref": "#/$defs/literalExpression" },
+        { "$ref": "#/$defs/referenceExpression" },
+        { "$ref": "#/$defs/operatorExpression" }
+      ]
+    },
+    "literalExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value_type", "value"],
+      "properties": {
+        "kind": { "const": "LITERAL" },
+        "value_type": { "$ref": "#/$defs/valueType" },
+        "value": { "$ref": "#/$defs/typedValue" }
+      },
+      "allOf": [{ "$ref": "#/$defs/typedValueConsistency" }]
+    },
+    "referenceExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reference_type", "reference_id", "value_type"],
+      "properties": {
+        "kind": { "const": "REFERENCE" },
+        "reference_type": { "enum": ["INPUT", "PARAMETER"] },
+        "reference_id": { "$ref": "#/$defs/id" },
+        "value_type": { "$ref": "#/$defs/valueType" }
+      }
+    },
+    "operatorExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "operator", "value_type", "operands"],
+      "properties": {
+        "kind": { "const": "EXPRESSION" },
+        "operator": { "enum": ["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "FLOOR_DIVIDE", "POWER", "MIN", "MAX"] },
+        "value_type": { "$ref": "#/$defs/valueType" },
+        "operands": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/valueExpression" }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "operator": { "enum": ["SUBTRACT", "DIVIDE", "FLOOR_DIVIDE", "POWER"] } }, "required": ["operator"] },
+          "then": { "properties": { "operands": { "maxItems": 2 } } }
+        }
+      ]
+    },
+    "ruleException": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exception_id", "condition_refs", "effect", "result_refs"],
+      "properties": {
+        "exception_id": { "$ref": "#/$defs/id" },
+        "condition_refs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "effect": { "enum": ["EXCLUDE", "OVERRIDE"] },
+        "result_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "typedParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value_type", "value"],
+      "properties": {
+        "value_type": { "$ref": "#/$defs/valueType" },
+        "value": { "$ref": "#/$defs/typedValue" }
+      },
+      "allOf": [{ "$ref": "#/$defs/typedValueConsistency" }]
+    },
+    "inputDomains": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 12,
+      "propertyNames": { "pattern": "^[A-Za-z][A-Za-z0-9_]*$" },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 256,
+        "uniqueItems": true,
+        "items": { "$ref": "#/$defs/typedValue" }
+      }
+    },
+    "decisionRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["row_id", "conditions", "results"],
+      "properties": {
+        "row_id": { "$ref": "#/$defs/id" },
+        "conditions": { "type": "array", "items": { "$ref": "#/$defs/ruleCondition" } },
+        "results": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/ruleResult" } }
+      }
+    },
+    "testVector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vector_id", "input", "expected"],
+      "properties": {
+        "vector_id": { "$ref": "#/$defs/id" },
+        "input": { "$ref": "#/$defs/vectorValues" },
+        "expected": { "$ref": "#/$defs/vectorValues" }
+      }
+    },
+    "vectorValues": {
+      "type": "object",
+      "minProperties": 1,
+      "patternProperties": { "^[A-Za-z][A-Za-z0-9_]*$": { "type": ["string", "number", "integer", "boolean", "null"] } },
+      "additionalProperties": false
+    },
+    "engineeringReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer_id", "reviewed_at", "schema_validation_passed", "rule_tests_passed"],
+      "properties": {
+        "reviewer_id": { "$ref": "#/$defs/id" },
+        "reviewed_at": { "type": "string", "format": "date-time" },
+        "schema_validation_passed": { "type": "boolean" },
+        "rule_tests_passed": { "type": "boolean" }
+      }
+    },
+    "productionApproval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain_reviewer_id", "approver_ids", "approved_at", "signature", "published_at"],
+      "properties": {
+        "domain_reviewer_id": { "$ref": "#/$defs/id" },
+        "approver_ids": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "approved_at": { "type": "string", "format": "date-time" },
+        "signature": { "type": "string", "pattern": "^sig:.+" },
+        "published_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

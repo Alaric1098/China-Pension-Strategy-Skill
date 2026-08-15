@@ -1,0 +1,508 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "cn-pension/national/pension-place-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN",
+  "topic": "pension_place",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "effective_from": "2010-01-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "guoban-2009-66-transfer",
+      "url": "https://www.beijing.gov.cn/zhengce/gwywj/201001/t20100101_781119.html",
+      "issuing_authority": "国务院办公厅（转发人社部、财政部暂行办法）",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国办发〔2009〕66号",
+      "publication_date": "2009-12-29",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "第六条（待遇领取地确定）",
+      "source_digest": "sha256:79d87c8af0cdd65df477eeb912eba8fedf49d4dc0994698de2c362dadfadb58a"
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "rules": [
+    {
+      "rule_id": "national-pension-place",
+      "rule_type": "DECISION_TABLE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "pension_place",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "inputs": [
+        {
+          "input_id": "relation_in_home_region",
+          "value_type": "BOOLEAN",
+          "required": true
+        },
+        {
+          "input_id": "current_region_over_10y",
+          "value_type": "BOOLEAN",
+          "required": true
+        },
+        {
+          "input_id": "has_prior_region_over_10y",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "any-bool",
+          "input_ref": "relation_in_home_region",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "place",
+          "output_field": "pension_place_rule",
+          "value_type": "STRING",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "STRING",
+            "value": "HOME_REGION"
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2010-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "guoban-2009-66-transfer"
+      ],
+      "parameters": {},
+      "input_domains": {
+        "relation_in_home_region": [
+          true,
+          false
+        ],
+        "current_region_over_10y": [
+          true,
+          false
+        ],
+        "has_prior_region_over_10y": [
+          true,
+          false
+        ]
+      },
+      "decision_rows": [
+        {
+          "row_id": "h1-c1-p1",
+          "conditions": [
+            {
+              "condition_id": "home-h1-c1-p1",
+              "input_ref": "relation_in_home_region",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            },
+            {
+              "condition_id": "cur-h1-c1-p1",
+              "input_ref": "current_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            },
+            {
+              "condition_id": "prior-h1-c1-p1",
+              "input_ref": "has_prior_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            }
+          ],
+          "results": [
+            {
+              "result_id": "place",
+              "output_field": "pension_place_rule",
+              "value_type": "STRING",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "STRING",
+                "value": "HOME_REGION"
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "h1-c1-p0",
+          "conditions": [
+            {
+              "condition_id": "home-h1-c1-p0",
+              "input_ref": "relation_in_home_region",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            },
+            {
+              "condition_id": "cur-h1-c1-p0",
+              "input_ref": "current_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            },
+            {
+              "condition_id": "prior-h1-c1-p0",
+              "input_ref": "has_prior_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            }
+          ],
+          "results": [
+            {
+              "result_id": "place",
+              "output_field": "pension_place_rule",
+              "value_type": "STRING",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "STRING",
+                "value": "HOME_REGION"
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "h1-c0-p1",
+          "conditions": [
+            {
+              "condition_id": "home-h1-c0-p1",
+              "input_ref": "relation_in_home_region",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            },
+            {
+              "condition_id": "cur-h1-c0-p1",
+              "input_ref": "current_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            },
+            {
+              "condition_id": "prior-h1-c0-p1",
+              "input_ref": "has_prior_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            }
+          ],
+          "results": [
+            {
+              "result_id": "place",
+              "output_field": "pension_place_rule",
+              "value_type": "STRING",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "STRING",
+                "value": "HOME_REGION"
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "h1-c0-p0",
+          "conditions": [
+            {
+              "condition_id": "home-h1-c0-p0",
+              "input_ref": "relation_in_home_region",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            },
+            {
+              "condition_id": "cur-h1-c0-p0",
+              "input_ref": "current_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            },
+            {
+              "condition_id": "prior-h1-c0-p0",
+              "input_ref": "has_prior_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            }
+          ],
+          "results": [
+            {
+              "result_id": "place",
+              "output_field": "pension_place_rule",
+              "value_type": "STRING",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "STRING",
+                "value": "HOME_REGION"
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "h0-c1-p1",
+          "conditions": [
+            {
+              "condition_id": "home-h0-c1-p1",
+              "input_ref": "relation_in_home_region",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            },
+            {
+              "condition_id": "cur-h0-c1-p1",
+              "input_ref": "current_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            },
+            {
+              "condition_id": "prior-h0-c1-p1",
+              "input_ref": "has_prior_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            }
+          ],
+          "results": [
+            {
+              "result_id": "place",
+              "output_field": "pension_place_rule",
+              "value_type": "STRING",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "STRING",
+                "value": "CURRENT_REGION"
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "h0-c1-p0",
+          "conditions": [
+            {
+              "condition_id": "home-h0-c1-p0",
+              "input_ref": "relation_in_home_region",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            },
+            {
+              "condition_id": "cur-h0-c1-p0",
+              "input_ref": "current_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            },
+            {
+              "condition_id": "prior-h0-c1-p0",
+              "input_ref": "has_prior_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            }
+          ],
+          "results": [
+            {
+              "result_id": "place",
+              "output_field": "pension_place_rule",
+              "value_type": "STRING",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "STRING",
+                "value": "CURRENT_REGION"
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "h0-c0-p1",
+          "conditions": [
+            {
+              "condition_id": "home-h0-c0-p1",
+              "input_ref": "relation_in_home_region",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            },
+            {
+              "condition_id": "cur-h0-c0-p1",
+              "input_ref": "current_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            },
+            {
+              "condition_id": "prior-h0-c0-p1",
+              "input_ref": "has_prior_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": true
+            }
+          ],
+          "results": [
+            {
+              "result_id": "place",
+              "output_field": "pension_place_rule",
+              "value_type": "STRING",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "STRING",
+                "value": "PRIOR_OVER10_REGION"
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "h0-c0-p0",
+          "conditions": [
+            {
+              "condition_id": "home-h0-c0-p0",
+              "input_ref": "relation_in_home_region",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            },
+            {
+              "condition_id": "cur-h0-c0-p0",
+              "input_ref": "current_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            },
+            {
+              "condition_id": "prior-h0-c0-p0",
+              "input_ref": "has_prior_region_over_10y",
+              "operator": "=",
+              "value_type": "BOOLEAN",
+              "value": false
+            }
+          ],
+          "results": [
+            {
+              "result_id": "place",
+              "output_field": "pension_place_rule",
+              "value_type": "STRING",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "STRING",
+                "value": "HOME_FALLBACK"
+              }
+            }
+          ]
+        }
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "v-h1-c1-p1",
+          "input": {
+            "relation_in_home_region": true,
+            "current_region_over_10y": true,
+            "has_prior_region_over_10y": true
+          },
+          "expected": {
+            "pension_place_rule": "HOME_REGION"
+          }
+        },
+        {
+          "vector_id": "v-h1-c1-p0",
+          "input": {
+            "relation_in_home_region": true,
+            "current_region_over_10y": true,
+            "has_prior_region_over_10y": false
+          },
+          "expected": {
+            "pension_place_rule": "HOME_REGION"
+          }
+        },
+        {
+          "vector_id": "v-h1-c0-p1",
+          "input": {
+            "relation_in_home_region": true,
+            "current_region_over_10y": false,
+            "has_prior_region_over_10y": true
+          },
+          "expected": {
+            "pension_place_rule": "HOME_REGION"
+          }
+        },
+        {
+          "vector_id": "v-h1-c0-p0",
+          "input": {
+            "relation_in_home_region": true,
+            "current_region_over_10y": false,
+            "has_prior_region_over_10y": false
+          },
+          "expected": {
+            "pension_place_rule": "HOME_REGION"
+          }
+        },
+        {
+          "vector_id": "v-h0-c1-p1",
+          "input": {
+            "relation_in_home_region": false,
+            "current_region_over_10y": true,
+            "has_prior_region_over_10y": true
+          },
+          "expected": {
+            "pension_place_rule": "CURRENT_REGION"
+          }
+        },
+        {
+          "vector_id": "v-h0-c1-p0",
+          "input": {
+            "relation_in_home_region": false,
+            "current_region_over_10y": true,
+            "has_prior_region_over_10y": false
+          },
+          "expected": {
+            "pension_place_rule": "CURRENT_REGION"
+          }
+        },
+        {
+          "vector_id": "v-h0-c0-p1",
+          "input": {
+            "relation_in_home_region": false,
+            "current_region_over_10y": false,
+            "has_prior_region_over_10y": true
+          },
+          "expected": {
+            "pension_place_rule": "PRIOR_OVER10_REGION"
+          }
+        },
+        {
+          "vector_id": "v-h0-c0-p0",
+          "input": {
+            "relation_in_home_region": false,
+            "current_region_over_10y": false,
+            "has_prior_region_over_10y": false
+          },
+          "expected": {
+            "pension_place_rule": "HOME_FALLBACK"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:fc2412cfcb8609b4343ec62af0b985ea19e8084d565b52292378dccb3c54e249"
+}

@@ -1,0 +1,310 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "package_id": "cn-pension/shanghai/flex-employment-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-31",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2024-03-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "provenance": [
+    {
+      "source_id": "sh-flex-2023-notice",
+      "url": "https://www.shanghai.gov.cn/grshbxsjzc/20241112/dc9f6287c6d04c4badc4fe906981f986.html",
+      "issuing_authority": "上海市人力资源和社会保障局、上海市医疗保障局、国家税务总局上海市税务局",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": "沪人社规〔2023〕5号",
+      "publication_date": "2023-12-01",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "第一条、第三条、第六条（参保范围、基数与费率、按月缴费）",
+      "source_digest": "sha256:b59e6b59ef76aa462f903386f675f47efa541cb037640d6b047cfc49f9c5390f"
+    },
+    {
+      "source_id": "sh-base-limits-2025",
+      "url": "https://rsj.sh.gov.cn/tdjjf_17554/20251024/t0035_1436357.html",
+      "issuing_authority": "上海市人力资源和社会保障局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": null,
+      "publication_date": "2025-10-24",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "2025年度基数上下限（37302/7460）",
+      "source_digest": "sha256:e5209674a90c6d1dd1d00ee7ca9737cc5cb3233bfb1b07a80b5206736d1797d2"
+    },
+    {
+      "source_id": "sh-flex-rate-2024",
+      "url": "https://www.shanghai.gov.cn/nw12344/20240228/1fa3b59ef795429f9bc3cfd7b6599ceb.html",
+      "issuing_authority": "上海市人力资源和社会保障局等",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2024-02-28",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "一（养老缴费比例调整为20%）",
+      "source_digest": "sha256:811823781fd491bc386baca30389ed771b3385c7b7575c11f997f0bd7c94fc91"
+    },
+    {
+      "source_id": "sh-flex-participation-qa",
+      "url": "https://rsj.sh.gov.cn/trdhy_17355/20251209/t0035_1437323.html",
+      "issuing_authority": "上海市人力资源和社会保障局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": null,
+      "publication_date": "2025-12-09",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业参保线上办理路径（流程佐证）",
+      "source_digest": "sha256:b96a0473f870d5828f10758ad9487b0a1422911fd8f461ae7b85d9b92aa665e0"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "shanghai-flex-base-limits",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shanghai flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "sh-base-limits-2025",
+        "sh-flex-2023-notice"
+      ],
+      "rule_type": "PARAMETER_TABLE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "at-or-above-floor",
+          "input_ref": "contribution_base",
+          "operator": ">=",
+          "value_type": "DECIMAL",
+          "value": "7460.00"
+        },
+        {
+          "condition_id": "at-or-below-ceiling",
+          "input_ref": "contribution_base",
+          "operator": "<=",
+          "value_type": "DECIMAL",
+          "value": "37302.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "within-limits",
+          "output_field": "base_within_limits",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "parameters": {
+        "base_floor": {
+          "value_type": "DECIMAL",
+          "value": "7460.00"
+        },
+        "base_ceiling": {
+          "value_type": "DECIMAL",
+          "value": "37302.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-floor",
+          "input": {
+            "contribution_base": "7460.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        },
+        {
+          "vector_id": "v-ceiling",
+          "input": {
+            "contribution_base": "37302.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "shanghai-flex-pension-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shanghai flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-03-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "sh-flex-2023-notice"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pension-contribution",
+          "output_field": "monthly_pension_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.20"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-pension",
+          "input": {
+            "contribution_base": "7460.00"
+          },
+          "expected": {
+            "monthly_pension_contribution": "1492.00"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "shanghai-flex-medical-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shanghai flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2023-12-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "sh-flex-2023-notice"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.11"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "medical_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.11"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical",
+          "input": {
+            "contribution_base": "7460.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "820.60"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:53632f8174c9d3012fc263991c727d129220165209d0841c60034377c35b0fad",
+  "transaction_to": null,
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null
+}

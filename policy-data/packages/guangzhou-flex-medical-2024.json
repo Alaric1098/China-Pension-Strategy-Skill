@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "package_id": "cn-pension/guangzhou/flex-medical-2024.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-4401",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2024-03-01",
+  "effective_to": "2025-12-31",
+  "transaction_from": "2026-08-14T10:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "gz-medical-cut-2024",
+      "url": "https://www.gz.gov.cn/zfjg/gzsylbzj/tzgg/content/mpost_9513512.html",
+      "issuing_authority": "广州市医疗保障局、广州市财政局、国家税务总局广州市税务局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": null,
+      "publication_date": "2024-02-29",
+      "retrieved_at": "2026-08-14T09:00:00Z",
+      "locator": "一（灵活就业人员费率阶段性降为 6.5%）、二（有效期至 2025-12-31）",
+      "source_digest": "sha256:948d3d23e8d8acc31a12941fa27bb261403f67d3ec98038c4e82e1c86096f3d3"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "guangzhou-flex-medical-contribution-2024",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "guangzhou flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-03-01",
+      "effective_to": "2025-12-31",
+      "transaction_from": "2026-08-14T10:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "gz-medical-cut-2024"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.065"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "medical_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.065"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical-2024",
+          "input": {
+            "contribution_base": "6000.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "390.00"
+          }
+        }
+      ]
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-14T09:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "content_digest": "sha256:ae048ecf1b6bb0ad7cc23c605b06f8d428cb5c3ec17face434d2f03d7d33ebe5",
+  "historical": true
+}

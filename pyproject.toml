@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "china-pension-strategy"
+version = "0.1.0"
+description = "Deterministic Chinese pension contribution and retirement strategy analysis"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE", "LICENSE-DATA"]
+authors = [
+    {name = "Alaric1098"},
+]
+keywords = [
+    "china",
+    "pension",
+    "retirement",
+    "social-insurance",
+    "policy-analysis",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Financial",
+    "Typing :: Typed",
+]
+dependencies = [
+    "jsonschema>=4.23",
+]
+
+[project.urls]
+Homepage = "https://github.com/Alaric1098/China-Pension-Strategy-Skill"
+Repository = "https://github.com/Alaric1098/China-Pension-Strategy-Skill"
+
+[project.scripts]
+china-pension = "china_pension_strategy.entrypoints.cli.main:main"
+
+[project.optional-dependencies]
+test = [
+    "hypothesis>=6.108",
+    "pytest>=8.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

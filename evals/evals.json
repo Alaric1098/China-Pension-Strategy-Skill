@@ -1,0 +1,191 @@
+{
+  "schema_version": "1.0.0",
+  "cases": [
+    {
+      "id": "golden",
+      "kind": "success",
+      "fixture": "golden-beijing-flex-2026.json",
+      "case_id": "case-golden-beijing-flex-2026",
+      "expected_exit_code": 0,
+      "note": "complete Beijing flexible-employment case with subsidy; envelope success and full artifacts"
+    },
+    {
+      "id": "partial",
+      "kind": "partial",
+      "fixture": "partial-capabilities.json",
+      "case_id": "case-partial-capabilities",
+      "expected_exit_code": 0,
+      "note": "no subsidy facts; analysis still completes with limited capabilities"
+    },
+    {
+      "id": "privacy-block",
+      "kind": "global_block",
+      "fixture": "privacy-block-ssn.json",
+      "case_id": "case-privacy-block-ssn",
+      "expected_exit_code": 5,
+      "note": "social-security number in facts blocks the whole run; no artifacts"
+    },
+    {
+      "id": "privacy-redact",
+      "kind": "privacy_redact",
+      "fixture": "privacy-redact-phone.json",
+      "case_id": "case-privacy-redact-phone",
+      "expected_exit_code": 0,
+      "sensitive_value": "13800138000",
+      "note": "phone number is redacted with a warning; value never reaches stored output"
+    },
+    {
+      "id": "record-conflict",
+      "kind": "record_conflict",
+      "fixture": "record-conflict-181-vs-179.json",
+      "case_id": "case-record-conflict",
+      "expected_exit_code": 0,
+      "note": "aggregate 181 months versus detail months; unresolved conflict preserved in output"
+    },
+    {
+      "id": "unknown-eligibility",
+      "kind": "unknown_eligibility",
+      "fixture": "unknown-eligibility.json",
+      "case_id": "case-unknown-eligibility",
+      "expected_exit_code": 0,
+      "note": "missing difficulty-recognition fact; eligibility stays conservative and analysis completes"
+    },
+    {
+      "id": "policy-version-miss",
+      "kind": "policy_version_miss",
+      "fixture": "policy-version-miss.json",
+      "case_id": "case-policy-version-miss",
+      "expected_exit_code": 1,
+      "note": "input dated before all package transaction times; safe failure, no artifacts"
+    },
+    {
+      "id": "replay",
+      "kind": "replay",
+      "fixture": "replay-identical.json",
+      "case_id": "case-golden-beijing-flex-2026",
+      "expected_exit_code": 0,
+      "replay_of": "golden",
+      "note": "byte-identical input must reproduce the golden run_id"
+    },
+    {
+      "id": "golden-shanghai",
+      "kind": "success",
+      "fixture": "golden-shanghai-flex-2026.json",
+      "case_id": "case-shanghai-flex-2026",
+      "expected_exit_code": 0,
+      "note": "Shanghai flexible-employment: pension 20%, medical 11%, no unemployment; subsidy 50% (1107.60)"
+    },
+    {
+      "id": "golden-guangzhou",
+      "kind": "success",
+      "fixture": "golden-guangzhou-flex-2026.json",
+      "case_id": "case-guangzhou-flex-2026",
+      "expected_exit_code": 0,
+      "note": "Guangzhou flexible-employment: pension 20% (Guangdong method), base 5510-27549; subsidy 2/3"
+    },
+    {
+      "id": "golden-shenzhen",
+      "kind": "success",
+      "fixture": "golden-shenzhen-flex-2026.json",
+      "case_id": "case-shenzhen-flex-2026",
+      "expected_exit_code": 0,
+      "note": "Shenzhen flexible-employment: pension 20%, base 4775-27549; subsidy 2/3 capped 600"
+    },
+    {
+      "id": "golden-hangzhou",
+      "kind": "success",
+      "fixture": "golden-hangzhou-flex-2026.json",
+      "case_id": "case-hangzhou-flex-2026",
+      "expected_exit_code": 0,
+      "note": "Hangzhou via Zhejiang province layer (4986-25299); subsidy 50% of pension+medical (2023-02), duration per general rule (inferred)"
+    },
+    {
+      "id": "golden-chengdu",
+      "kind": "success",
+      "fixture": "golden-chengdu-flex-2026.json",
+      "case_id": "case-chengdu-flex-2026",
+      "expected_exit_code": 0,
+      "note": "Chengdu via Sichuan province layer (4588-22938); subsidy 70% with 60-month duration"
+    },
+    {
+      "id": "golden-wuhan",
+      "kind": "success",
+      "fixture": "golden-wuhan-flex-2026.json",
+      "case_id": "case-wuhan-flex-2026",
+      "expected_exit_code": 0,
+      "note": "Wuhan via Hubei province tier-1 (4498-22488); subsidy 673.19/mo (2022-10) with 60/36-month duration (sourced)"
+    },
+    {
+      "id": "golden-nanjing",
+      "kind": "success",
+      "fixture": "golden-nanjing-flex-2026.json",
+      "case_id": "case-nanjing-flex-2026",
+      "expected_exit_code": 0,
+      "note": "Nanjing via Jiangsu province layer (4952-24762); subsidy 2/3+1/2 with duration per general rule (inferred)"
+    },
+    {
+      "id": "golden-tianjin",
+      "kind": "success",
+      "fixture": "golden-tianjin-flex-2026.json",
+      "case_id": "case-tianjin-flex-2026",
+      "expected_exit_code": 0,
+      "note": "Tianjin municipality (5124-25620); subsidy 600/mo pension (200 medical, 800 both) with 3-year/retirement duration (sourced via mirror)"
+    },
+    {
+      "id": "golden-chongqing",
+      "kind": "success",
+      "fixture": "golden-chongqing-flex-2026.json",
+      "case_id": "case-chongqing-flex-2026",
+      "expected_exit_code": 0,
+      "note": "Chongqing municipality (4404-22017); subsidy 2/3 of floor-based pension+medical with 3-year duration (sourced)"
+    },
+    {
+      "id": "golden-benefit",
+      "kind": "success",
+      "fixture": "golden-beijing-benefit-2038.json",
+      "case_id": "case-beijing-benefit-2038",
+      "expected_exit_code": 0,
+      "note": "Beijing pension benefit estimation: male 1976-02, c_ping 12049, retires 2038-11, total 4772.64"
+    },
+    {
+      "id": "partial-benefit",
+      "kind": "partial",
+      "fixture": "partial-beijing-benefit.json",
+      "case_id": "case-beijing-benefit-partial",
+      "expected_exit_code": 0,
+      "note": "PENSION_ESTIMATION requested but facts incomplete -> partial capability"
+    },
+    {
+      "id": "golden-back-payment",
+      "kind": "success",
+      "fixture": "golden-beijing-back-payment-2026.json",
+      "case_id": "case-back-payment-2026",
+      "expected_exit_code": 0,
+      "note": "BACK_PAYMENT: minimum years schedule (2026 -> 180 months) and extend/lump-sum options"
+    },
+    {
+      "id": "golden-residents",
+      "kind": "success",
+      "fixture": "golden-residents-pension-2026.json",
+      "case_id": "case-residents-2026",
+      "expected_exit_code": 0,
+      "note": "RESIDENTS_PENSION: basic 123 + account/139 (50000 -> 359.71) = 482.71"
+    },
+    {
+      "id": "golden-cross-region",
+      "kind": "success",
+      "fixture": "golden-cross-region-2026.json",
+      "case_id": "case-cross-region-2026",
+      "expected_exit_code": 0,
+      "note": "CROSS_REGION_COMPARISON: pension place beijing (current 10y), contribution comparison beijing/chengdu/shanghai 1400"
+    },
+    {
+      "id": "golden-sensitivity",
+      "kind": "success",
+      "fixture": "golden-sensitivity-analysis-2026.json",
+      "case_id": "case-sensitivity-2026",
+      "expected_exit_code": 0,
+      "note": "SENSITIVITY_ANALYSIS: index tiers 0.6-3.0, monthly total 4049.70-8387.34"
+    }
+  ]
+}

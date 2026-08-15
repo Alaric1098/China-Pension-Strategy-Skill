@@ -1,0 +1,416 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "cn-pension/national/residents-pension-2026.1",
+  "version": "1.0.0",
+  "scheme": "residents_pension",
+  "jurisdiction": "CN",
+  "topic": "residents_pension",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "effective_from": "2014-02-26",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "guofa-2014-8-residents",
+      "url": "https://www.gov.cn/zhengce/content/2014-02/26/content_8656.htm",
+      "issuing_authority": "国务院",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国发〔2014〕8号",
+      "publication_date": "2014-02-26",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "缴费档次/政府补贴/个人账户139",
+      "source_digest": "sha256:e918a8b7eba3ea0ac2dbd6763533a4be0dcebed2067bb518e882050ad64e3d37"
+    },
+    {
+      "source_id": "residents-basic-pension-2024",
+      "url": "https://www.sxfx.gov.cn/col3141/col3145/202410/t20241030_873045.html",
+      "issuing_authority": "凤县人民政府",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2024-10-30",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "全国基础养老金最低标准123元/月",
+      "source_digest": "sha256:4fecba7546aa7fabecc802813cf05ae717baa9c314a716f4dcade186599fe444"
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "rules": [
+    {
+      "rule_id": "residents-gov-subsidy",
+      "scheme": "residents_pension",
+      "topic": "residents_pension",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "residents participants",
+      "exceptions": [],
+      "effective_from": "2014-02-26",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "guofa-2014-8-residents"
+      ],
+      "rule_type": "DECISION_TABLE",
+      "inputs": [
+        {
+          "input_id": "annual_tier",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "tier-positive",
+          "input_ref": "annual_tier",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 100
+        }
+      ],
+      "parameters": {},
+      "input_domains": {
+        "annual_tier": [
+          100,
+          300,
+          500,
+          1000,
+          2000
+        ]
+      },
+      "results": [
+        {
+          "result_id": "subsidy",
+          "output_field": "annual_gov_subsidy",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 30
+          }
+        }
+      ],
+      "decision_rows": [
+        {
+          "row_id": "tier-100",
+          "conditions": [
+            {
+              "condition_id": "tier-eq-100",
+              "input_ref": "annual_tier",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 100
+            }
+          ],
+          "results": [
+            {
+              "result_id": "subsidy",
+              "output_field": "annual_gov_subsidy",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 30
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "tier-300",
+          "conditions": [
+            {
+              "condition_id": "tier-eq-300",
+              "input_ref": "annual_tier",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 300
+            }
+          ],
+          "results": [
+            {
+              "result_id": "subsidy",
+              "output_field": "annual_gov_subsidy",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 30
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "tier-500",
+          "conditions": [
+            {
+              "condition_id": "tier-eq-500",
+              "input_ref": "annual_tier",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 500
+            }
+          ],
+          "results": [
+            {
+              "result_id": "subsidy",
+              "output_field": "annual_gov_subsidy",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 60
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "tier-1000",
+          "conditions": [
+            {
+              "condition_id": "tier-eq-1000",
+              "input_ref": "annual_tier",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 1000
+            }
+          ],
+          "results": [
+            {
+              "result_id": "subsidy",
+              "output_field": "annual_gov_subsidy",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 60
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "tier-2000",
+          "conditions": [
+            {
+              "condition_id": "tier-eq-2000",
+              "input_ref": "annual_tier",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 2000
+            }
+          ],
+          "results": [
+            {
+              "result_id": "subsidy",
+              "output_field": "annual_gov_subsidy",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 60
+              }
+            }
+          ]
+        }
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "v-tier-100",
+          "input": {
+            "annual_tier": 100
+          },
+          "expected": {
+            "annual_gov_subsidy": 30
+          }
+        },
+        {
+          "vector_id": "v-tier-300",
+          "input": {
+            "annual_tier": 300
+          },
+          "expected": {
+            "annual_gov_subsidy": 30
+          }
+        },
+        {
+          "vector_id": "v-tier-500",
+          "input": {
+            "annual_tier": 500
+          },
+          "expected": {
+            "annual_gov_subsidy": 60
+          }
+        },
+        {
+          "vector_id": "v-tier-1000",
+          "input": {
+            "annual_tier": 1000
+          },
+          "expected": {
+            "annual_gov_subsidy": 60
+          }
+        },
+        {
+          "vector_id": "v-tier-2000",
+          "input": {
+            "annual_tier": 2000
+          },
+          "expected": {
+            "annual_gov_subsidy": 60
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "residents-basic-pension",
+      "scheme": "residents_pension",
+      "topic": "residents_pension",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "residents participants",
+      "exceptions": [],
+      "effective_from": "2024-10-30",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "residents-basic-pension-2024"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "months",
+          "value_type": "INTEGER",
+          "required": false
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "always",
+          "input_ref": "months",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "results": [
+        {
+          "result_id": "basic",
+          "output_field": "monthly_basic_pension",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "123.00"
+          }
+        }
+      ],
+      "parameters": {
+        "national_minimum": {
+          "value_type": "DECIMAL",
+          "value": "123.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-basic",
+          "input": {
+            "months": 12
+          },
+          "expected": {
+            "monthly_basic_pension": "123.00"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "residents-account-formula",
+      "scheme": "residents_pension",
+      "topic": "residents_pension",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "residents participants",
+      "exceptions": [],
+      "effective_from": "2014-02-26",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "guofa-2014-8-residents"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "stored_balance",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "balance-positive",
+          "input_ref": "stored_balance",
+          "operator": ">=",
+          "value_type": "DECIMAL",
+          "value": "0.0"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "account",
+          "output_field": "monthly_account_pension",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "DIVIDE",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "stored_balance",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "139.0"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "coefficient": {
+          "value_type": "INTEGER",
+          "value": 139
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-account",
+          "input": {
+            "stored_balance": "50000.00"
+          },
+          "expected": {
+            "monthly_account_pension": "359.71"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:74a52dc0813828229d758cc0c336f2583eb81d1c4ac3ffabed20e01a255214bd"
+}

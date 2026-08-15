@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "package_id": "cn-pension/shenzhen/flex-medical-2024.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-4403",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2024-01-01",
+  "effective_to": "2025-12-31",
+  "transaction_from": "2026-08-14T10:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "sz-medical-cut-2023",
+      "url": "https://fgw.sz.gov.cn/gkmlpt/content/11/11026/post_11026621.html",
+      "issuing_authority": "深圳市人民政府办公厅",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": "深府办规〔2023〕5号",
+      "publication_date": "2023-11-27",
+      "retrieved_at": "2026-08-14T09:00:00Z",
+      "locator": "八（灵活就业人员缴费费率下调为 7%；2024-01-01 施行，有效期至 2026-12-31）",
+      "source_digest": "sha256:4509004518dffce85976a828bfefc168ad29241c0ba77a297554c4f9d92d03b3"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "shenzhen-flex-medical-contribution-2024",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shenzhen flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-01-01",
+      "effective_to": "2025-12-31",
+      "transaction_from": "2026-08-14T10:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "sz-medical-cut-2023"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.07"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "medical_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.07"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical-2024",
+          "input": {
+            "contribution_base": "6000.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "420.00"
+          }
+        }
+      ]
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-14T09:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "content_digest": "sha256:2e57b0d92ab9b8cf92048e6c3e7b74d0605351e0475cd76f3df76ead3b6561a0",
+  "historical": true
+}

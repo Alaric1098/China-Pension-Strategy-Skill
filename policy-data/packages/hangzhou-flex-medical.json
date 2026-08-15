@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "package_id": "cn-pension/hangzhou/flex-medical-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-3301",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2023-01-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "hz-medical-rate-2022",
+      "url": "https://www.hangzhou.gov.cn/art/2022/11/9/art_1229063383_1827130.html",
+      "issuing_authority": "杭州市医疗保障局、杭州市财政局、国家税务总局杭州市税务局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": "杭医保〔2022〕41号",
+      "publication_date": "2022-11-02",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业人员职工医保（含生育）缴费费率 9.5%，2023-01-01 施行",
+      "source_digest": "sha256:a0700533095a5243666583afa7ed71b0812ce9947d02beaee9d38e6294245e64"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "hangzhou-flex-medical-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "hangzhou flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2023-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "hz-medical-rate-2022"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.095"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "medical_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.095"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical",
+          "input": {
+            "contribution_base": "5000.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "475.00"
+          }
+        }
+      ]
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "content_digest": "sha256:5c18f8f4a701ecbb0c20baf6a311e443dcb606f4dbf6608ed0d9ad63003fd04e"
+}

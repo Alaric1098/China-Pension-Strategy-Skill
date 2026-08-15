@@ -1,0 +1,222 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "package_id": "cn-pension/zhejiang/flex-employment-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-33",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2025-01-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "provenance": [
+    {
+      "source_id": "zj-base-limits-2025",
+      "url": "https://zhejiang.chinatax.gov.cn/art/2025/12/11/art_13314_645797.html",
+      "issuing_authority": "国家税务总局浙江省税务局（热点问答，引用浙人社发〔2025〕52号）",
+      "authority_level": "PROVINCIAL_HRSS",
+      "document_number": "浙人社发〔2025〕52号",
+      "publication_date": "2025-12-11",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "2025年缴费基数上下限（25299/4986）",
+      "source_digest": "sha256:d16b6f72d7fb71a3f54dbc90d7fb33bf7e0bb5dc1531456c4066976b6b102013"
+    },
+    {
+      "source_id": "zj-flex-rate-example",
+      "url": "https://zhejiang.chinatax.gov.cn/art/2024/12/20/art_13314_629154.html",
+      "issuing_authority": "国家税务总局浙江省税务局（热点问答）",
+      "authority_level": "PROVINCIAL_HRSS",
+      "document_number": "浙人社发〔2024〕61号",
+      "publication_date": "2024-12-20",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业养老20%示例",
+      "source_digest": "sha256:88e1fba154b40927d23bb8186fbcc313431e0177de72b081148d4af6f55b735e"
+    },
+    {
+      "source_id": "guofa-2005-38",
+      "url": "https://www.gov.cn/zhengce/zhengceku/2008-03/28/content_7376.htm",
+      "issuing_authority": "国务院",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国发〔2005〕38号",
+      "publication_date": "2005-12-03",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业人员缴费比例20%（8%入个人账户）",
+      "source_digest": "sha256:c02c96993045d842ea02e3d788bf33795691a8d330967e0c88d9f6dc301264a4"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "zhejiang-flex-base-limits",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "zhejiang flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "zj-base-limits-2025"
+      ],
+      "rule_type": "PARAMETER_TABLE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "at-or-above-floor",
+          "input_ref": "contribution_base",
+          "operator": ">=",
+          "value_type": "DECIMAL",
+          "value": "4986.00"
+        },
+        {
+          "condition_id": "at-or-below-ceiling",
+          "input_ref": "contribution_base",
+          "operator": "<=",
+          "value_type": "DECIMAL",
+          "value": "25299.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "within-limits",
+          "output_field": "base_within_limits",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "parameters": {
+        "base_floor": {
+          "value_type": "DECIMAL",
+          "value": "4986.00"
+        },
+        "base_ceiling": {
+          "value_type": "DECIMAL",
+          "value": "25299.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-floor",
+          "input": {
+            "contribution_base": "4986.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        },
+        {
+          "vector_id": "v-ceiling",
+          "input": {
+            "contribution_base": "25299.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "zhejiang-flex-pension-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "zhejiang flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2006-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "guofa-2005-38"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pension-contribution",
+          "output_field": "monthly_pension_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.20"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-pension",
+          "input": {
+            "contribution_base": "4986.00"
+          },
+          "expected": {
+            "monthly_pension_contribution": "997.20"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:4d4bcf060135c2f17bd016284587dd60bbe6232a5859c53050ade67131d10d98",
+  "transaction_to": null
+}

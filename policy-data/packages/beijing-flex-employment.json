@@ -1,0 +1,409 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "cn-pension/beijing/flex-employment-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-11",
+  "topic": "flexible_employment_contribution",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "effective_from": "2025-07-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "content_digest": "sha256:d490780eed1091d7a2966f2e0d039337dc0170fc68e63177c6b70d18660a2dee",
+  "provenance": [
+    {
+      "source_id": "beijing-flex-participation-guide-2024",
+      "url": "https://www.beijing.gov.cn/fuwu/bmfw/bmzt/syzqh/syzjy/lhjy/202408/t20240805_3766940.html",
+      "issuing_authority": "北京市人力资源和社会保障局",
+      "authority_level": "BEIJING_MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2024-08-05",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "缴费基数说明",
+      "source_digest": "sha256:1e4ff347f2c97a154a5d20765ef51c05cc3a37aab66593b978bca1c32a7f9650"
+    },
+    {
+      "source_id": "beijing-flex-payment-rates-2025",
+      "url": "https://www.beijing.gov.cn/fuwu/bmfw/bmzt/lhjyry/202507/t20250709_4145250.html",
+      "issuing_authority": "首都之窗",
+      "authority_level": "BEIJING_MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2025-07-09",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业缴费方式及缴费比例 缴费比例",
+      "source_digest": "sha256:eb4600916d7cedab86fec685ff9a2848c5296662dc1855d9e84002bcea485805"
+    },
+    {
+      "source_id": "beijing-unemployment-rate-page",
+      "url": "https://www.beijing.gov.cn/fuwu/bmfw/bmdh/sb/sybx/sybxbs/sybxdy/202107/t20210705_2429007.html",
+      "issuing_authority": "首都之窗",
+      "authority_level": "BEIJING_MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2021-07-05",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "失业保险缴费基数及比例",
+      "source_digest": "sha256:c6593f87e58b5d05d93b379c4addecff458b22c151bfdc59a712832b6f10b6a7"
+    },
+    {
+      "source_id": "beijing-2025-base-limits",
+      "url": "https://rsj.beijing.gov.cn/xxgk/2024zcwj/202509/t20250918_4204880.html",
+      "issuing_authority": "北京市人力资源和社会保障局、北京市医疗保障局、国家税务总局北京市税务局",
+      "authority_level": "BEIJING_HRSS",
+      "document_number": "京人社发〔2025〕11号",
+      "publication_date": "2025-09-18",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "一、三（缴费基数上下限与医疗固定费额）",
+      "source_digest": "sha256:12fc29f8dff38e5ecdbf9616c32fcc39c5d70fad6cef4709b74ea3bf16b94e27"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "beijing-flex-base-limits",
+      "rule_type": "PARAMETER_TABLE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "at-or-above-floor",
+          "input_ref": "contribution_base",
+          "operator": ">=",
+          "value_type": "DECIMAL",
+          "value": "7162.00"
+        },
+        {
+          "condition_id": "at-or-below-ceiling",
+          "input_ref": "contribution_base",
+          "operator": "<=",
+          "value_type": "DECIMAL",
+          "value": "35811.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "within-limits",
+          "output_field": "base_within_limits",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-2025-base-limits",
+        "beijing-flex-participation-guide-2024"
+      ],
+      "parameters": {
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        },
+        "unemployment_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.01"
+        },
+        "medical_monthly_fixed": {
+          "value_type": "DECIMAL",
+          "value": "584.92"
+        },
+        "base_floor": {
+          "value_type": "DECIMAL",
+          "value": "7162.00"
+        },
+        "base_ceiling": {
+          "value_type": "DECIMAL",
+          "value": "35811.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-floor",
+          "input": {
+            "contribution_base": "7162.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        },
+        {
+          "vector_id": "v-ceiling",
+          "input": {
+            "contribution_base": "35811.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "beijing-flex-pension-contribution",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pension-contribution",
+          "output_field": "monthly_pension_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "REFERENCE",
+                "reference_type": "PARAMETER",
+                "reference_id": "pension_rate",
+                "value_type": "DECIMAL"
+              }
+            ]
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-flex-payment-rates-2025",
+        "beijing-unemployment-rate-page",
+        "beijing-2025-base-limits"
+      ],
+      "parameters": {
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-floor-pension",
+          "input": {
+            "contribution_base": "7162.00"
+          },
+          "expected": {
+            "monthly_pension_contribution": "1432.40"
+          }
+        },
+        {
+          "vector_id": "v-ceiling-pension",
+          "input": {
+            "contribution_base": "35811.00"
+          },
+          "expected": {
+            "monthly_pension_contribution": "7162.20"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "beijing-flex-unemployment-contribution",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "unemployment-contribution",
+          "output_field": "monthly_unemployment_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "REFERENCE",
+                "reference_type": "PARAMETER",
+                "reference_id": "unemployment_rate",
+                "value_type": "DECIMAL"
+              }
+            ]
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-unemployment-rate-page",
+        "beijing-2025-base-limits"
+      ],
+      "parameters": {
+        "unemployment_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.01"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-floor-unemployment",
+          "input": {
+            "contribution_base": "7162.00"
+          },
+          "expected": {
+            "monthly_unemployment_contribution": "71.62"
+          }
+        },
+        {
+          "vector_id": "v-ceiling-unemployment",
+          "input": {
+            "contribution_base": "35811.00"
+          },
+          "expected": {
+            "monthly_unemployment_contribution": "358.11"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "beijing-flex-medical-contribution",
+      "rule_type": "POLICY_RULE",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "beijing flexible employment participants",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "REFERENCE",
+            "reference_type": "PARAMETER",
+            "reference_id": "medical_monthly_fixed",
+            "value_type": "DECIMAL"
+          }
+        }
+      ],
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "beijing-2025-base-limits"
+      ],
+      "parameters": {
+        "medical_monthly_fixed": {
+          "value_type": "DECIMAL",
+          "value": "584.92"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical-fixed",
+          "input": {
+            "contribution_base": "7162.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "584.92"
+          }
+        }
+      ]
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null
+}

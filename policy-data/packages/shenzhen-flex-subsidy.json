@@ -1,0 +1,492 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "package_id": "cn-pension/shenzhen/flex-subsidy-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-4403",
+  "topic": "flexible_employment_subsidy",
+  "effective_from": "2024-01-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "provenance": [
+    {
+      "source_id": "sz-subsidy-method",
+      "url": "https://www.sz.gov.cn",
+      "issuing_authority": "深圳市人力资源和社会保障局（经市政府公报发布）",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": "深圳市促进就业困难人员再就业补贴办法（公报2024年第2期）",
+      "publication_date": "2024-01-01",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "二（二）（灵活就业社保补贴2/3且不超过600元）、三（期限）、四（先缴后补）",
+      "source_digest": "sha256:1857ed94a348a5ba1da9ffd3ec79b482d3c92eb8c1ae372a3d6d485346e87845"
+    },
+    {
+      "source_id": "gd-subsidy-list-2021",
+      "url": "https://www.heyuan.gov.cn",
+      "issuing_authority": "河源市人力资源和社会保障局、河源市财政局（转发广东省清单）",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": "粤人社规〔2021〕12号（河人社规〔2021〕1号转发）",
+      "publication_date": "2021-11-29",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "一（灵活就业社保补贴2/3、最长3年）",
+      "source_digest": "sha256:94220343b401ec80a5e6bf8cc229bac2223f68f8b4782dc26391bfbd8d5ce0db"
+    },
+    {
+      "source_id": "gd-base-limits-2025",
+      "url": "https://hrss.gd.gov.cn/gkmlpt/content/4/4789/post_4789618.html",
+      "issuing_authority": "广东省人力资源和社会保障厅、广东省财政厅、国家税务总局广东省税务局",
+      "authority_level": "PROVINCIAL_HRSS",
+      "document_number": "粤人社发〔2025〕32号",
+      "publication_date": "2025-01-01",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "一、二（基数上下限与计发基数）",
+      "source_digest": "sha256:67f4afa76525be214f4094ffc079e251c3c3342a00cc17695737e13b9b06d6c8"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "shenzhen-subsidy-eligibility",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shenzhen employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "sz-subsidy-method"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "employment_difficulty_recognized",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "recognized",
+          "input_ref": "employment_difficulty_recognized",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "eligible",
+          "output_field": "subsidy_eligible",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-eligible",
+          "input": {
+            "employment_difficulty_recognized": true
+          },
+          "expected": {
+            "subsidy_eligible": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "shenzhen-subsidy-duration",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shenzhen employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "sz-subsidy-method"
+      ],
+      "rule_type": "DECISION_TABLE",
+      "inputs": [
+        {
+          "input_id": "months_to_retirement",
+          "value_type": "INTEGER",
+          "required": true
+        },
+        {
+          "input_id": "subsidy_months_used",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "within-five-years-of-retirement",
+          "input_ref": "months_to_retirement",
+          "operator": "<",
+          "value_type": "INTEGER",
+          "value": 60
+        },
+        {
+          "condition_id": "months-used-nonnegative",
+          "input_ref": "subsidy_months_used",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "parameters": {
+        "standard_duration_months": {
+          "value_type": "INTEGER",
+          "value": 36
+        },
+        "extension_threshold_months": {
+          "value_type": "INTEGER",
+          "value": 60
+        }
+      },
+      "input_domains": {
+        "months_to_retirement": [
+          36,
+          59,
+          60,
+          61
+        ],
+        "subsidy_months_used": [
+          0
+        ]
+      },
+      "decision_rows": [
+        {
+          "row_id": "row-36-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-36",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 36
+            },
+            {
+              "condition_id": "used-zero-36",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-59-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-59",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 59
+            },
+            {
+              "condition_id": "used-zero-59",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 59
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-60-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-60",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 60
+            },
+            {
+              "condition_id": "used-zero-60",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "row-61-months-to-retirement",
+          "conditions": [
+            {
+              "condition_id": "retirement-61",
+              "input_ref": "months_to_retirement",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 61
+            },
+            {
+              "condition_id": "used-zero-61",
+              "input_ref": "subsidy_months_used",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 0
+            }
+          ],
+          "results": [
+            {
+              "result_id": "duration",
+              "output_field": "subsidy_duration_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              }
+            }
+          ]
+        }
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "v-duration-59",
+          "input": {
+            "months_to_retirement": 59,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 59
+          }
+        },
+        {
+          "vector_id": "v-duration-60",
+          "input": {
+            "months_to_retirement": 60,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        },
+        {
+          "vector_id": "v-duration-61",
+          "input": {
+            "months_to_retirement": 61,
+            "subsidy_months_used": 0
+          },
+          "expected": {
+            "subsidy_duration_months": 36
+          }
+        }
+      ],
+      "results": [
+        {
+          "result_id": "duration",
+          "output_field": "subsidy_duration_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 36
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "shenzhen-subsidy-start-offset",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shenzhen employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2024-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "sz-subsidy-method"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "application_month",
+          "value_type": "YEAR_MONTH",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "application-not-predated",
+          "input_ref": "application_month",
+          "operator": ">=",
+          "value_type": "YEAR_MONTH",
+          "value": "2024-01"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "start-offset",
+          "output_field": "subsidy_start_offset_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 1
+          }
+        }
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-start-offset",
+          "input": {
+            "application_month": "2026-08"
+          },
+          "expected": {
+            "subsidy_start_offset_months": 1
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "shenzhen-subsidy-total-amount",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_subsidy",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shenzhen employment-difficulty flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "sz-subsidy-method",
+        "gd-base-limits-2025"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "pension_paid",
+          "value_type": "BOOLEAN",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "pension-paid-first",
+          "input_ref": "pension_paid",
+          "operator": "=",
+          "value_type": "BOOLEAN",
+          "value": true
+        }
+      ],
+      "results": [
+        {
+          "result_id": "subsidy-amount",
+          "output_field": "monthly_subsidy_total",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "600.00"
+          }
+        }
+      ],
+      "parameters": {
+        "subsidy_ratio": {
+          "value_type": "DECIMAL",
+          "value": "0.6666666667"
+        },
+        "subsidy_monthly_cap": {
+          "value_type": "DECIMAL",
+          "value": "600.00"
+        },
+        "base_floor": {
+          "value_type": "DECIMAL",
+          "value": "4775.00"
+        },
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-amount",
+          "input": {
+            "pension_paid": true
+          },
+          "expected": {
+            "monthly_subsidy_total": "600.00"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:9ad3d8edc4d7a09256ecb0d71717781fee4225861f47414c884e2544765035c8",
+  "transaction_to": null,
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null
+}

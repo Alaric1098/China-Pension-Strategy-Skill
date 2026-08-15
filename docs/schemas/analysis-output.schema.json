@@ -1,0 +1,609 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/china-pension-strategy/analysis-output.schema.json",
+  "title": "Pension analysis output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "status",
+    "snapshot",
+    "capabilities",
+    "contribution_facts",
+    "gap_results",
+    "policy_evidence",
+    "review_notice",
+    "eligibility_assessments",
+    "record_conflicts",
+    "policy_ambiguities",
+    "assumptions",
+    "scenarios",
+    "recommendation",
+    "warnings",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0.0" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["success", "partial"] },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_digest",
+        "ruleset_digests",
+        "assumption_digest",
+        "as_of_effective_date",
+        "as_known_at",
+        "engine_version",
+        "schema_version",
+        "rounding_profile"
+      ],
+      "properties": {
+        "input_digest": { "$ref": "#/$defs/digest" },
+        "ruleset_digests": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/digest" }
+        },
+        "assumption_digest": { "$ref": "#/$defs/digest" },
+        "as_of_effective_date": { "type": "string", "format": "date" },
+        "as_known_at": { "type": "string", "format": "date-time" },
+        "engine_version": { "type": "string" },
+        "schema_version": { "type": "string" },
+        "rounding_profile": { "type": "string" }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/capabilityAssessment" }
+    },
+    "contribution_facts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contributionFact" }
+    },
+    "gap_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/gapResult" }
+    },
+    "policy_evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/policyEvidence" }
+    },
+    "review_notice": { "$ref": "#/$defs/reviewNotice" },
+    "eligibility_assessments": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/eligibilityAssessment" }
+    },
+    "record_conflicts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/recordConflict" }
+    },
+    "policy_ambiguities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/policyAmbiguity" }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/assumption" }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scenario" }
+    },
+    "recommendation": {
+      "oneOf": [
+        { "$ref": "#/$defs/recommendation" },
+        { "type": "null" }
+      ]
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/message" }
+    },
+    "errors": {
+      "type": "array",
+      "maxItems": 0,
+      "items": { "$ref": "#/$defs/message" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "partial" } } },
+      "then": {
+        "properties": {
+          "warnings": { "minItems": 1 },
+          "capabilities": {
+            "allOf": [
+              {
+                "contains": {
+                  "properties": { "status": { "enum": ["PARTIAL", "BLOCKED"] } },
+                  "required": ["status"]
+                }
+              },
+              {
+                "contains": {
+                  "properties": { "status": { "enum": ["AVAILABLE", "PARTIAL"] } },
+                  "required": ["status"]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "success" } } },
+      "then": {
+        "properties": {
+          "capabilities": {
+            "items": {
+              "allOf": [
+                { "$ref": "#/$defs/capabilityAssessment" },
+                { "properties": { "status": { "const": "AVAILABLE" } } }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "referenceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conditionAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["condition_id", "status", "fact_refs", "rule_refs", "explanation"],
+      "properties": {
+        "condition_id": { "$ref": "#/$defs/referenceId" },
+        "status": { "enum": ["SATISFIED", "FAILED", "UNVERIFIED"] },
+        "fact_refs": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } },
+        "rule_refs": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } },
+        "explanation": { "type": "string" }
+      }
+    },
+    "eligibilityAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessment_id", "capability_id", "subject_scope", "status", "rule_ids", "conditions"],
+      "properties": {
+        "assessment_id": { "$ref": "#/$defs/referenceId" },
+        "capability_id": { "$ref": "#/$defs/referenceId" },
+        "subject_scope": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["ELIGIBLE", "INELIGIBLE", "UNKNOWN"] },
+        "rule_ids": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } },
+        "conditions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/conditionAssessment" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "ELIGIBLE" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "conditions": {
+                "items": {
+                  "allOf": [
+                    { "$ref": "#/$defs/conditionAssessment" },
+                    { "properties": { "status": { "const": "SATISFIED" } }, "required": ["status"] }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "INELIGIBLE" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "conditions": {
+                "contains": { "properties": { "status": { "const": "FAILED" } }, "required": ["status"] }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "UNKNOWN" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "conditions": {
+                "allOf": [
+                  { "contains": { "properties": { "status": { "const": "UNVERIFIED" } }, "required": ["status"] } },
+                  { "not": { "contains": { "properties": { "status": { "const": "FAILED" } }, "required": ["status"] } } }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "capabilityAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_id", "status", "required_fact_ids", "satisfied_fact_ids", "missing_fact_ids", "blocker_codes", "limitations"],
+      "properties": {
+        "capability_id": { "$ref": "#/$defs/referenceId" },
+        "status": { "enum": ["AVAILABLE", "PARTIAL", "BLOCKED"] },
+        "required_fact_ids": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } },
+        "satisfied_fact_ids": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } },
+        "missing_fact_ids": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } },
+        "blocker_codes": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/referenceId" } },
+        "limitations": { "type": "array", "items": { "type": "string" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "AVAILABLE" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "missing_fact_ids": { "maxItems": 0 },
+              "blocker_codes": { "maxItems": 0 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "PARTIAL" } }, "required": ["status"] },
+          "then": { "properties": { "limitations": { "minItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "status": { "const": "BLOCKED" } }, "required": ["status"] },
+          "then": { "properties": { "blocker_codes": { "minItems": 1 } } }
+        }
+      ]
+    },
+    "recordConflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conflict_id", "fact_scope", "assertion_refs", "status", "resolution_evidence_refs"],
+      "properties": {
+        "conflict_id": { "$ref": "#/$defs/referenceId" },
+        "fact_scope": { "type": "string", "minLength": 1 },
+        "assertion_refs": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/referenceId" } },
+        "status": { "enum": ["UNRESOLVED", "RESOLVED"] },
+        "resolution_evidence_refs": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } }
+      }
+    },
+    "policyAmbiguity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ambiguity_id", "capability_id", "competing_rule_ids", "conflict_dimensions", "effect"],
+      "properties": {
+        "ambiguity_id": { "$ref": "#/$defs/referenceId" },
+        "capability_id": { "$ref": "#/$defs/referenceId" },
+        "competing_rule_ids": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/referenceId" } },
+        "conflict_dimensions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["SCHEME", "JURISDICTION_ROLE", "EFFECTIVE_TIME", "KNOWN_AT_TIME", "LEGAL_HIERARCHY", "RULE_OVERRIDE", "COMPATIBILITY", "PUBLICATION_STATUS"]
+          }
+        },
+        "effect": { "const": "BLOCKS_CAPABILITY" }
+      }
+    },
+    "assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_definition",
+        "source_type",
+        "modeling_mode",
+        "source_date",
+        "population",
+        "provenance_refs",
+        "approved_by",
+        "expires_at",
+        "dependency_treatment"
+      ],
+      "properties": {
+        "event_id": { "$ref": "#/$defs/referenceId" },
+        "event_definition": { "type": "string", "minLength": 1 },
+        "source_type": { "enum": ["official_statistic", "user_provided", "expert_assumption", "scenario_only"] },
+        "modeling_mode": {
+          "enum": [
+            "EVIDENCE_BACKED_PROBABILITY",
+            "USER_ASSUMPTION",
+            "EXPERT_ASSUMPTION",
+            "SCENARIO_ONLY",
+            "THRESHOLD",
+            "RANGE"
+          ]
+        },
+        "value": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "range": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["minimum", "maximum"],
+          "properties": {
+            "minimum": { "type": "number", "minimum": 0, "maximum": 1 },
+            "maximum": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "distribution": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["family", "parameters"],
+          "properties": {
+            "family": { "type": "string", "minLength": 1 },
+            "parameters": {
+              "type": "object",
+              "patternProperties": {
+                "^[A-Za-z][A-Za-z0-9_]*$": { "type": ["string", "number", "integer", "boolean", "null"] }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "source_date": { "type": "string", "format": "date" },
+        "population": { "type": "string", "minLength": 1 },
+        "provenance_refs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/referenceId" } },
+        "approved_by": { "type": "string", "minLength": 1 },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "dependency_treatment": { "type": "string", "minLength": 1 }
+      },
+      "oneOf": [
+        { "required": ["value"], "properties": { "value": { "type": "number" } } },
+        { "required": ["range"], "properties": { "range": { "type": "object" } } },
+        { "required": ["distribution"], "properties": { "distribution": { "type": "object" } } }
+      ],
+      "allOf": [
+        {
+          "if": { "properties": { "modeling_mode": { "const": "EVIDENCE_BACKED_PROBABILITY" } }, "required": ["modeling_mode"] },
+          "then": {
+            "properties": {
+              "source_type": { "const": "official_statistic" },
+              "source_date": { "type": "string", "format": "date" },
+              "population": { "type": "string", "minLength": 1 },
+              "provenance_refs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/referenceId" } },
+              "approved_by": { "type": "string", "minLength": 1 },
+              "expires_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "modeling_mode": { "const": "USER_ASSUMPTION" } }, "required": ["modeling_mode"] },
+          "then": { "properties": { "source_type": { "const": "user_provided" } } }
+        },
+        {
+          "if": { "properties": { "modeling_mode": { "const": "EXPERT_ASSUMPTION" } }, "required": ["modeling_mode"] },
+          "then": { "properties": { "source_type": { "const": "expert_assumption" } } }
+        },
+        {
+          "if": { "properties": { "modeling_mode": { "const": "SCENARIO_ONLY" } }, "required": ["modeling_mode"] },
+          "then": { "properties": { "source_type": { "const": "scenario_only" } } }
+        },
+        {
+          "if": { "properties": { "modeling_mode": { "const": "THRESHOLD" } }, "required": ["modeling_mode"] },
+          "then": { "required": ["value"], "properties": { "value": { "type": "number" } } }
+        },
+        {
+          "if": { "properties": { "modeling_mode": { "const": "RANGE" } }, "required": ["modeling_mode"] },
+          "then": { "required": ["range"], "properties": { "range": { "type": "object" } } }
+        }
+      ]
+    },
+    "yearMonth": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "money": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currency", "amount"],
+      "properties": {
+        "currency": { "const": "CNY" },
+        "amount": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.[0-9]{2}$" }
+      }
+    },
+    "contributionFact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_id", "scheme", "fact_type", "period_from", "period_to", "reported_months", "recognized_month_basis", "source_refs"],
+      "properties": {
+        "fact_id": { "$ref": "#/$defs/referenceId" },
+        "scheme": { "$ref": "#/$defs/referenceId" },
+        "fact_type": { "enum": ["ACCOUNT_SUMMARY", "MONTH_DETAIL", "USER_ASSERTION", "OFFICIAL_DETERMINATION"] },
+        "period_from": { "$ref": "#/$defs/yearMonth" },
+        "period_to": { "$ref": "#/$defs/yearMonth" },
+        "reported_months": { "type": "integer", "minimum": 0 },
+        "recognized_month_basis": { "enum": ["DEDUPLICATED_MONTH_DETAIL", "OFFICIAL_AGGREGATE", "OFFICIAL_DETERMINATION", "UNRESOLVED_COMPETING_TOTAL"] },
+        "source_refs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/referenceId" } }
+      }
+    },
+    "gapResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result_id", "scheme", "requirement_months", "confirmed_months", "remaining_months", "basis_fact_refs", "rule_refs", "is_primary"],
+      "properties": {
+        "result_id": { "$ref": "#/$defs/referenceId" },
+        "scheme": { "$ref": "#/$defs/referenceId" },
+        "requirement_months": { "type": "integer", "minimum": 0 },
+        "confirmed_months": { "type": "integer", "minimum": 0 },
+        "remaining_months": { "type": "integer", "minimum": 0 },
+        "basis_fact_refs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/referenceId" } },
+        "rule_refs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/referenceId" } },
+        "is_primary": { "type": "boolean" }
+      }
+    },
+    "sourceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "url", "locator", "source_digest"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/referenceId" },
+        "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "locator": { "$ref": "#/$defs/referenceId" },
+        "source_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "policyEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package_id", "package_digest", "review_status", "rule_ids", "source_refs", "effective_on", "known_at"],
+      "properties": {
+        "package_id": { "$ref": "#/$defs/referenceId" },
+        "package_digest": { "$ref": "#/$defs/digest" },
+        "review_status": { "enum": ["MVP_REVIEWED", "PRODUCTION_APPROVED"] },
+        "rule_ids": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/referenceId" } },
+        "source_refs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/sourceEvidence" } },
+        "effective_on": { "type": "string", "format": "date" },
+        "known_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "reviewNotice": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["analysis_mode", "package_review_statuses", "notice", "official_eligibility_claim"],
+          "properties": {
+            "analysis_mode": { "const": "LOCAL_MVP" },
+            "package_review_statuses": { "type": "array", "minItems": 1, "items": { "const": "MVP_REVIEWED" } },
+            "notice": { "const": "NOT_PRODUCTION_APPROVED" },
+            "official_eligibility_claim": { "const": false }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["analysis_mode", "package_review_statuses", "notice", "official_eligibility_claim"],
+          "properties": {
+            "analysis_mode": { "const": "PRODUCTION" },
+            "package_review_statuses": { "type": "array", "minItems": 1, "items": { "const": "PRODUCTION_APPROVED" } },
+            "notice": { "const": "PRODUCTION_APPROVED" },
+            "official_eligibility_claim": { "type": "boolean" }
+          }
+        }
+      ]
+    },
+    "scenarioHorizon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_month", "end_month", "inclusive_months"],
+      "properties": {
+        "start_month": { "$ref": "#/$defs/yearMonth" },
+        "end_month": { "$ref": "#/$defs/yearMonth" },
+        "inclusive_months": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "scenarioAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["month", "action_type", "assumption_refs"],
+      "properties": {
+        "month": { "$ref": "#/$defs/yearMonth" },
+        "action_type": { "enum": ["STOP_CONTRIBUTING", "CONTINUE_CONTRIBUTING", "APPLY_FOR_SUBSIDY", "END_SUBSIDY"] },
+        "assumption_refs": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } }
+      }
+    },
+    "monthlyCashFlow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["month", "pension_contribution", "medical_contribution", "unemployment_contribution", "subsidy", "net_outflow", "cumulative_outflow"],
+      "properties": {
+        "month": { "$ref": "#/$defs/yearMonth" },
+        "pension_contribution": { "$ref": "#/$defs/money" },
+        "medical_contribution": { "$ref": "#/$defs/money" },
+        "unemployment_contribution": { "$ref": "#/$defs/money" },
+        "subsidy": { "$ref": "#/$defs/money" },
+        "net_outflow": { "$ref": "#/$defs/money" },
+        "cumulative_outflow": { "$ref": "#/$defs/money" }
+      }
+    },
+    "scenarioOutcomes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ending_confirmed_months", "ending_gap_months", "total_pension_contribution", "total_medical_contribution", "total_unemployment_contribution", "total_subsidy", "total_net_outflow"],
+      "properties": {
+        "ending_confirmed_months": { "type": "integer", "minimum": 0 },
+        "ending_gap_months": { "type": "integer", "minimum": 0 },
+        "total_pension_contribution": { "$ref": "#/$defs/money" },
+        "total_medical_contribution": { "$ref": "#/$defs/money" },
+        "total_unemployment_contribution": { "$ref": "#/$defs/money" },
+        "total_subsidy": { "$ref": "#/$defs/money" },
+        "total_net_outflow": { "$ref": "#/$defs/money" }
+      }
+    },
+    "threshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["threshold_id", "metric", "operator", "value"],
+      "properties": {
+        "threshold_id": { "$ref": "#/$defs/referenceId" },
+        "metric": { "$ref": "#/$defs/referenceId" },
+        "operator": { "enum": ["<", "<=", "=", ">=", ">"] },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    },
+    "sensitivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "assumption_refs", "summary"],
+      "properties": {
+        "mode": { "enum": ["NONE", "THRESHOLD", "RANGE", "CONSERVATIVE_BASE_OPTIMISTIC"] },
+        "assumption_refs": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } },
+        "summary": { "type": "string", "minLength": 1 }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenario_id", "feasibility", "capability_refs", "horizon", "actions", "monthly_cash_flows", "outcomes", "thresholds", "sensitivity"],
+      "properties": {
+        "scenario_id": { "$ref": "#/$defs/referenceId" },
+        "feasibility": { "enum": ["FEASIBLE", "INFEASIBLE", "UNKNOWN"] },
+        "capability_refs": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } },
+        "horizon": { "$ref": "#/$defs/scenarioHorizon" },
+        "actions": { "type": "array", "items": { "$ref": "#/$defs/scenarioAction" } },
+        "monthly_cash_flows": { "type": "array", "items": { "$ref": "#/$defs/monthlyCashFlow" } },
+        "outcomes": { "$ref": "#/$defs/scenarioOutcomes" },
+        "thresholds": { "type": "array", "items": { "$ref": "#/$defs/threshold" } },
+        "sensitivity": { "$ref": "#/$defs/sensitivity" }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenario_id", "objective", "capability_dependencies", "assumption_refs", "limitations", "thresholds", "invalidators", "review_triggers"],
+      "properties": {
+        "scenario_id": { "$ref": "#/$defs/referenceId" },
+        "objective": { "enum": ["MINIMUM_COMPLIANCE_COST", "NEAR_TERM_CASH_FLOW", "SUBSIDY_TIMING"] },
+        "capability_dependencies": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/recommendationCapabilityDependency" } },
+        "assumption_refs": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } },
+        "limitations": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "thresholds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "invalidators": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "review_triggers": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "recommendationCapabilityDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_id", "status"],
+      "properties": {
+        "capability_id": { "$ref": "#/$defs/referenceId" },
+        "status": { "enum": ["AVAILABLE", "PARTIAL"] }
+      }
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "related_refs"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1 },
+        "related_refs": { "type": "array", "items": { "$ref": "#/$defs/referenceId" } }
+      }
+    }
+  }
+}

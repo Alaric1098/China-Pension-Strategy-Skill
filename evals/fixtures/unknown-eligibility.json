@@ -1,0 +1,153 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "case-unknown-eligibility",
+  "analysis_mode": "LOCAL_MVP",
+  "classification": "S2-CONFIDENTIAL",
+  "purpose": "pension_strategy_analysis",
+  "consent_id": "consent-golden-001",
+  "created_at": "2026-08-11T12:00:00Z",
+  "expires_at": "2026-12-31T00:00:00Z",
+  "deletion_status": "ACTIVE",
+  "requested_capabilities": [
+    "CONTRIBUTION_RECONCILIATION",
+    "CONTRIBUTION_GAP",
+    "FLEXIBLE_EMPLOYMENT_CONTRIBUTION",
+    "SUBSIDY_ELIGIBILITY",
+    "SUBSIDY_TIMING",
+    "SCENARIO_COMPARISON",
+    "RECOMMENDATION"
+  ],
+  "facts": [
+    {
+      "fact_id": "base-1",
+      "fact_type": "contribution_base",
+      "value": "7000.00",
+      "as_of_date": "2026-08-11",
+      "source_ref": "base-limits",
+      "required_for": [
+        "FLEXIBLE_EMPLOYMENT_CONTRIBUTION"
+      ]
+    },
+    {
+      "fact_id": "agg-1",
+      "fact_type": "aggregate_count",
+      "value": 179,
+      "as_of_date": "2026-08-11",
+      "source_ref": "statement",
+      "required_for": [
+        "CONTRIBUTION_RECONCILIATION",
+        "CONTRIBUTION_GAP"
+      ]
+    },
+    {
+      "fact_id": "mon-1",
+      "fact_type": "contribution_month",
+      "value": "2026-06",
+      "as_of_date": "2026-08-11",
+      "source_ref": "statement",
+      "required_for": [
+        "CONTRIBUTION_RECONCILIATION"
+      ]
+    },
+    {
+      "fact_id": "mon-2",
+      "fact_type": "contribution_month",
+      "value": "2026-07",
+      "as_of_date": "2026-08-11",
+      "source_ref": "statement",
+      "required_for": [
+        "CONTRIBUTION_RECONCILIATION"
+      ]
+    },
+    {
+      "fact_id": "employment_registration_days",
+      "fact_type": "subsidy_input",
+      "value": 45,
+      "as_of_date": "2026-08-11",
+      "source_ref": "user",
+      "required_for": [
+        "SUBSIDY_ELIGIBILITY"
+      ]
+    },
+    {
+      "fact_id": "has_earned_income",
+      "fact_type": "subsidy_input",
+      "value": true,
+      "as_of_date": "2026-08-11",
+      "source_ref": "user",
+      "required_for": [
+        "SUBSIDY_ELIGIBILITY"
+      ]
+    },
+    {
+      "fact_id": "paid_unemployment_premium_before",
+      "fact_type": "subsidy_input",
+      "value": true,
+      "as_of_date": "2026-08-11",
+      "source_ref": "user",
+      "required_for": [
+        "SUBSIDY_ELIGIBILITY"
+      ]
+    },
+    {
+      "fact_id": "months_to_retirement",
+      "fact_type": "subsidy_input",
+      "value": 36,
+      "as_of_date": "2026-08-11",
+      "source_ref": "user",
+      "required_for": [
+        "SUBSIDY_TIMING"
+      ]
+    },
+    {
+      "fact_id": "subsidy_months_used",
+      "fact_type": "subsidy_input",
+      "value": 0,
+      "as_of_date": "2026-08-11",
+      "source_ref": "user",
+      "required_for": [
+        "SUBSIDY_TIMING"
+      ]
+    },
+    {
+      "fact_id": "application_month",
+      "fact_type": "subsidy_input",
+      "value": "2026-08",
+      "as_of_date": "2026-08-11",
+      "source_ref": "user",
+      "required_for": [
+        "SUBSIDY_TIMING"
+      ]
+    },
+    {
+      "fact_id": "pension_paid",
+      "fact_type": "subsidy_input",
+      "value": true,
+      "as_of_date": "2026-08-11",
+      "source_ref": "user",
+      "required_for": [
+        "SUBSIDY_ELIGIBILITY"
+      ]
+    },
+    {
+      "fact_id": "medical_paid",
+      "fact_type": "subsidy_input",
+      "value": true,
+      "as_of_date": "2026-08-11",
+      "source_ref": "user",
+      "required_for": [
+        "SUBSIDY_ELIGIBILITY"
+      ]
+    },
+    {
+      "fact_id": "unemployment_paid",
+      "fact_type": "subsidy_input",
+      "value": true,
+      "as_of_date": "2026-08-11",
+      "source_ref": "user",
+      "required_for": [
+        "SUBSIDY_ELIGIBILITY"
+      ]
+    }
+  ]
+}

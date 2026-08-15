@@ -1,0 +1,298 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "package_id": "cn-pension/tianjin/flex-employment-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-12",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2025-01-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "provenance": [
+    {
+      "source_id": "tj-base-limits-2025",
+      "url": "https://hrss.tj.gov.cn/zhengwugongkai/zhengcezhinan/zxwjnew/202509/t20250918_7136642.html",
+      "issuing_authority": "天津市人力资源和社会保障局、市医保局、市税务局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": "津人社发2025年度标准通知",
+      "publication_date": "2025-09-18",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "2025基数上下限（5124/25620）",
+      "source_digest": "sha256:bf25f841925bb4fb7336830628d6c12445e2a45e6093a9793bf567e9f32f087e"
+    },
+    {
+      "source_id": "guofa-2005-38",
+      "url": "https://www.gov.cn/zhengce/zhengceku/2008-03/28/content_7376.htm",
+      "issuing_authority": "国务院",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国发〔2005〕38号",
+      "publication_date": "2005-12-03",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业人员缴费比例20%（8%入个人账户）",
+      "source_digest": "sha256:c02c96993045d842ea02e3d788bf33795691a8d330967e0c88d9f6dc301264a4"
+    },
+    {
+      "source_id": "tj-medical-rate-2026",
+      "url": "https://tianjin.chinatax.gov.cn/11200000000/0100/010003/20260309091326118.shtml",
+      "issuing_authority": "天津市医疗保障局、国家税务总局天津市税务局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": "关于进一步明确灵活就业人员参加我市职工基本医疗保险有关问题的通知",
+      "publication_date": "2026-03-09",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "二（一）灵活就业人员职工医保缴费比例 8.5%（含生育保险）",
+      "source_digest": "sha256:5767f495c95d54fd19166131ac1a5461a85cfce0361e422efc7608b3561a8986"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "tianjin-flex-base-limits",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "tianjin flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "tj-base-limits-2025"
+      ],
+      "rule_type": "PARAMETER_TABLE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "at-or-above-floor",
+          "input_ref": "contribution_base",
+          "operator": ">=",
+          "value_type": "DECIMAL",
+          "value": "5124.00"
+        },
+        {
+          "condition_id": "at-or-below-ceiling",
+          "input_ref": "contribution_base",
+          "operator": "<=",
+          "value_type": "DECIMAL",
+          "value": "25620.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "within-limits",
+          "output_field": "base_within_limits",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "parameters": {
+        "base_floor": {
+          "value_type": "DECIMAL",
+          "value": "5124.00"
+        },
+        "base_ceiling": {
+          "value_type": "DECIMAL",
+          "value": "25620.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-floor",
+          "input": {
+            "contribution_base": "5124.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        },
+        {
+          "vector_id": "v-ceiling",
+          "input": {
+            "contribution_base": "25620.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "tianjin-flex-pension-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "tianjin flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2006-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "guofa-2005-38"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pension-contribution",
+          "output_field": "monthly_pension_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.20"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-pension",
+          "input": {
+            "contribution_base": "5124.00"
+          },
+          "expected": {
+            "monthly_pension_contribution": "1024.80"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "tianjin-flex-medical-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "tianjin flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2026-03-09",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "tj-medical-rate-2026"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.085"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "medical_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.085"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical",
+          "input": {
+            "contribution_base": "5124.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "435.54"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:59d7000d66556edcea8776d2a5d79dd0ab5f1167ff75e66c382ca8a056aee4ce",
+  "transaction_to": null
+}

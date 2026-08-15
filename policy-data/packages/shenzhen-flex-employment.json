@@ -1,0 +1,343 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "package_id": "cn-pension/shenzhen/flex-employment-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN-4403",
+  "topic": "flexible_employment_contribution",
+  "effective_from": "2026-05-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-14T12:00:00Z",
+  "provenance": [
+    {
+      "source_id": "gd-flex-method-2026",
+      "url": "https://hrss.gd.gov.cn/gkmlpt/content/4/4891/mpost_4891739.html",
+      "issuing_authority": "广东省人力资源和社会保障厅、广东省财政厅、国家税务总局广东省税务局",
+      "authority_level": "PROVINCIAL_HRSS",
+      "document_number": "粤人社规〔2026〕14号",
+      "publication_date": "2026-04-29",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "第六条、第七条、第十五条（基数自选、费率20%、施行日期）",
+      "source_digest": "sha256:b96448755b2256bfed2ab818773e5c19fab4bddeea6a5b1b3d56e248c7bd3ec4"
+    },
+    {
+      "source_id": "gd-base-limits-2025",
+      "url": "https://hrss.gd.gov.cn/gkmlpt/content/4/4789/post_4789618.html",
+      "issuing_authority": "广东省人力资源和社会保障厅、广东省财政厅、国家税务总局广东省税务局",
+      "authority_level": "PROVINCIAL_HRSS",
+      "document_number": "粤人社发〔2025〕32号",
+      "publication_date": "2025-01-01",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "一、二（基数上下限与计发基数）",
+      "source_digest": "sha256:67f4afa76525be214f4094ffc079e251c3c3342a00cc17695737e13b9b06d6c8"
+    },
+    {
+      "source_id": "sz-flex-participation",
+      "url": "https://www.sz.gov.cn/ztfw/shbz/wyw_184041/ywzsk_184570/content/mpost_12250522.html",
+      "issuing_authority": "深圳市政府门户网站（业务知识库）",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2026-01-01",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "无雇工个体工商户经营者参保险种口径",
+      "source_digest": "sha256:6d0115f6757a8120dc13952218505d7a63e3871e53b5480fbf40e0d8ca88af06"
+    },
+    {
+      "source_id": "sz-medical-rate-358",
+      "url": "https://www.sz.gov.cn/szsrmzfxxgk/zc/gz/content/post_10826936.html",
+      "issuing_authority": "深圳市人民政府",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": "深圳市人民政府令第358号",
+      "publication_date": "2023-09-07",
+      "retrieved_at": "2026-08-14T09:00:00Z",
+      "locator": "第七条第二款第一项、第八条、第九条第一款（灵活就业人员参加一档、按缴费基数 8% 缴纳、基数上下限 60%-300%）",
+      "source_digest": "sha256:554b60b05bc8f5eac9abc3a7694372798d8cd08bbdc9b17e35c3dd5108017c7f"
+    },
+    {
+      "source_id": "sz-medical-restore-2026",
+      "url": "https://hsa.sz.gov.cn/fzlm/znts/cnyc/content/post_12568243.html",
+      "issuing_authority": "深圳市医疗保障局",
+      "authority_level": "MUNICIPAL_HRSS",
+      "document_number": null,
+      "publication_date": "2025-12-29",
+      "retrieved_at": "2026-08-14T09:00:00Z",
+      "locator": "2026 年度医保缴费基数下限 6727 元、上限 33633 元；自 2026-01-01 起灵活就业人员缴费费率由 7% 恢复为 8%",
+      "source_digest": "sha256:faf3d9f7d02d56546f4fdee28e7f7b12721bdebd25a787ad66ab39f5cca48ac5"
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "shenzhen-flex-base-limits",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shenzhen flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2025-07-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "gd-base-limits-2025",
+        "gd-flex-method-2026"
+      ],
+      "rule_type": "PARAMETER_TABLE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "at-or-above-floor",
+          "input_ref": "contribution_base",
+          "operator": ">=",
+          "value_type": "DECIMAL",
+          "value": "4775.00"
+        },
+        {
+          "condition_id": "at-or-below-ceiling",
+          "input_ref": "contribution_base",
+          "operator": "<=",
+          "value_type": "DECIMAL",
+          "value": "27549.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "within-limits",
+          "output_field": "base_within_limits",
+          "value_type": "BOOLEAN",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "BOOLEAN",
+            "value": true
+          }
+        }
+      ],
+      "parameters": {
+        "base_floor": {
+          "value_type": "DECIMAL",
+          "value": "4775.00"
+        },
+        "base_ceiling": {
+          "value_type": "DECIMAL",
+          "value": "27549.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-floor",
+          "input": {
+            "contribution_base": "4775.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        },
+        {
+          "vector_id": "v-ceiling",
+          "input": {
+            "contribution_base": "27549.00"
+          },
+          "expected": {
+            "base_within_limits": true
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "shenzhen-flex-pension-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shenzhen flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2026-05-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "gd-flex-method-2026"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "pension-contribution",
+          "output_field": "monthly_pension_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.20"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "pension_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.20"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-pension",
+          "input": {
+            "contribution_base": "4775.00"
+          },
+          "expected": {
+            "monthly_pension_contribution": "955.00"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "shenzhen-flex-medical-contribution",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "flexible_employment_contribution",
+      "jurisdiction_role": "LOCAL_IMPLEMENTATION",
+      "population_scope": "shenzhen flexible employment participants",
+      "exceptions": [],
+      "effective_from": "2026-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-14T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "MUNICIPAL_REGULATION",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "sz-medical-rate-358",
+        "sz-medical-restore-2026"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "contribution_base",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "base-positive",
+          "input_ref": "contribution_base",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.00"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "medical-contribution",
+          "output_field": "monthly_medical_contribution",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "contribution_base",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "LITERAL",
+                "value_type": "DECIMAL",
+                "value": "0.08"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "medical_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.08"
+        },
+        "medical_tier2_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.02"
+        },
+        "medical_base_floor": {
+          "value_type": "DECIMAL",
+          "value": "6727.00"
+        },
+        "medical_base_ceiling": {
+          "value_type": "DECIMAL",
+          "value": "33633.00"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-medical",
+          "input": {
+            "contribution_base": "5000.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "400.00"
+          }
+        },
+        {
+          "vector_id": "v-medical-floor",
+          "input": {
+            "contribution_base": "6727.00"
+          },
+          "expected": {
+            "monthly_medical_contribution": "538.16"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:efecdd356aeca63912209e56e5d65d2c479a6f2e972e7d54c58ab07332ef6853",
+  "transaction_to": null,
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null
+}

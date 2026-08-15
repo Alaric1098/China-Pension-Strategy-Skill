@@ -1,0 +1,2220 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "cn-pension/national/pension-benefit-2026.1",
+  "version": "1.0.0",
+  "scheme": "enterprise_employee_basic_pension",
+  "jurisdiction": "CN",
+  "topic": "pension_benefit_estimation",
+  "review_status": "MVP_REVIEWED",
+  "execution_modes": [
+    "LOCAL_MVP"
+  ],
+  "local_only": true,
+  "engine_compatibility": ">=0.1,<1.0",
+  "effective_from": "2025-01-01",
+  "effective_to": null,
+  "transaction_from": "2026-08-11T12:00:00Z",
+  "transaction_to": null,
+  "provenance": [
+    {
+      "source_id": "retire-delay-decision-2024",
+      "url": "https://legalinfo.moj.gov.cn/zhfxfzzx/fzzxyw/202409/t20240913_506025.html",
+      "issuing_authority": "全国人民代表大会常务委员会",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "渐进式延迟法定退休年龄的决定",
+      "publication_date": "2024-09-13",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "节奏表、弹性提前、2030最低年限、施行日期",
+      "source_digest": "sha256:ed869e4b75d976ae247da59b3cc3dc89326cf005d3c4d4e2ff38cda3446d0bbf"
+    },
+    {
+      "source_id": "retire-elastic-method-2025",
+      "url": "https://www.gov.cn/zhengce/202501/content_6995749.htm",
+      "issuing_authority": "人力资源社会保障部、中共中央组织部、财政部",
+      "authority_level": "NATIONAL_MINISTRY",
+      "document_number": "实施弹性退休制度暂行办法（答记者问）",
+      "publication_date": "2025-01-01",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "弹性提前/延迟规则",
+      "source_digest": "sha256:51c1d0c08a8652651044fee176213a605d2ee9a5174a2fe7cba9867c3230bed9"
+    },
+    {
+      "source_id": "guofa-2005-38",
+      "url": "https://www.gov.cn/zhengce/zhengceku/2008-03/28/content_7376.htm",
+      "issuing_authority": "国务院",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国发〔2005〕38号",
+      "publication_date": "2005-12-03",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业人员缴费比例20%（8%入个人账户）",
+      "source_digest": "sha256:c02c96993045d842ea02e3d788bf33795691a8d330967e0c88d9f6dc301264a4"
+    },
+    {
+      "source_id": "guofa-2005-38-text-fj",
+      "url": "https://zfgb.fj.gov.cn/6655",
+      "issuing_authority": "福建省政府公报（转载国务院文件）",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国发〔2005〕38号",
+      "publication_date": "2005-12-03",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "个人账户养老金计发月数表文本版（47 岁=208）",
+      "source_digest": "sha256:34c6825cf35618680096ef097f0b0d2211dc4449859ccbc155ad8a932edb8b4d"
+    },
+    {
+      "source_id": "guoban-2019-13",
+      "url": "https://www.gov.cn/zhengce/content/2019-04/04/content_5379629.htm",
+      "issuing_authority": "国务院办公厅",
+      "authority_level": "NATIONAL_GOVERNMENT",
+      "document_number": "国办发〔2019〕13号",
+      "publication_date": "2019-04-04",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "灵活就业缴费基数60%-300%",
+      "source_digest": "sha256:c577f8c74ad9a254175096077483df7a2a56b0e7c655a043c5cbdf33d9459984"
+    },
+    {
+      "source_id": "mohrss-2017-31-interest",
+      "url": "https://www.mohrss.gov.cn/SYrlzyhshbzb/zhengcefabu/bumenjianzhang/zcjd/201704/t20170425_270902.html",
+      "issuing_authority": "人力资源社会保障部",
+      "authority_level": "NATIONAL_MINISTRY",
+      "document_number": "人社部发〔2017〕31号",
+      "publication_date": "2017-04-25",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "记账利率年度公布与下限",
+      "source_digest": "sha256:eb0b74fa9329a6f924fd5980a418bfb5f3aa26bc7e3aa8aaeb4f9beac88d05be"
+    },
+    {
+      "source_id": "jinan-payment-months-2025",
+      "url": "https://www.jinan.gov.cn/col23076/art/2025/art_23076_5018027.html",
+      "issuing_authority": "济南市人民政府门户",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2025-01-01",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "非整岁计发月数插值口径",
+      "source_digest": "sha256:914f03c803b46dd413f0a7714333a07a99423a97733e6b7494187cfc1b6dd35c"
+    },
+    {
+      "source_id": "interest-rate-disclosure-2025",
+      "url": "https://www.yw.gov.cn/art/2025/6/3/art_1229134300_4228894.html",
+      "issuing_authority": "义乌市人民政府门户",
+      "authority_level": "MUNICIPAL_GOVERNMENT",
+      "document_number": null,
+      "publication_date": "2025-06-03",
+      "retrieved_at": "2026-08-11T09:00:00Z",
+      "locator": "2025年度记账利率2.62%",
+      "source_digest": "sha256:3f09fb14bb52b822500e2a0cfa067db9e2ff3672e34d0d2cec1eb5cca85711cf"
+    }
+  ],
+  "engineering_review": {
+    "reviewer_id": "engineer-synthetic",
+    "reviewed_at": "2026-08-11T11:30:00Z",
+    "schema_validation_passed": true,
+    "rule_tests_passed": true
+  },
+  "production_approval": null,
+  "rules": [
+    {
+      "rule_id": "national-delayed-retirement-male",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "pension_benefit_estimation",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "retire-delay-decision-2024"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "birth_year",
+          "value_type": "INTEGER",
+          "required": true
+        },
+        {
+          "input_id": "birth_month",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "birth-guard",
+          "input_ref": "birth_year",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 1900
+        }
+      ],
+      "results": [
+        {
+          "result_id": "delay",
+          "output_field": "delay_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MIN",
+            "value_type": "INTEGER",
+            "operands": [
+              {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              },
+              {
+                "kind": "EXPRESSION",
+                "operator": "MAX",
+                "value_type": "INTEGER",
+                "operands": [
+                  {
+                    "kind": "LITERAL",
+                    "value_type": "INTEGER",
+                    "value": 0
+                  },
+                  {
+                    "kind": "EXPRESSION",
+                    "operator": "FLOOR_DIVIDE",
+                    "value_type": "INTEGER",
+                    "operands": [
+                      {
+                        "kind": "EXPRESSION",
+                        "operator": "ADD",
+                        "value_type": "INTEGER",
+                        "operands": [
+                          {
+                            "kind": "EXPRESSION",
+                            "operator": "MULTIPLY",
+                            "value_type": "INTEGER",
+                            "operands": [
+                              {
+                                "kind": "EXPRESSION",
+                                "operator": "SUBTRACT",
+                                "value_type": "INTEGER",
+                                "operands": [
+                                  {
+                                    "kind": "REFERENCE",
+                                    "reference_type": "INPUT",
+                                    "reference_id": "birth_year",
+                                    "value_type": "INTEGER"
+                                  },
+                                  {
+                                    "kind": "LITERAL",
+                                    "value_type": "INTEGER",
+                                    "value": 1965
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "LITERAL",
+                                "value_type": "INTEGER",
+                                "value": 12
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "EXPRESSION",
+                            "operator": "SUBTRACT",
+                            "value_type": "INTEGER",
+                            "operands": [
+                              {
+                                "kind": "REFERENCE",
+                                "reference_type": "INPUT",
+                                "reference_id": "birth_month",
+                                "value_type": "INTEGER"
+                              },
+                              {
+                                "kind": "LITERAL",
+                                "value_type": "INTEGER",
+                                "value": 1
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "LITERAL",
+                        "value_type": "INTEGER",
+                        "value": 4
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "b0_year": {
+          "value_type": "INTEGER",
+          "value": 1965
+        },
+        "b0_month": {
+          "value_type": "INTEGER",
+          "value": 1
+        },
+        "step_months": {
+          "value_type": "INTEGER",
+          "value": 4
+        },
+        "max_delay_months": {
+          "value_type": "INTEGER",
+          "value": 36
+        },
+        "statutory_months": {
+          "value_type": "INTEGER",
+          "value": 720
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-first",
+          "input": {
+            "birth_year": 1965,
+            "birth_month": 1
+          },
+          "expected": {
+            "delay_months": 0
+          }
+        },
+        {
+          "vector_id": "v-plus-step",
+          "input": {
+            "birth_year": 1965,
+            "birth_month": 5
+          },
+          "expected": {
+            "delay_months": 1
+          }
+        },
+        {
+          "vector_id": "v-cap",
+          "input": {
+            "birth_year": 2005,
+            "birth_month": 1
+          },
+          "expected": {
+            "delay_months": 36
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "national-delayed-retirement-female-55",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "pension_benefit_estimation",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "retire-delay-decision-2024"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "birth_year",
+          "value_type": "INTEGER",
+          "required": true
+        },
+        {
+          "input_id": "birth_month",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "birth-guard",
+          "input_ref": "birth_year",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 1900
+        }
+      ],
+      "results": [
+        {
+          "result_id": "delay",
+          "output_field": "delay_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MIN",
+            "value_type": "INTEGER",
+            "operands": [
+              {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 36
+              },
+              {
+                "kind": "EXPRESSION",
+                "operator": "MAX",
+                "value_type": "INTEGER",
+                "operands": [
+                  {
+                    "kind": "LITERAL",
+                    "value_type": "INTEGER",
+                    "value": 0
+                  },
+                  {
+                    "kind": "EXPRESSION",
+                    "operator": "FLOOR_DIVIDE",
+                    "value_type": "INTEGER",
+                    "operands": [
+                      {
+                        "kind": "EXPRESSION",
+                        "operator": "ADD",
+                        "value_type": "INTEGER",
+                        "operands": [
+                          {
+                            "kind": "EXPRESSION",
+                            "operator": "MULTIPLY",
+                            "value_type": "INTEGER",
+                            "operands": [
+                              {
+                                "kind": "EXPRESSION",
+                                "operator": "SUBTRACT",
+                                "value_type": "INTEGER",
+                                "operands": [
+                                  {
+                                    "kind": "REFERENCE",
+                                    "reference_type": "INPUT",
+                                    "reference_id": "birth_year",
+                                    "value_type": "INTEGER"
+                                  },
+                                  {
+                                    "kind": "LITERAL",
+                                    "value_type": "INTEGER",
+                                    "value": 1970
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "LITERAL",
+                                "value_type": "INTEGER",
+                                "value": 12
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "EXPRESSION",
+                            "operator": "SUBTRACT",
+                            "value_type": "INTEGER",
+                            "operands": [
+                              {
+                                "kind": "REFERENCE",
+                                "reference_type": "INPUT",
+                                "reference_id": "birth_month",
+                                "value_type": "INTEGER"
+                              },
+                              {
+                                "kind": "LITERAL",
+                                "value_type": "INTEGER",
+                                "value": 1
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "LITERAL",
+                        "value_type": "INTEGER",
+                        "value": 4
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "b0_year": {
+          "value_type": "INTEGER",
+          "value": 1970
+        },
+        "b0_month": {
+          "value_type": "INTEGER",
+          "value": 1
+        },
+        "step_months": {
+          "value_type": "INTEGER",
+          "value": 4
+        },
+        "max_delay_months": {
+          "value_type": "INTEGER",
+          "value": 36
+        },
+        "statutory_months": {
+          "value_type": "INTEGER",
+          "value": 660
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-first",
+          "input": {
+            "birth_year": 1970,
+            "birth_month": 1
+          },
+          "expected": {
+            "delay_months": 0
+          }
+        },
+        {
+          "vector_id": "v-plus-step",
+          "input": {
+            "birth_year": 1970,
+            "birth_month": 5
+          },
+          "expected": {
+            "delay_months": 1
+          }
+        },
+        {
+          "vector_id": "v-cap",
+          "input": {
+            "birth_year": 2010,
+            "birth_month": 1
+          },
+          "expected": {
+            "delay_months": 36
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "national-delayed-retirement-female-50",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "pension_benefit_estimation",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "retire-delay-decision-2024"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "birth_year",
+          "value_type": "INTEGER",
+          "required": true
+        },
+        {
+          "input_id": "birth_month",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "birth-guard",
+          "input_ref": "birth_year",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 1900
+        }
+      ],
+      "results": [
+        {
+          "result_id": "delay",
+          "output_field": "delay_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MIN",
+            "value_type": "INTEGER",
+            "operands": [
+              {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 60
+              },
+              {
+                "kind": "EXPRESSION",
+                "operator": "MAX",
+                "value_type": "INTEGER",
+                "operands": [
+                  {
+                    "kind": "LITERAL",
+                    "value_type": "INTEGER",
+                    "value": 0
+                  },
+                  {
+                    "kind": "EXPRESSION",
+                    "operator": "FLOOR_DIVIDE",
+                    "value_type": "INTEGER",
+                    "operands": [
+                      {
+                        "kind": "EXPRESSION",
+                        "operator": "ADD",
+                        "value_type": "INTEGER",
+                        "operands": [
+                          {
+                            "kind": "EXPRESSION",
+                            "operator": "MULTIPLY",
+                            "value_type": "INTEGER",
+                            "operands": [
+                              {
+                                "kind": "EXPRESSION",
+                                "operator": "SUBTRACT",
+                                "value_type": "INTEGER",
+                                "operands": [
+                                  {
+                                    "kind": "REFERENCE",
+                                    "reference_type": "INPUT",
+                                    "reference_id": "birth_year",
+                                    "value_type": "INTEGER"
+                                  },
+                                  {
+                                    "kind": "LITERAL",
+                                    "value_type": "INTEGER",
+                                    "value": 1975
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "LITERAL",
+                                "value_type": "INTEGER",
+                                "value": 12
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "EXPRESSION",
+                            "operator": "SUBTRACT",
+                            "value_type": "INTEGER",
+                            "operands": [
+                              {
+                                "kind": "REFERENCE",
+                                "reference_type": "INPUT",
+                                "reference_id": "birth_month",
+                                "value_type": "INTEGER"
+                              },
+                              {
+                                "kind": "LITERAL",
+                                "value_type": "INTEGER",
+                                "value": 1
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "LITERAL",
+                        "value_type": "INTEGER",
+                        "value": 2
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "b0_year": {
+          "value_type": "INTEGER",
+          "value": 1975
+        },
+        "b0_month": {
+          "value_type": "INTEGER",
+          "value": 1
+        },
+        "step_months": {
+          "value_type": "INTEGER",
+          "value": 2
+        },
+        "max_delay_months": {
+          "value_type": "INTEGER",
+          "value": 60
+        },
+        "statutory_months": {
+          "value_type": "INTEGER",
+          "value": 600
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-first",
+          "input": {
+            "birth_year": 1975,
+            "birth_month": 1
+          },
+          "expected": {
+            "delay_months": 0
+          }
+        },
+        {
+          "vector_id": "v-plus-step",
+          "input": {
+            "birth_year": 1975,
+            "birth_month": 3
+          },
+          "expected": {
+            "delay_months": 1
+          }
+        },
+        {
+          "vector_id": "v-cap",
+          "input": {
+            "birth_year": 2015,
+            "birth_month": 1
+          },
+          "expected": {
+            "delay_months": 60
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "national-payment-months-table",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "pension_benefit_estimation",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2006-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "guofa-2005-38"
+      ],
+      "rule_type": "DECISION_TABLE",
+      "inputs": [
+        {
+          "input_id": "age_years",
+          "value_type": "INTEGER",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "age-at-least-forty",
+          "input_ref": "age_years",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 40
+        }
+      ],
+      "parameters": {},
+      "input_domains": {
+        "age_years": [
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70
+        ]
+      },
+      "results": [
+        {
+          "result_id": "months",
+          "output_field": "payment_months",
+          "value_type": "INTEGER",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "INTEGER",
+            "value": 139
+          }
+        }
+      ],
+      "decision_rows": [
+        {
+          "row_id": "age-40",
+          "conditions": [
+            {
+              "condition_id": "age-eq-40",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 40
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 233
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-41",
+          "conditions": [
+            {
+              "condition_id": "age-eq-41",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 41
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 230
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-42",
+          "conditions": [
+            {
+              "condition_id": "age-eq-42",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 42
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 226
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-43",
+          "conditions": [
+            {
+              "condition_id": "age-eq-43",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 43
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 223
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-44",
+          "conditions": [
+            {
+              "condition_id": "age-eq-44",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 44
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 220
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-45",
+          "conditions": [
+            {
+              "condition_id": "age-eq-45",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 45
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 216
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-46",
+          "conditions": [
+            {
+              "condition_id": "age-eq-46",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 46
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 212
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-47",
+          "conditions": [
+            {
+              "condition_id": "age-eq-47",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 47
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 208
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-48",
+          "conditions": [
+            {
+              "condition_id": "age-eq-48",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 48
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 204
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-49",
+          "conditions": [
+            {
+              "condition_id": "age-eq-49",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 49
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 199
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-50",
+          "conditions": [
+            {
+              "condition_id": "age-eq-50",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 50
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 195
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-51",
+          "conditions": [
+            {
+              "condition_id": "age-eq-51",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 51
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 190
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-52",
+          "conditions": [
+            {
+              "condition_id": "age-eq-52",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 52
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 185
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-53",
+          "conditions": [
+            {
+              "condition_id": "age-eq-53",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 53
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 180
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-54",
+          "conditions": [
+            {
+              "condition_id": "age-eq-54",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 54
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 175
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-55",
+          "conditions": [
+            {
+              "condition_id": "age-eq-55",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 55
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 170
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-56",
+          "conditions": [
+            {
+              "condition_id": "age-eq-56",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 56
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 164
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-57",
+          "conditions": [
+            {
+              "condition_id": "age-eq-57",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 57
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 158
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-58",
+          "conditions": [
+            {
+              "condition_id": "age-eq-58",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 58
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 152
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-59",
+          "conditions": [
+            {
+              "condition_id": "age-eq-59",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 59
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 145
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-60",
+          "conditions": [
+            {
+              "condition_id": "age-eq-60",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 60
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 139
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-61",
+          "conditions": [
+            {
+              "condition_id": "age-eq-61",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 61
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 132
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-62",
+          "conditions": [
+            {
+              "condition_id": "age-eq-62",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 62
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 125
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-63",
+          "conditions": [
+            {
+              "condition_id": "age-eq-63",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 63
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 117
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-64",
+          "conditions": [
+            {
+              "condition_id": "age-eq-64",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 64
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 109
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-65",
+          "conditions": [
+            {
+              "condition_id": "age-eq-65",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 65
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 101
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-66",
+          "conditions": [
+            {
+              "condition_id": "age-eq-66",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 66
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 93
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-67",
+          "conditions": [
+            {
+              "condition_id": "age-eq-67",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 67
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 84
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-68",
+          "conditions": [
+            {
+              "condition_id": "age-eq-68",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 68
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 75
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-69",
+          "conditions": [
+            {
+              "condition_id": "age-eq-69",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 69
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 65
+              }
+            }
+          ]
+        },
+        {
+          "row_id": "age-70",
+          "conditions": [
+            {
+              "condition_id": "age-eq-70",
+              "input_ref": "age_years",
+              "operator": "=",
+              "value_type": "INTEGER",
+              "value": 70
+            }
+          ],
+          "results": [
+            {
+              "result_id": "months",
+              "output_field": "payment_months",
+              "value_type": "INTEGER",
+              "value": {
+                "kind": "LITERAL",
+                "value_type": "INTEGER",
+                "value": 56
+              }
+            }
+          ]
+        }
+      ],
+      "test_vectors": [
+        {
+          "vector_id": "v-age-40",
+          "input": {
+            "age_years": 40
+          },
+          "expected": {
+            "payment_months": 233
+          }
+        },
+        {
+          "vector_id": "v-age-41",
+          "input": {
+            "age_years": 41
+          },
+          "expected": {
+            "payment_months": 230
+          }
+        },
+        {
+          "vector_id": "v-age-42",
+          "input": {
+            "age_years": 42
+          },
+          "expected": {
+            "payment_months": 226
+          }
+        },
+        {
+          "vector_id": "v-age-43",
+          "input": {
+            "age_years": 43
+          },
+          "expected": {
+            "payment_months": 223
+          }
+        },
+        {
+          "vector_id": "v-age-44",
+          "input": {
+            "age_years": 44
+          },
+          "expected": {
+            "payment_months": 220
+          }
+        },
+        {
+          "vector_id": "v-age-45",
+          "input": {
+            "age_years": 45
+          },
+          "expected": {
+            "payment_months": 216
+          }
+        },
+        {
+          "vector_id": "v-age-46",
+          "input": {
+            "age_years": 46
+          },
+          "expected": {
+            "payment_months": 212
+          }
+        },
+        {
+          "vector_id": "v-age-47",
+          "input": {
+            "age_years": 47
+          },
+          "expected": {
+            "payment_months": 208
+          }
+        },
+        {
+          "vector_id": "v-age-48",
+          "input": {
+            "age_years": 48
+          },
+          "expected": {
+            "payment_months": 204
+          }
+        },
+        {
+          "vector_id": "v-age-49",
+          "input": {
+            "age_years": 49
+          },
+          "expected": {
+            "payment_months": 199
+          }
+        },
+        {
+          "vector_id": "v-age-50",
+          "input": {
+            "age_years": 50
+          },
+          "expected": {
+            "payment_months": 195
+          }
+        },
+        {
+          "vector_id": "v-age-51",
+          "input": {
+            "age_years": 51
+          },
+          "expected": {
+            "payment_months": 190
+          }
+        },
+        {
+          "vector_id": "v-age-52",
+          "input": {
+            "age_years": 52
+          },
+          "expected": {
+            "payment_months": 185
+          }
+        },
+        {
+          "vector_id": "v-age-53",
+          "input": {
+            "age_years": 53
+          },
+          "expected": {
+            "payment_months": 180
+          }
+        },
+        {
+          "vector_id": "v-age-54",
+          "input": {
+            "age_years": 54
+          },
+          "expected": {
+            "payment_months": 175
+          }
+        },
+        {
+          "vector_id": "v-age-55",
+          "input": {
+            "age_years": 55
+          },
+          "expected": {
+            "payment_months": 170
+          }
+        },
+        {
+          "vector_id": "v-age-56",
+          "input": {
+            "age_years": 56
+          },
+          "expected": {
+            "payment_months": 164
+          }
+        },
+        {
+          "vector_id": "v-age-57",
+          "input": {
+            "age_years": 57
+          },
+          "expected": {
+            "payment_months": 158
+          }
+        },
+        {
+          "vector_id": "v-age-58",
+          "input": {
+            "age_years": 58
+          },
+          "expected": {
+            "payment_months": 152
+          }
+        },
+        {
+          "vector_id": "v-age-59",
+          "input": {
+            "age_years": 59
+          },
+          "expected": {
+            "payment_months": 145
+          }
+        },
+        {
+          "vector_id": "v-age-60",
+          "input": {
+            "age_years": 60
+          },
+          "expected": {
+            "payment_months": 139
+          }
+        },
+        {
+          "vector_id": "v-age-61",
+          "input": {
+            "age_years": 61
+          },
+          "expected": {
+            "payment_months": 132
+          }
+        },
+        {
+          "vector_id": "v-age-62",
+          "input": {
+            "age_years": 62
+          },
+          "expected": {
+            "payment_months": 125
+          }
+        },
+        {
+          "vector_id": "v-age-63",
+          "input": {
+            "age_years": 63
+          },
+          "expected": {
+            "payment_months": 117
+          }
+        },
+        {
+          "vector_id": "v-age-64",
+          "input": {
+            "age_years": 64
+          },
+          "expected": {
+            "payment_months": 109
+          }
+        },
+        {
+          "vector_id": "v-age-65",
+          "input": {
+            "age_years": 65
+          },
+          "expected": {
+            "payment_months": 101
+          }
+        },
+        {
+          "vector_id": "v-age-66",
+          "input": {
+            "age_years": 66
+          },
+          "expected": {
+            "payment_months": 93
+          }
+        },
+        {
+          "vector_id": "v-age-67",
+          "input": {
+            "age_years": 67
+          },
+          "expected": {
+            "payment_months": 84
+          }
+        },
+        {
+          "vector_id": "v-age-68",
+          "input": {
+            "age_years": 68
+          },
+          "expected": {
+            "payment_months": 75
+          }
+        },
+        {
+          "vector_id": "v-age-69",
+          "input": {
+            "age_years": 69
+          },
+          "expected": {
+            "payment_months": 65
+          }
+        },
+        {
+          "vector_id": "v-age-70",
+          "input": {
+            "age_years": 70
+          },
+          "expected": {
+            "payment_months": 56
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "national-basic-pension-formula",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "pension_benefit_estimation",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2006-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "guofa-2005-38"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "c_ping",
+          "value_type": "DECIMAL",
+          "required": true
+        },
+        {
+          "input_id": "avg_index",
+          "value_type": "DECIMAL",
+          "required": true
+        },
+        {
+          "input_id": "total_months",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "months-positive",
+          "input_ref": "total_months",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.0"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "basic",
+          "output_field": "monthly_basic_pension",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "EXPRESSION",
+                "operator": "DIVIDE",
+                "value_type": "DECIMAL",
+                "operands": [
+                  {
+                    "kind": "EXPRESSION",
+                    "operator": "ADD",
+                    "value_type": "DECIMAL",
+                    "operands": [
+                      {
+                        "kind": "REFERENCE",
+                        "reference_type": "INPUT",
+                        "reference_id": "c_ping",
+                        "value_type": "DECIMAL"
+                      },
+                      {
+                        "kind": "EXPRESSION",
+                        "operator": "MULTIPLY",
+                        "value_type": "DECIMAL",
+                        "operands": [
+                          {
+                            "kind": "REFERENCE",
+                            "reference_type": "INPUT",
+                            "reference_id": "c_ping",
+                            "value_type": "DECIMAL"
+                          },
+                          {
+                            "kind": "REFERENCE",
+                            "reference_type": "INPUT",
+                            "reference_id": "avg_index",
+                            "value_type": "DECIMAL"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "LITERAL",
+                    "value_type": "DECIMAL",
+                    "value": "2.0"
+                  }
+                ]
+              },
+              {
+                "kind": "EXPRESSION",
+                "operator": "MULTIPLY",
+                "value_type": "DECIMAL",
+                "operands": [
+                  {
+                    "kind": "EXPRESSION",
+                    "operator": "DIVIDE",
+                    "value_type": "DECIMAL",
+                    "operands": [
+                      {
+                        "kind": "REFERENCE",
+                        "reference_type": "INPUT",
+                        "reference_id": "total_months",
+                        "value_type": "DECIMAL"
+                      },
+                      {
+                        "kind": "LITERAL",
+                        "value_type": "DECIMAL",
+                        "value": "12.0"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "LITERAL",
+                    "value_type": "DECIMAL",
+                    "value": "0.01"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {
+        "rate": {
+          "value_type": "DECIMAL",
+          "value": "0.01"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-basic",
+          "input": {
+            "c_ping": "12049.00",
+            "avg_index": "0.8",
+            "total_months": "360.0"
+          },
+          "expected": {
+            "monthly_basic_pension": "3253.23"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "national-account-growth-formula",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "pension_benefit_estimation",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "interest-rate-disclosure-2025",
+        "mohrss-2017-31-interest"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "balance",
+          "value_type": "DECIMAL",
+          "required": true
+        },
+        {
+          "input_id": "months",
+          "value_type": "DECIMAL",
+          "required": true
+        },
+        {
+          "input_id": "rate",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "months-nonnegative",
+          "input_ref": "months",
+          "operator": ">=",
+          "value_type": "DECIMAL",
+          "value": "0.0"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "growth",
+          "output_field": "stored_balance",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "MULTIPLY",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "balance",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "EXPRESSION",
+                "operator": "POWER",
+                "value_type": "DECIMAL",
+                "operands": [
+                  {
+                    "kind": "EXPRESSION",
+                    "operator": "ADD",
+                    "value_type": "DECIMAL",
+                    "operands": [
+                      {
+                        "kind": "LITERAL",
+                        "value_type": "DECIMAL",
+                        "value": "1.0"
+                      },
+                      {
+                        "kind": "EXPRESSION",
+                        "operator": "DIVIDE",
+                        "value_type": "DECIMAL",
+                        "operands": [
+                          {
+                            "kind": "REFERENCE",
+                            "reference_type": "INPUT",
+                            "reference_id": "rate",
+                            "value_type": "DECIMAL"
+                          },
+                          {
+                            "kind": "LITERAL",
+                            "value_type": "DECIMAL",
+                            "value": "12.0"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "REFERENCE",
+                    "reference_type": "INPUT",
+                    "reference_id": "months",
+                    "value_type": "DECIMAL"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-growth",
+          "input": {
+            "balance": "100000.00",
+            "months": "12.0",
+            "rate": "0.0262"
+          },
+          "expected": {
+            "stored_balance": "102651.69"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "national-personal-account-pension-formula",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "pension_benefit_estimation",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2006-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "guofa-2005-38",
+        "jinan-payment-months-2025"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "stored_balance",
+          "value_type": "DECIMAL",
+          "required": true
+        },
+        {
+          "input_id": "payment_months",
+          "value_type": "DECIMAL",
+          "required": true
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "payment-months-positive",
+          "input_ref": "payment_months",
+          "operator": ">",
+          "value_type": "DECIMAL",
+          "value": "0.0"
+        }
+      ],
+      "results": [
+        {
+          "result_id": "map",
+          "output_field": "monthly_account_pension",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "EXPRESSION",
+            "operator": "DIVIDE",
+            "value_type": "DECIMAL",
+            "operands": [
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "stored_balance",
+                "value_type": "DECIMAL"
+              },
+              {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "payment_months",
+                "value_type": "DECIMAL"
+              }
+            ]
+          }
+        }
+      ],
+      "parameters": {},
+      "test_vectors": [
+        {
+          "vector_id": "v-map",
+          "input": {
+            "stored_balance": "138096.30",
+            "payment_months": "139.0"
+          },
+          "expected": {
+            "monthly_account_pension": "993.50"
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "national-record-interest-rate",
+      "scheme": "enterprise_employee_basic_pension",
+      "topic": "pension_benefit_estimation",
+      "jurisdiction_role": "NATIONAL_BASELINE",
+      "population_scope": "enterprise participants",
+      "exceptions": [],
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "transaction_from": "2026-08-11T12:00:00Z",
+      "transaction_to": null,
+      "legal_hierarchy": "NATIONAL_LAW",
+      "explicit_override_refs": [],
+      "source_refs": [
+        "interest-rate-disclosure-2025",
+        "mohrss-2017-31-interest"
+      ],
+      "rule_type": "POLICY_RULE",
+      "inputs": [
+        {
+          "input_id": "months",
+          "value_type": "INTEGER",
+          "required": false
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "always",
+          "input_ref": "months",
+          "operator": ">=",
+          "value_type": "INTEGER",
+          "value": 0
+        }
+      ],
+      "results": [
+        {
+          "result_id": "rate",
+          "output_field": "record_interest_rate",
+          "value_type": "DECIMAL",
+          "value": {
+            "kind": "LITERAL",
+            "value_type": "DECIMAL",
+            "value": "0.0262"
+          }
+        }
+      ],
+      "parameters": {
+        "record_interest_rate": {
+          "value_type": "DECIMAL",
+          "value": "0.0262"
+        },
+        "note": {
+          "value_type": "STRING",
+          "value": "2025年度披露值；2026及以后为用户假设"
+        }
+      },
+      "test_vectors": [
+        {
+          "vector_id": "v-rate",
+          "input": {
+            "months": 12
+          },
+          "expected": {
+            "record_interest_rate": "0.0262"
+          }
+        }
+      ]
+    }
+  ],
+  "content_digest": "sha256:7127ff4871727a54ad7b9659763d2289f3c0ddb7c5edd0ae804723feee01b439"
+}

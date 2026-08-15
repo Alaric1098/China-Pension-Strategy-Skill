@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/china-pension-strategy/tool-envelope/1.0.0",
+  "title": "Tool response envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tool_name", "tool_version", "run_id", "request_id", "status", "data", "warnings", "errors", "provenance", "metrics"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "tool_name": { "$ref": "#/$defs/id" },
+    "tool_version": { "$ref": "#/$defs/version" },
+    "run_id": { "type": ["string", "null"], "minLength": 1 },
+    "request_id": { "$ref": "#/$defs/id" },
+    "status": { "enum": ["success", "partial", "error"] },
+    "data": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "run_id": { "$ref": "#/$defs/id" },
+            "status": { "enum": ["success", "partial", "VALIDATED", "RENDERED", "DELETED"] },
+            "result_ref": { "$ref": "#/$defs/id" },
+            "manifest_ref": { "$ref": "#/$defs/id" },
+            "artifact_ref": { "$ref": "#/$defs/id" },
+            "deletion_manifest_ref": { "$ref": "#/$defs/id" }
+          }
+        }
+      ]
+    },
+    "warnings": { "type": "array", "items": { "$ref": "#/$defs/message" } },
+    "errors": { "type": "array", "items": { "$ref": "#/$defs/message" } },
+    "provenance": { "type": "array", "items": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "$ref": "#/$defs/id" }] } },
+    "metrics": { "$ref": "#/$defs/metrics" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "partial" } }, "required": ["status"] },
+      "then": { "properties": { "warnings": { "minItems": 1 }, "errors": { "maxItems": 0 } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "success" } }, "required": ["status"] },
+      "then": { "properties": { "errors": { "maxItems": 0 } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "error" } }, "required": ["status"] },
+      "then": { "properties": { "data": { "type": "null" }, "errors": { "minItems": 1 } } }
+    }
+  ],
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "related_refs"],
+      "properties": {
+        "code": { "$ref": "#/$defs/id" },
+        "message": { "$ref": "#/$defs/id" },
+        "related_refs": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["duration_ms", "cache_hit"],
+      "properties": {
+        "duration_ms": { "type": "integer", "minimum": 0 },
+        "cache_hit": { "type": "boolean" }
+      }
+    }
+  }
+}

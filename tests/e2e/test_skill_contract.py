@@ -309,3 +309,26 @@ def test_golden_case_runs_through_analyze_render_and_cleanup(tmp_path: Path) -> 
     assert not manifest_file.exists()
     deletion_manifests = list((runs_dir / "manifests").glob("deletion-*.json"))
     assert deletion_manifests
+
+
+def test_ci_matrix_covers_all_declared_python_versions() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+        encoding="utf-8"
+    )
+
+    for version in ('"3.12"', '"3.13"', '"3.14"'):
+        assert version in workflow
+
+
+def test_policy_expiry_workflow_is_scheduled_and_actionable() -> None:
+    workflow = (
+        ROOT / ".github" / "workflows" / "policy-expiry.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "schedule:" in workflow
+    assert "issues: write" in workflow
+    assert "concurrency:" in workflow
+    assert "automated-policy-expiry" in workflow
+    assert "gh issue create" in workflow
+    assert "gh issue close" in workflow
+    assert "exit 1" in workflow

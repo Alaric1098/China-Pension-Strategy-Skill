@@ -179,6 +179,57 @@ def test_scan_record_reports_nested_paths_and_redacts_record(scanner):
     assert redacted["amounts"] == ["<MONEY>", "<MONEY>"]
 
 
+def test_numeric_sensitive_field_values_follow_field_policy(scanner):
+    record = {
+        "id_number": 110101199001011237,
+        "bank_card": 6222021234567890123,
+        "phone": 13800138000,
+    }
+
+    decision, redacted = scanner.redact_record(record)
+
+    assert decision.action is ScanAction.BLOCK
+    assert redacted == {
+        "id_number": "<IDENTITY_CARD>",
+        "bank_card": "<BANK_CARD>",
+        "phone": "<PHONE>",
+    }
+
+
+def test_unlabelled_numeric_pii_is_scanned_without_flagging_counts(scanner):
+    record = {
+        "facts": [
+            {"value": 110101199001011237},
+            {"fact_type": "bank_card", "value": 6222021234567890123},
+            {"value": 179},
+            {"value": 1234567890123456},
+        ]
+    }
+
+    findings = scanner.scan_record(record)
+
+    paths = {finding.path for finding in findings}
+    assert ("facts", 0, "value") in paths
+    assert ("facts", 1, "value") in paths
+    assert ("facts", 2, "value") not in paths
+    assert ("facts", 3, "value") not in paths
+
+
+def test_empty_or_invalid_sensitive_fact_values_are_not_pii(scanner):
+    record = {
+        "facts": [
+            {"fact_type": "id_number", "value": None},
+            {"fact_type": "id_number", "value": 0},
+            {"fact_type": "id_number", "value": "unknown"},
+            {"fact_type": "phone", "value": False},
+            {"fact_type": "phone", "value": "0"},
+            {"fact_type": "phone", "value": 123456789.0},
+        ]
+    }
+
+    assert scanner.scan_record(record) == ()
+
+
 @given(text=st.text())
 def test_scan_findings_are_bounded_and_non_overlapping(text):
     decision = PrivacyScanner().scan_text(text)

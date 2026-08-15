@@ -163,6 +163,7 @@ def _run_analyze(
         policy_repository,
         run_repository,
         SystemClock(),
+        initial_warnings=warnings,
     )
     run_dir = run_directory / result.run.run_id
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -172,6 +173,7 @@ def _run_analyze(
         encoding="utf-8",
     )
     manifest = dict(result.run.to_manifest())
+    manifest["warnings"] = list(result.warnings)
     expires_at = record.get("expires_at")
     if isinstance(expires_at, str):
         manifest["expires_at"] = expires_at
@@ -181,7 +183,8 @@ def _run_analyze(
         result.output,
         artifact_uri=artifact_uri,
         request_id=request.case_id,
-        warnings=(*warnings, *result.warnings),
+        status=result.envelope_status,
+        warnings=result.warnings,
         envelope_validator=EnvelopeValidator(),
         output_validator=OutputValidator(),
     )
@@ -193,7 +196,7 @@ def _run_analyze(
                     "run_id": result.run.run_id,
                     "case_id": request.case_id,
                     "created_at": result.run.created_at.isoformat(),
-                    "warnings": warnings,
+                    "warnings": result.warnings,
                 }
             )
         except OSError:
@@ -211,6 +214,9 @@ def _run_render(
     repository = FileRunRepository(Path(runs_dir))
     try:
         run = repository.load(run_id)
+        manifest = json.loads(
+            repository.manifest_path(run_id).read_text(encoding="utf-8")
+        )
     except Exception as error:
         raise CliError(EXIT_RUN_NOT_FOUND, f"run not found: {run_id}") from error
     artifact_file = Path(runs_dir) / run_id / "analysis.json"
@@ -226,6 +232,7 @@ def _run_render(
                         output,
                         artifact_uri=f"runs/{run_id}/analysis.json",
                         request_id=output.get("case_id", run_id),
+                        warnings=manifest.get("warnings", ()),
                         envelope_validator=EnvelopeValidator(),
                         output_validator=OutputValidator(),
                     ),

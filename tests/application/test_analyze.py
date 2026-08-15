@@ -2,6 +2,7 @@
 
 from datetime import date, datetime, timezone
 from decimal import Decimal
+import importlib
 
 import pytest
 
@@ -477,3 +478,35 @@ def test_analyze_rejects_missing_policy_rules() -> None:
 def test_analyze_output_digest_matches_content() -> None:
     result = analyze(base_request(), policy_repository(), MemoryRunRepository(), FixedClock())
     assert result.run.output_digest == content_digest(result.output)
+
+
+def test_analyze_manifest_metrics_reflect_warnings_and_elapsed_time(monkeypatch) -> None:
+    analyze_module = importlib.import_module(
+        "china_pension_strategy.application.analyze"
+    )
+    ticks = iter((1_000_000, 4_500_000))
+    monkeypatch.setattr(
+        analyze_module,
+        "perf_counter_ns",
+        lambda: next(ticks),
+        raising=False,
+    )
+    request = AnalysisRequest(
+        **{
+            **base_request().__dict__,
+            "requested_capabilities": (
+                *base_request().requested_capabilities,
+                "PENSION_ESTIMATION",
+            ),
+        }
+    )
+
+    result = analyze(
+        request,
+        policy_repository(),
+        MemoryRunRepository(),
+        FixedClock(),
+    )
+
+    assert result.run.warnings_count == len(result.warnings) == 1
+    assert result.run.duration_ms == 3

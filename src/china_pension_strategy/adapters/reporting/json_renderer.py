@@ -142,18 +142,35 @@ def render_json(
     *,
     artifact_uri: str,
     request_id: str,
+    status: str | None = None,
     warnings: Iterable[str] = (),
     envelope_validator: EnvelopeValidator | None = None,
     output_validator: OutputValidator | None = None,
 ) -> dict[str, Any]:
     """Render and validate a JSON envelope for the run and its output."""
+    warning_items = tuple(warnings)
     output_validator = output_validator or OutputValidator()
     output_validator.validate(output)
+    if status is None:
+        capability_statuses = output.get("capability_statuses", {})
+        status = (
+            "partial"
+            if isinstance(capability_statuses, Mapping)
+            and any(value != "AVAILABLE" for value in capability_statuses.values())
+            else "success"
+        )
+        if status == "partial" and not warning_items:
+            warning_items = tuple(
+                f"CAPABILITY_PARTIAL: {capability} has status {capability_status}."
+                for capability, capability_status in capability_statuses.items()
+                if capability_status != "AVAILABLE"
+            )
     envelope = build_envelope(
         run,
         artifact_uri=artifact_uri,
         request_id=request_id,
-        warnings=warnings,
+        status=status,
+        warnings=warning_items,
     )
     envelope_validator = envelope_validator or EnvelopeValidator()
     envelope_validator.validate(envelope)

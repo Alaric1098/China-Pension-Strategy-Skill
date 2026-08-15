@@ -20,10 +20,10 @@
     {
       "id": "privacy-block",
       "kind": "global_block",
-      "fixture": "privacy-block-ssn.json",
-      "case_id": "case-privacy-block-ssn",
+      "fixture": "privacy-block-numeric-id.json",
+      "case_id": "case-privacy-block-numeric-id",
       "expected_exit_code": 5,
-      "note": "social-security number in facts blocks the whole run; no artifacts"
+      "note": "numeric identity-card value in facts blocks the whole run; no artifacts"
     },
     {
       "id": "privacy-redact",

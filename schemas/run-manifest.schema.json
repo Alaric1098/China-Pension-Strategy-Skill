@@ -40,6 +40,10 @@
     "output_digest": { "$ref": "#/$defs/digest" },
     "artifact_digests": { "type": "array", "items": { "$ref": "#/$defs/digest" } },
     "warnings_count": { "type": "integer", "minimum": 0 },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
     "unresolved_conflicts_count": { "type": "integer", "minimum": 0 },
     "duration_ms": { "type": "integer", "minimum": 0 }
   },

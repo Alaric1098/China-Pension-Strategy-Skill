@@ -213,6 +213,104 @@ def test_analyze_happy_path_prints_envelope_and_stores_artifacts(tmp_path: Path)
     assert manifest["expires_at"] == EXPIRES_AT
 
 
+def test_requested_capability_without_output_is_reported_as_partial(tmp_path: Path) -> None:
+    input_path = ROOT / "evals" / "fixtures" / "partial-beijing-benefit.json"
+    runs_dir = tmp_path / "runs"
+
+    _, envelope = analyze_and_parse(input_path, runs_dir)
+
+    assert envelope["status"] == "partial"
+    assert any(
+        warning["message"].startswith("CAPABILITY_PARTIAL: PENSION_ESTIMATION")
+        for warning in envelope["warnings"]
+    )
+    run_id = envelope["data"]["run_id"]
+    stored = json.loads(
+        (runs_dir / run_id / "analysis.json").read_text(encoding="utf-8")
+    )
+    assert "pension_estimation" not in stored
+    dependencies = {
+        item["capability_id"]: item["status"]
+        for item in stored["recommendation"]["capability_dependencies"]
+    }
+    assert dependencies["PENSION_ESTIMATION"] == "PARTIAL"
+    assert stored["capability_statuses"]["PENSION_ESTIMATION"] == "PARTIAL"
+
+    rendered = run_cli(
+        "render",
+        "--run-id",
+        run_id,
+        "--runs-dir",
+        str(runs_dir),
+        "--format",
+        "json",
+    )
+    assert rendered.returncode == 0, rendered.stderr
+    re_envelope = json.loads(rendered.stdout)
+    assert re_envelope["status"] == "partial"
+    assert re_envelope["warnings"] == envelope["warnings"]
+
+
+def test_unimplemented_retirement_age_capability_is_partial(tmp_path: Path) -> None:
+    input_path = write_input(
+        tmp_path / "input.json",
+        requested_capabilities=[
+            "CONTRIBUTION_RECONCILIATION",
+            "CONTRIBUTION_GAP",
+            "FLEXIBLE_EMPLOYMENT_CONTRIBUTION",
+            "SCENARIO_COMPARISON",
+            "RECOMMENDATION",
+            "RETIREMENT_AGE",
+        ],
+    )
+    runs_dir = tmp_path / "runs"
+
+    _, envelope = analyze_and_parse(input_path, runs_dir)
+
+    assert envelope["status"] == "partial"
+    run_id = envelope["data"]["run_id"]
+    stored = json.loads(
+        (runs_dir / run_id / "analysis.json").read_text(encoding="utf-8")
+    )
+    assert stored["capability_statuses"]["RETIREMENT_AGE"] == "PARTIAL"
+
+
+def test_cross_region_without_cross_region_facts_is_partial(tmp_path: Path) -> None:
+    input_path = write_input(
+        tmp_path / "input.json",
+        requested_capabilities=[
+            "CONTRIBUTION_RECONCILIATION",
+            "CONTRIBUTION_GAP",
+            "FLEXIBLE_EMPLOYMENT_CONTRIBUTION",
+            "SCENARIO_COMPARISON",
+            "RECOMMENDATION",
+            "CROSS_REGION_COMPARISON",
+        ],
+    )
+    record = json.loads(input_path.read_text(encoding="utf-8"))
+    record["facts"].append(
+        {
+            "fact_id": "birth-only",
+            "fact_type": "birth_year_month",
+            "value": "1976-02",
+            "as_of_date": "2026-08-11",
+            "source_ref": "synthetic-input",
+            "required_for": ["CROSS_REGION_COMPARISON"],
+        }
+    )
+    input_path.write_text(json.dumps(record, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    _, envelope = analyze_and_parse(input_path, tmp_path / "runs")
+
+    assert envelope["status"] == "partial"
+    run_id = envelope["data"]["run_id"]
+    stored = json.loads(
+        (tmp_path / "runs" / run_id / "analysis.json").read_text(encoding="utf-8")
+    )
+    assert stored["capability_statuses"]["CROSS_REGION_COMPARISON"] == "PARTIAL"
+    assert "cross_region_comparison" not in stored
+
+
 def test_validate_command_accepts_input(tmp_path: Path) -> None:
     input_path = write_input(tmp_path / "input.json")
     result = run_cli("validate", "--input", str(input_path))
@@ -279,6 +377,29 @@ def test_privacy_block_exits_5_and_produces_nothing(tmp_path: Path) -> None:
     assert not runs_dir.exists()
 
 
+def test_numeric_identity_card_exits_5_and_produces_nothing(tmp_path: Path) -> None:
+    identity_fact = {
+        "fact_id": "numeric-identity-card",
+        "fact_type": "id_number",
+        "value": 110101199001011237,
+        "as_of_date": "2026-08-11",
+        "source_ref": "synthetic-privacy-test",
+        "required_for": ["CONTRIBUTION_RECONCILIATION"],
+    }
+    input_path = write_input(tmp_path / "input.json")
+    record = json.loads(input_path.read_text(encoding="utf-8"))
+    record["facts"].append(identity_fact)
+    input_path.write_text(json.dumps(record, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    runs_dir = tmp_path / "runs"
+    result = run_cli("analyze", "--input", str(input_path), "--runs-dir", str(runs_dir))
+
+    assert result.returncode == 5
+    assert "privacy" in result.stderr.lower()
+    assert "Traceback" not in result.stderr
+    assert not runs_dir.exists()
+
+
 def test_privacy_redact_warns_and_redacts_stored_value(tmp_path: Path) -> None:
     phone_fact = {
         "fact_id": "phone-note",
@@ -299,6 +420,10 @@ def test_privacy_redact_warns_and_redacts_stored_value(tmp_path: Path) -> None:
     run_id = envelope["data"]["run_id"]
     stored = (runs_dir / run_id / "analysis.json").read_text(encoding="utf-8")
     assert "13800138000" not in stored
+    manifest = json.loads(
+        (runs_dir / run_id / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["warnings_count"] == len(envelope["warnings"])
 
 
 def test_render_by_run_id_markdown_and_json(tmp_path: Path) -> None:

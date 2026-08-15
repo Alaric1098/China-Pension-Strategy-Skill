@@ -177,6 +177,48 @@ def _valid_identity_card(value: str) -> bool:
     return value[-1].upper() == _ID_CHECK_CHARS[total % 11]
 
 
+def _field_value_has_sensitive_shape(category: str, value: Any) -> bool:
+    if value is None or isinstance(value, bool):
+        return False
+    text = str(value).strip()
+    if not text:
+        return False
+    if isinstance(value, str):
+        validators = {
+            CATEGORY_IDENTITY_CARD: _IDENTITY_CARD_RE,
+            CATEGORY_SOCIAL_SECURITY: _SOCIAL_SECURITY_RE,
+            CATEGORY_BANK_CARD: _BANK_CARD_RE,
+            CATEGORY_PHONE: _PHONE_RE,
+            CATEGORY_QUERY_SERIAL: _QUERY_SERIAL_RE,
+            CATEGORY_FILE_PATH: _FILE_PATH_RE,
+        }
+        if category in validators:
+            return validators[category].fullmatch(text) is not None
+        if category == CATEGORY_VERIFICATION_CODE:
+            return re.fullmatch(r"\d{4,6}", text) is not None
+        if category == CATEGORY_MONEY:
+            return (
+                _MONEY_RE.search(text) is not None
+                or re.fullmatch(r"[+-]?\d+(?:\.\d+)?", text.replace(",", ""))
+                is not None
+            )
+        return True
+    if not isinstance(value, int) or not text.isdigit():
+        return category == CATEGORY_MONEY and isinstance(value, float)
+    digit_count = len(text)
+    expected_lengths = {
+        CATEGORY_IDENTITY_CARD: {18},
+        CATEGORY_SOCIAL_SECURITY: {12},
+        CATEGORY_BANK_CARD: {16, 17, 18, 19},
+        CATEGORY_PHONE: {11},
+        CATEGORY_QUERY_SERIAL: set(range(9, 21)),
+        CATEGORY_VERIFICATION_CODE: {4, 5, 6},
+    }
+    if category == CATEGORY_MONEY:
+        return True
+    return digit_count in expected_lengths.get(category, set())
+
+
 class PrivacyScanner:
     """Detects sensitive values in text and records, deterministically."""
 
@@ -244,15 +286,25 @@ class PrivacyScanner:
         if isinstance(record, dict):
             for key, value in record.items():
                 child_path = (*path, key)
-                if isinstance(value, str) and key in _FIELD_CATEGORIES:
-                    category, action = _FIELD_CATEGORIES[key]
+                field_policy = _FIELD_CATEGORIES.get(key)
+                if key == "value" and isinstance(record.get("fact_type"), str):
+                    field_policy = _FIELD_CATEGORIES.get(
+                        record["fact_type"].casefold()
+                    )
+                if (
+                    field_policy is not None
+                    and not isinstance(value, (dict, list))
+                    and _field_value_has_sensitive_shape(field_policy[0], value)
+                ):
+                    category, action = field_policy
+                    text = str(value)
                     findings.append(
                         ScanFinding(
                             category,
                             action,
                             child_path,
                             0,
-                            len(value),
+                            len(text),
                             f"{category} field: {key}",
                         )
                     )
@@ -263,6 +315,12 @@ class PrivacyScanner:
                 self._walk_record(value, (*path, index), findings)
         elif isinstance(record, str):
             findings.extend(self._findings_for_text(record, path))
+        elif isinstance(record, (int, float)) and not isinstance(record, bool):
+            findings.extend(
+                finding
+                for finding in self._findings_for_text(str(record), path)
+                if finding.category == CATEGORY_IDENTITY_CARD
+            )
 
     def _replace_findings(
         self,
@@ -273,16 +331,16 @@ class PrivacyScanner:
         flagged = {finding.path: finding for finding in findings}
         if isinstance(record, dict):
             return {
-                key: self._replace_findings(value, findings, (*path, key))
-                if not isinstance(value, str) or (*path, key) not in flagged
-                else self._placeholder_for(flagged[(*path, key)])
+                key: self._placeholder_for(flagged[(*path, key)])
+                if (*path, key) in flagged
+                else self._replace_findings(value, findings, (*path, key))
                 for key, value in record.items()
             }
         if isinstance(record, list):
             return [
-                self._replace_findings(value, findings, (*path, index))
-                if not isinstance(value, str) or (*path, index) not in flagged
-                else self._placeholder_for(flagged[(*path, index)])
+                self._placeholder_for(flagged[(*path, index)])
+                if (*path, index) in flagged
+                else self._replace_findings(value, findings, (*path, index))
                 for index, value in enumerate(record)
             ]
         return record

@@ -11,6 +11,7 @@ from decimal import Decimal
 from enum import Enum
 import hashlib
 import json
+from time import perf_counter_ns
 from typing import Mapping, Sequence
 
 from china_pension_strategy.application.calculate_months import (
@@ -35,7 +36,7 @@ from china_pension_strategy.application.analyze_scenarios import (
     select_recommended,
 )
 from china_pension_strategy.domain.calculation import SubsidyAssessment
-from china_pension_strategy.domain.eligibility import EligibilityStatus
+from china_pension_strategy.domain.eligibility import CapabilityStatus, EligibilityStatus
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.policy import (
     AnalysisMode,
@@ -148,6 +149,7 @@ class AnalysisResult:
     output: dict[str, object]
     scenarios: tuple[Scenario, ...]
     recommendation: Recommendation | None
+    envelope_status: str = "success"
     warnings: tuple[str, ...] = ()
 
 
@@ -593,30 +595,36 @@ def _cross_region_output(
         return None
     if not request.pension_inputs:
         return None
-    comparison = {}
-    try:
-        place_rules = tuple(
-            rule
-            for package in packages
-            if package.topic == "pension_place"
-            for rule in package.rules
-        )
-        region_months_raw = request.pension_inputs.get("region_contribution_months", ())
-        region_months = {
-            str(item["region"]): int(item["months"]) for item in region_months_raw
-        }
-        home = str(request.pension_inputs.get("home_region", ""))
-        current = str(request.pension_inputs.get("current_region", home))
-        comparison["pension_place"] = determine_pension_place(
-            place_rules,
-            home_region=home,
-            current_region=current,
-            region_months=region_months,
-        )
-    except (DomainValidationError, KeyError, TypeError, ValueError):
-        comparison["pension_place"] = None
-
+    region_months_raw = request.pension_inputs.get("region_contribution_months", ())
+    home = str(request.pension_inputs.get("home_region", ""))
+    current = str(request.pension_inputs.get("current_region", ""))
     regions = request.pension_inputs.get("comparison_regions", ())
+    has_place_inputs = bool(home and current and region_months_raw)
+    has_comparison_inputs = bool(request.contribution_base is not None and regions)
+    if not has_place_inputs and not has_comparison_inputs:
+        return None
+    comparison = {}
+    if has_place_inputs:
+        try:
+            place_rules = tuple(
+                rule
+                for package in packages
+                if package.topic == "pension_place"
+                for rule in package.rules
+            )
+            region_months = {
+                str(item["region"]): int(item["months"])
+                for item in region_months_raw
+            }
+            comparison["pension_place"] = determine_pension_place(
+                place_rules,
+                home_region=home,
+                current_region=current,
+                region_months=region_months,
+            )
+        except (DomainValidationError, KeyError, TypeError, ValueError):
+            comparison["pension_place"] = None
+
     # Contribution rules live in the province layer for tier-2 cities
     # (chengdu -> sichuan CN-51, etc.); municipalities are single-level.
     jurisdiction_map = {
@@ -625,7 +633,7 @@ def _cross_region_output(
         "wuhan": "CN-42", "nanjing": "CN-32", "tianjin": "CN-12",
         "chongqing": "CN-50",
     }
-    if request.contribution_base is not None and regions:
+    if has_comparison_inputs:
         try:
             wanted_jurisdictions = {jurisdiction_map[str(r)] for r in regions}
             rules_by_jurisdiction: dict[str, tuple[PolicyRule, ...]] = {}
@@ -643,6 +651,8 @@ def _cross_region_output(
             )
         except (DomainValidationError, KeyError, TypeError, ValueError):
             comparison["region_comparison"] = None
+    if not any(value not in (None, [], {}) for value in comparison.values()):
+        return None
     return comparison
 
 
@@ -698,6 +708,27 @@ def _personal_pension_tax_output(
         "years": years,
         "note": "税优测算口径（缴费税前扣除 + 领取 3% 单独计税）；不推荐具体产品",
     }
+
+
+def _requested_capability_statuses(
+    request: AnalysisRequest,
+    optional_outputs: Mapping[str, object | None],
+) -> tuple[dict[str, CapabilityStatus], tuple[str, ...]]:
+    statuses = {
+        capability: CapabilityStatus.AVAILABLE
+        for capability in request.requested_capabilities
+    }
+    warnings: list[str] = []
+    for capability, value in optional_outputs.items():
+        if capability not in statuses or value is not None:
+            continue
+        statuses[capability] = CapabilityStatus.PARTIAL
+        warnings.append(
+            f"CAPABILITY_PARTIAL: {capability} was requested but no output was "
+            "produced because required inputs or applicable policy rules were "
+            "missing or invalid."
+        )
+    return statuses, tuple(warnings)
 
 
 def _subsidy_rules(
@@ -826,8 +857,10 @@ def analyze(
     policy_repository: PolicyRepository,
     run_repository: RunRepository,
     clock: Clock,
+    initial_warnings: Sequence[str] = (),
 ) -> AnalysisResult:
     """Run one deterministic analysis end to end and store the run."""
+    started_at_ns = perf_counter_ns()
     reconciliation = reconcile_contribution_records(
         ReconcileRequest(
             scheme=request.scheme,
@@ -858,6 +891,28 @@ def analyze(
         reconciliation.confirmed_months,
     )
     ranked = rank_scenarios(scenarios, objective=request.objective)
+    pension_estimation = _pension_estimate_output(request, packages)
+    back_payment = _back_payment_output(request, packages)
+    residents_pension = _residents_pension_output(request, packages)
+    cross_region = _cross_region_output(request, packages, policy_repository)
+    sensitivity = _sensitivity_output(request, packages)
+    personal_pension_tax = _personal_pension_tax_output(request, packages)
+    capability_statuses, capability_warnings = _requested_capability_statuses(
+        request,
+        {
+            "RETIREMENT_AGE": (
+                pension_estimation.get("statutory_retirement")
+                if isinstance(pension_estimation, Mapping)
+                else None
+            ),
+            "PENSION_ESTIMATION": pension_estimation,
+            "BACK_PAYMENT": back_payment,
+            "RESIDENTS_PENSION": residents_pension,
+            "CROSS_REGION_COMPARISON": cross_region,
+            "SENSITIVITY_ANALYSIS": sensitivity,
+            "PERSONAL_PENSION_TAX": personal_pension_tax,
+        },
+    )
     recommendation = None
     if "RECOMMENDATION" in request.requested_capabilities:
         try:
@@ -900,7 +955,10 @@ def analyze(
                 recommended,
                 objective=request.objective,
                 capability_dependencies=(
-                    {"capability_id": capability, "status": "AVAILABLE"}
+                    {
+                        "capability_id": capability,
+                        "status": capability_statuses[capability].value,
+                    }
                     for capability in request.requested_capabilities
                 ),
                 limitations=tuple(base_limitations),
@@ -911,12 +969,6 @@ def analyze(
             recommendation = None
 
     scenarios_by_id = {scenario.scenario_id: scenario for scenario in ranked}
-    pension_estimation = _pension_estimate_output(request, packages)
-    back_payment = _back_payment_output(request, packages)
-    residents_pension = _residents_pension_output(request, packages)
-    cross_region = _cross_region_output(request, packages, policy_repository)
-    sensitivity = _sensitivity_output(request, packages)
-    personal_pension_tax = _personal_pension_tax_output(request, packages)
     output = {
         "schema_version": OUTPUT_SCHEMA_VERSION,
         "case_id": request.case_id,
@@ -929,6 +981,11 @@ def analyze(
         },
         "recommendation": _scenario_output(recommendation),
     }
+    if capability_warnings:
+        output["capability_statuses"] = {
+            capability: status.value
+            for capability, status in capability_statuses.items()
+        }
     if pension_estimation is not None:
         output["pension_estimation"] = pension_estimation
     if back_payment is not None:
@@ -990,6 +1047,8 @@ def analyze(
     )
     objective_digest = content_digest(request.objective)
     output_digest = content_digest(output)
+    base_warnings = _base_limits_warnings(packages, request.contribution_base)
+    warnings = (*initial_warnings, *base_warnings, *capability_warnings)
 
     run = AnalysisRun(
         parent_run_id=None,
@@ -1020,12 +1079,11 @@ def analyze(
             "invariants_valid": True,
         },
         validation_suite=VALIDATION_SUITE,
-        warnings_count=0,
+        warnings_count=len(warnings),
         unresolved_conflicts_count=len(reconciliation.conflicts),
-        duration_ms=0,
+        duration_ms=(perf_counter_ns() - started_at_ns) // 1_000_000,
         created_at=clock.now_utc(),
     )
-    base_warnings = _base_limits_warnings(packages, request.contribution_base)
     run.mark_succeeded()
     run_repository.save(run)
     return AnalysisResult(
@@ -1033,7 +1091,8 @@ def analyze(
         output=output,
         scenarios=ranked,
         recommendation=recommendation,
-        warnings=base_warnings,
+        envelope_status=("partial" if capability_warnings else "success"),
+        warnings=warnings,
     )
 
 

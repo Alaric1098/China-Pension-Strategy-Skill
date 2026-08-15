@@ -1,0 +1,75 @@
+name: Policy expiry
+
+on:
+  schedule:
+    - cron: "17 1 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: policy-expiry
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check current policy expiry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Run expiry report
+        id: report
+        shell: bash
+        run: |
+          set +e
+          python scripts/policy_expiry_report.py --horizon-months 6 > policy-expiry-report.txt 2>&1
+          exit_code=$?
+          cat policy-expiry-report.txt
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure automated issue label
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create automated-policy-expiry \
+            --color D93F0B \
+            --description "Automated current-policy expiry alert" \
+            --force
+
+      - name: Create or update expiry issue
+        if: steps.report.outputs.exit_code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          title="Policy expiry alert"
+          issue_number="$(gh issue list --state open --label automated-policy-expiry --limit 1 --json number --jq '.[0].number')"
+          if [[ -n "$issue_number" ]]; then
+            gh issue edit "$issue_number" --title "$title" --body-file policy-expiry-report.txt
+          else
+            gh issue create --title "$title" --label automated-policy-expiry --body-file policy-expiry-report.txt
+          fi
+
+      - name: Close resolved expiry issue
+        if: steps.report.outputs.exit_code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          issue_number="$(gh issue list --state open --label automated-policy-expiry --limit 1 --json number --jq '.[0].number')"
+          if [[ -n "$issue_number" ]]; then
+            gh issue close "$issue_number" --comment "Current policy expiry gate is clear. Closing this automated alert."
+          fi
+
+      - name: Fail on expiring current policy
+        if: steps.report.outputs.exit_code != '0'
+        run: exit 1

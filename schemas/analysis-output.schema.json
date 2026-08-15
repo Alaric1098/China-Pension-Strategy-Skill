@@ -21,6 +21,12 @@
     "reconciliation": { "type": "object" },
     "scenarios": { "type": "object" },
     "recommendation": { "type": ["object", "null"] },
+    "capability_statuses": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": ["AVAILABLE", "PARTIAL", "BLOCKED"]
+      }
+    },
     "pension_estimation": { "type": ["object", "null"] },
     "back_payment": { "type": ["object", "null"] },
     "residents_pension": { "type": ["object", "null"] },

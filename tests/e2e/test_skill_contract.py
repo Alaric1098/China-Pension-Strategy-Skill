@@ -6,10 +6,14 @@ behavior, eval manifest validity, and a golden case executed end-to-end
 through analyze, stored JSON/manifest, and Markdown rendering.
 """
 
+import importlib
+import importlib.util
+import inspect
 import json
 import re
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -332,3 +336,25 @@ def test_policy_expiry_workflow_is_scheduled_and_actionable() -> None:
     assert "gh issue create" in workflow
     assert "gh issue close" in workflow
     assert "exit 1" in workflow
+
+
+def test_package_release_and_engine_semantics_are_independently_versioned() -> None:
+    spec = importlib.util.find_spec("china_pension_strategy.version")
+    assert spec is not None, "version module must separate package and engine versions"
+    versions = importlib.import_module("china_pension_strategy.version")
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+
+    assert versions.PACKAGE_VERSION == project["project"]["version"]
+    assert versions.ENGINE_SEMANTICS_VERSION == "0.1.1"
+
+    from china_pension_strategy.entrypoints.cli.main import _build_parser
+    from china_pension_strategy.adapters.regions import create_region_adapter
+
+    args = _build_parser().parse_args(
+        ["analyze", "--input", "input.json", "--runs-dir", "runs"]
+    )
+    assert args.engine == versions.ENGINE_SEMANTICS_VERSION
+    assert (
+        inspect.signature(create_region_adapter).parameters["engine_version"].default
+        == versions.ENGINE_SEMANTICS_VERSION
+    )

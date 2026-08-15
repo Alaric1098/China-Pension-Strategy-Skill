@@ -140,6 +140,12 @@ def test_run_id_is_deterministic_for_identical_inputs() -> None:
     assert len(later.run_id) == 4 + 64
 
 
+def test_run_id_ignores_adapter_release_versions() -> None:
+    released = make_run(adapter_versions={"policy_repository": "0.1.1"})
+
+    assert released.run_id == make_run().run_id
+
+
 @pytest.mark.parametrize(
     "override",
     [

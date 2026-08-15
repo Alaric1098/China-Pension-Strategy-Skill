@@ -20,6 +20,7 @@ from china_pension_strategy.domain.run import (
     ComponentVersions,
     RulesetReference,
 )
+from china_pension_strategy.version import PACKAGE_VERSION
 
 ROOT = Path(__file__).resolve().parents[2]
 DIGEST_A = "sha256:" + "a" * 64
@@ -118,7 +119,7 @@ def test_build_envelope_is_deterministic_and_embeds_run() -> None:
     assert first == second
     assert first["run_id"] == run.run_id
     assert first["tool_name"] == "china-pension-strategy"
-    assert first["tool_version"] == run.component_versions.engine
+    assert first["tool_version"] == PACKAGE_VERSION
     assert first["request_id"] == "case-001"
     assert first["data"]["artifact_ref"] == "runs/run-x/output.json"
     assert first["data"]["status"] == "VALIDATED"

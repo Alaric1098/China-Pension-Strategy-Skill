@@ -73,6 +73,7 @@ from china_pension_strategy.domain.values import (
 from china_pension_strategy.ports.outbound.clock import Clock
 from china_pension_strategy.ports.outbound.policy_repository import PolicyRepository
 from china_pension_strategy.ports.outbound.run_repository import RunRepository
+from china_pension_strategy.version import PACKAGE_VERSION
 
 CNY = "CNY"
 OUTPUT_SCHEMA_VERSION = "2.0.0"
@@ -1068,9 +1069,9 @@ def analyze(
         output_digest=output_digest,
         artifact_digests=(),
         adapter_versions={
-            "policy_repository": "0.1.1",
-            "run_repository": "0.1.1",
-            "clock": "0.1.1",
+            "policy_repository": PACKAGE_VERSION,
+            "run_repository": PACKAGE_VERSION,
+            "clock": PACKAGE_VERSION,
         },
         validation={
             "input_schema_valid": True,

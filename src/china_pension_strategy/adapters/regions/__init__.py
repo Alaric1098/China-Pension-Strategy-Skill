@@ -24,6 +24,7 @@ from china_pension_strategy.adapters.regions.shanghai import ShanghaiRegionAdapt
 from china_pension_strategy.adapters.regions.shenzhen import ShenzhenRegionAdapter
 from china_pension_strategy.adapters.regions.tianjin import TianjinRegionAdapter
 from china_pension_strategy.adapters.regions.wuhan import WuhanRegionAdapter
+from china_pension_strategy.version import ENGINE_SEMANTICS_VERSION
 
 
 class RegionAdapter(Protocol):
@@ -49,7 +50,7 @@ _REGISTRY: dict[str, type[RegionAdapter]] = {
 def create_region_adapter(
     region: str,
     *,
-    engine_version: str = "0.1.1",
+    engine_version: str = ENGINE_SEMANTICS_VERSION,
 ) -> RegionAdapter:
     """Return the region adapter for `region`.
 

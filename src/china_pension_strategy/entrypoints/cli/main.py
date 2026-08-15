@@ -52,6 +52,7 @@ from china_pension_strategy.adapters.reporting.json_renderer import (
 from china_pension_strategy.adapters.reporting.markdown_renderer import render_markdown
 from china_pension_strategy.application.analyze import analyze
 from china_pension_strategy.ports.outbound.clock import SystemClock
+from china_pension_strategy.version import ENGINE_SEMANTICS_VERSION
 
 EXIT_OK = 0
 EXIT_RUNTIME_ERROR = 1
@@ -89,7 +90,9 @@ def _build_parser() -> argparse.ArgumentParser:
     analyze_parser.add_argument("--runs-dir", required=True, help="directory for run artifacts")
     analyze_parser.add_argument("--packages-dir", default=None, help="policy packages directory")
     analyze_parser.add_argument("--schema", default=None, help="person-input schema file")
-    analyze_parser.add_argument("--engine", default="0.1.1", help="engine version (semver)")
+    analyze_parser.add_argument(
+        "--engine", default=ENGINE_SEMANTICS_VERSION, help="engine semantics version (semver)"
+    )
     analyze_parser.add_argument("--audit", default=None, help="JSONL audit file")
 
     render = subparsers.add_parser("render", help="render a stored run")

@@ -17,6 +17,7 @@ from china_pension_strategy.application.resolve_policy import PolicyQuery
 from china_pension_strategy.domain.policy import AnalysisMode, JurisdictionRole
 from china_pension_strategy.domain.reconciliation import AggregatedCount, ContributionMonth
 from china_pension_strategy.domain.values import RoundingMode, YearMonth
+from china_pension_strategy.version import ENGINE_SEMANTICS_VERSION
 
 SCHEME = "enterprise_employee_basic_pension"
 JURISDICTION = "CN-50"
@@ -39,7 +40,7 @@ class ChongqingRegionAdapter:
 
     def __init__(
         self,
-        engine_version: str = "0.1.1",
+        engine_version: str = ENGINE_SEMANTICS_VERSION,
         rounding: RoundingMode = RoundingMode.HALF_UP,
     ) -> None:
         self._engine_version = engine_version

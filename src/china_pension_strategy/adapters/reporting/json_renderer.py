@@ -15,6 +15,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.run import AnalysisRun
+from china_pension_strategy.version import PACKAGE_VERSION
 
 ENVELOPE_SCHEMA_VERSION = "1.0.0"
 TOOL_NAME = "china-pension-strategy"
@@ -111,7 +112,7 @@ def build_envelope(
     return {
         "schema_version": ENVELOPE_SCHEMA_VERSION,
         "tool_name": TOOL_NAME,
-        "tool_version": run.component_versions.engine,
+        "tool_version": PACKAGE_VERSION,
         "run_id": run.run_id,
         "request_id": request_id,
         "status": status,

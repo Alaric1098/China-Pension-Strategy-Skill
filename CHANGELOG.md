@@ -2,6 +2,11 @@
 
 本文件记录 `china-pension-strategy` 技能设计和实现的重要变更。时间均为本机时间，格式为 `YYYY-MM-DD HH:mm:ss UTC offset`。
 
+## Unreleased
+
+- 将 `PACKAGE_VERSION` 与 `ENGINE_SEMANTICS_VERSION` 显式拆分；包、文档、CI 或分发 patch 不再要求提升引擎语义版本，也不会改变既有 `run_id`。
+- 工具信封报告包发行版本，运行清单和内容寻址只记录引擎语义版本；当前两者均为 `0.1.1`，因此本次重构不改变 0.1.1 golden ID。
+
 ## 0.1.1 - 2026-08-15
 
 - 请求的可选能力未产出时，信封返回 `partial`、写入具名 warning，并在冻结工件及推荐依赖中标记 `PARTIAL`；按 `run_id` 重新渲染时保留该状态。

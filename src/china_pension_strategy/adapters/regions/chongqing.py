@@ -39,7 +39,7 @@ class ChongqingRegionAdapter:
 
     def __init__(
         self,
-        engine_version: str = "0.1.0",
+        engine_version: str = "0.1.1",
         rounding: RoundingMode = RoundingMode.HALF_UP,
     ) -> None:
         self._engine_version = engine_version

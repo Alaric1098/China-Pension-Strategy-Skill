@@ -50,7 +50,7 @@ Linux 或 macOS 使用 `source .venv/bin/activate` 激活虚拟环境。
 ```text
 china-pension validate --input evals/fixtures/golden-beijing-flex-2026.json
 china-pension analyze --input evals/fixtures/golden-beijing-flex-2026.json --runs-dir runs
-china-pension render --run-id run-a7440a1a294cbdb2464f039f6a61e96d496cc1d5aa88c594c66b879602375d59 --runs-dir runs --format markdown
+china-pension render --run-id run-95e2c71f61a9b8510cc4097e9c930d53afb36a4892be154802ac96c4687731e9 --runs-dir runs --format markdown
 ```
 
 `analyze` 会向标准输出写入版本化 JSON 信封，并在 `runs/<run_id>/` 保存结构化结果与运行清单。`render` 只读取该冻结结果，不重新解释政策或计算金额。

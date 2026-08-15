@@ -154,7 +154,7 @@ def test_cli_beijing_region_keeps_golden_run_id(tmp_path) -> None:
     assert envelope["status"] == "success"
     # Content-addressed: same facts + same region default must reproduce the
     # golden run id even though the input now carries an explicit region key.
-    assert envelope["data"]["run_id"] == "run-a7440a1a294cbdb2464f039f6a61e96d496cc1d5aa88c594c66b879602375d59"
+    assert envelope["data"]["run_id"] == "run-95e2c71f61a9b8510cc4097e9c930d53afb36a4892be154802ac96c4687731e9"
 
 
 def test_cli_unknown_region_fails_cleanly(tmp_path) -> None:

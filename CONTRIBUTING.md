@@ -80,7 +80,7 @@ Existing fixture `run_id` values are regression contracts. In particular, the
 Beijing guard case must remain:
 
 ```text
-run-a7440a1a294cbdb2464f039f6a61e96d496cc1d5aa88c594c66b879602375d59
+run-95e2c71f61a9b8510cc4097e9c930d53afb36a4892be154802ac96c4687731e9
 ```
 
 If an intended semantic change alters a run ID, document the changed canonical

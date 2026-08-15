@@ -1068,9 +1068,9 @@ def analyze(
         output_digest=output_digest,
         artifact_digests=(),
         adapter_versions={
-            "policy_repository": "0.1.0",
-            "run_repository": "0.1.0",
-            "clock": "0.1.0",
+            "policy_repository": "0.1.1",
+            "run_repository": "0.1.1",
+            "clock": "0.1.1",
         },
         validation={
             "input_schema_valid": True,

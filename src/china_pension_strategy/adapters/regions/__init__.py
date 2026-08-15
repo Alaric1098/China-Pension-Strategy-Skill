@@ -49,7 +49,7 @@ _REGISTRY: dict[str, type[RegionAdapter]] = {
 def create_region_adapter(
     region: str,
     *,
-    engine_version: str = "0.1.0",
+    engine_version: str = "0.1.1",
 ) -> RegionAdapter:
     """Return the region adapter for `region`.
 

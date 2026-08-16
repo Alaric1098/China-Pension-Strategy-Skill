@@ -2,10 +2,14 @@
 
 本文件记录 `china-pension-strategy` 技能设计和实现的重要变更。时间均为本机时间，格式为 `YYYY-MM-DD HH:mm:ss UTC offset`。
 
-## Unreleased
+## 0.1.2 - 2026-08-15
 
 - 将 `PACKAGE_VERSION` 与 `ENGINE_SEMANTICS_VERSION` 显式拆分；包、文档、CI 或分发 patch 不再要求提升引擎语义版本，也不会改变既有 `run_id`。
-- 工具信封报告包发行版本，运行清单和内容寻址只记录引擎语义版本；当前两者均为 `0.1.1`，因此本次重构不改变 0.1.1 golden ID。
+- 工具信封报告包发行版本，运行清单和内容寻址只记录引擎语义版本；`PACKAGE_VERSION` 提升至 `0.1.2`，`ENGINE_SEMANTICS_VERSION` 保持 `0.1.1`，因此本次发布不改变 0.1.1 golden ID。
+- 引入 Ruff 与增量 mypy 质量门禁（#6）：`quality` extra 固定 `mypy==2.3.1`、`ruff==0.16.3`、`types-jsonschema==4.26.0.20260518`；本地与 CI 使用同一配置，修复 244 个 lint 问题与三层 mypy 错误，无 broad ignores 或目录排除。
+- 补齐公开安全与贡献治理（#7）：`SECURITY.md` 私有漏洞报告路径、三类 Issue 模板、PR 模板，`CONTRIBUTING.md` 收敛为公开治理来源，README 增加治理链接。
+- 增加标签触发的工程发行自动化：质量门禁、测试、pip-audit、许可证清单、密钥基线、SBOM、构建校验和、安装/升级/回滚/重放演练、证据上传与构建证明（attestation），以 Pre-release 发布并明确不授予独立生产审批。
+- 完整门禁：657 项自动化测试、设计文档、设计契约、架构审计、Ruff 与 mypy 全部通过。
 
 ## 0.1.1 - 2026-08-15
 

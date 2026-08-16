@@ -376,7 +376,7 @@ def test_package_release_and_engine_semantics_are_independently_versioned() -> N
     versions = importlib.import_module("china_pension_strategy.version")
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
-    assert versions.PACKAGE_VERSION == project["project"]["version"]
+    assert versions.PACKAGE_VERSION == project["project"]["version"] == "0.1.2"
     assert versions.ENGINE_SEMANTICS_VERSION == "0.1.1"
 
     from china_pension_strategy.adapters.regions import create_region_adapter

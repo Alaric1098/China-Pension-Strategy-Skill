@@ -16,9 +16,9 @@
 | 工作项 | 优先级 | 目标里程碑 | 依赖 | 状态 |
 |---|---:|---|---|---|
 | [#8 Policy expiry alert](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/8) | P0 | 政策维护轨 | 无，截止日期驱动 | 待处理（Issue open） |
-| [#9 解耦发行版本与引擎语义版本](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/9) | P1 | v0.1.2 | 无 | 实施中（未提交） |
-| [#6 引入 Ruff 与类型检查质量门禁](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/6) | P1 | v0.1.2 | 无，可与版本解耦并行 | 待处理（Issue open） |
-| [#7 补齐安全政策、贡献模板与公开治理入口](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/7) | P1 | v0.1.2 | 无，可与版本解耦并行 | 待处理（Issue open） |
+| [#9 解耦发行版本与引擎语义版本](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/9) | P1 | v0.1.2 | 无 | 已完成（v0.1.2） |
+| [#6 引入 Ruff 与类型检查质量门禁](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/6) | P1 | v0.1.2 | 无，可与版本解耦并行 | 已完成（v0.1.2） |
+| [#7 补齐安全政策、贡献模板与公开治理入口](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/7) | P1 | v0.1.2 | 无，可与版本解耦并行 | 已完成（v0.1.2） |
 | [#4 按险种和地区实施缴费基数钳制](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/4) | P1 | v0.2 计算能力 | 版本解耦、#6 | 待处理（Issue open） |
 | [#2 补齐广深灵活就业失业保险的 2026 官方费率与自愿参保模型](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/2) | P2 | v0.2 计算能力 | #4 | 待处理（Issue open） |
 | [#3 解耦北京适配器并完善高级养老能力的地区路由](https://github.com/Alaric1098/China-Pension-Strategy-Skill/issues/3) | P2 | v0.2 计算能力 | 版本解耦、#6 | 待处理（Issue open） |

@@ -121,11 +121,11 @@ flowchart LR
 
 **可能涉及：** `SECURITY.md`、`.github/ISSUE_TEMPLATE/`、`.github/pull_request_template.md`、`CONTRIBUTING.md`、`README.md`。
 
-- [ ] 先定义模板内容契约，覆盖合成数据、官方证据、地区、隐私、测试和 `run_id` 说明。
-- [ ] 创建 `SECURITY.md`，明确漏洞私下报告路径和不得在公开 Issue 粘贴真实 PII 的要求。
-- [ ] 在 `.github/ISSUE_TEMPLATE/` 增加 bug、政策更新和功能请求模板。
-- [ ] 创建 `.github/pull_request_template.md`，并把对公众有效的治理规则收敛到 `CONTRIBUTING.md`。
-- [ ] 检查 GitHub Community Standards 可发现性、相对链接和模板默认提示。
+- [x] 先定义模板内容契约，覆盖合成数据、官方证据、地区、隐私、测试和 `run_id` 说明。已落地：`tests/e2e/test_skill_contract.py::test_public_governance_templates_are_complete`。
+- [x] 创建 `SECURITY.md`，明确漏洞私下报告路径和不得在公开 Issue 粘贴真实 PII 的要求。已通过 GitHub Security Advisories 私有通道，公开渠道禁止真实或派生个人数据。
+- [x] 在 `.github/ISSUE_TEMPLATE/` 增加 bug、政策更新和功能请求模板。三个模板均有 YAML frontmatter（`name`/`about`/`title`/`labels`/`assignees`）与合成数据未勾选确认项。
+- [x] 创建 `.github/pull_request_template.md`，并把对公众有效的治理规则收敛到 `CONTRIBUTING.md`。PR 模板覆盖 schema/ruleset/版本/golden `run_id`/证据/隐私/合成数据/全部本地门禁。
+- [x] 检查 GitHub Community Standards 可发现性、相对链接和模板默认提示。`SECURITY.md`/`CONTRIBUTING.md`/`docs/issue-roadmap.md` 均已链接到 README，`CONTRIBUTING.md` 不再引用内部 `.specify/memory/constitution.md`。
 
 **验收标准：** 安全政策、三类 Issue 模板和 PR 模板可发现；`CONTRIBUTING.md` 不要求先理解内部工具目录；所有入口都提醒只用合成数据。
 

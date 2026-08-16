@@ -23,6 +23,7 @@
 - [标准输出](#标准输出)
 - [隐私与安全](#隐私与安全)
 - [测试与评估](#测试与评估)
+- [参与贡献](#参与贡献)
 - [实施路线](#实施路线)
 - [许可证](#许可证)
 - [边界与免责声明](#边界与免责声明)
@@ -38,7 +39,7 @@
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[test]"
+python -m pip install -e ".[test,quality]"
 ```
 
 Linux 或 macOS 使用 `source .venv/bin/activate` 激活虚拟环境。
@@ -341,6 +342,10 @@ python audit_architecture.py --gaps
 ```
 
 预期结果：零测试失败、设计契约与文档验证 `PASS`、架构缺口 `0`。
+
+## 参与贡献
+
+漏洞请通过 [SECURITY.md](SECURITY.md) 中的私有通道报告，不要在公开渠道粘贴真实或派生个人数据。贡献流程、证据要求与本地质量门禁见 [CONTRIBUTING.md](CONTRIBUTING.md)。开放 Issues 的优先级与验收标准见 [Issue 修改路线图](docs/issue-roadmap.md)。
 
 ## 实施路线
 

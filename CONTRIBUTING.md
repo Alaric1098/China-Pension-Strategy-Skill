@@ -1,8 +1,8 @@
 # Contributing to China Pension Strategy
 
 Contributions are welcome when they preserve the project's evidence,
-determinism, privacy, and replay guarantees. Read
-`.specify/memory/constitution.md` before proposing a change.
+determinism, privacy, and replay guarantees. Read this document and
+`docs/release-governance.md` before proposing a change.
 
 ## Development setup
 

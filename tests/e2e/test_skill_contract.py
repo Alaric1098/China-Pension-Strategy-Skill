@@ -359,3 +359,84 @@ def test_package_release_and_engine_semantics_are_independently_versioned() -> N
         inspect.signature(create_region_adapter).parameters["engine_version"].default
         == versions.ENGINE_SEMANTICS_VERSION
     )
+
+
+_GOVERNANCE_FILES = (
+    "SECURITY.md",
+    ".github/ISSUE_TEMPLATE/bug_report.md",
+    ".github/ISSUE_TEMPLATE/policy_update.md",
+    ".github/ISSUE_TEMPLATE/feature_request.md",
+    ".github/pull_request_template.md",
+)
+
+
+def test_public_governance_templates_are_complete() -> None:
+    for rel in _GOVERNANCE_FILES:
+        assert (ROOT / rel).is_file(), f"governance file missing: {rel}"
+
+    issue_templates = _GOVERNANCE_FILES[1:4]
+    for rel in issue_templates:
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        assert text.startswith("---\n"), f"{rel} must start with YAML frontmatter"
+        assert re.search(r"\n---\n", text), f"{rel} must close the YAML frontmatter block"
+        frontmatter = text.split("---\n", 2)[1]
+        fields = {line.split(":", 1)[0].strip() for line in frontmatter.splitlines() if ":" in line}
+        for field in ("name", "about", "title", "labels", "assignees"):
+            assert field in fields, f"{rel} frontmatter misses {field!r}"
+
+    for rel in (*issue_templates, ".github/pull_request_template.md"):
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        assert "- [ ]" in text, f"{rel} must default to unchecked confirmations"
+        assert re.search(r"synthetic|合成", text, re.IGNORECASE), (
+            f"{rel} must require synthetic data"
+        )
+        assert not re.search(r"\b\d{17}[0-9Xx]\b", text), f"{rel} must not show an ID number"
+        assert not re.search(r"\b1[3-9]\d{9}\b", text), f"{rel} must not show a phone number"
+        assert not re.search(r"\b\d{16,19}\b", text), f"{rel} must not show a card number"
+
+    bug = (ROOT / issue_templates[0]).read_text(encoding="utf-8").lower()
+    for keyword in ("reproduc", "region", "capabilit", "observed", "expected", "run_id"):
+        assert keyword in bug, f"bug template misses {keyword!r}"
+
+    policy = (ROOT / issue_templates[1]).read_text(encoding="utf-8").lower()
+    for keyword in (
+        "gov.cn",
+        "authorit",
+        "document number",
+        "publication",
+        "retrieval",
+        "effective",
+        "quot",
+        "jurisdiction",
+        "ruleset",
+        "digest",
+    ):
+        assert keyword in policy, f"policy template misses {keyword!r}"
+
+    feature = (ROOT / issue_templates[2]).read_text(encoding="utf-8").lower()
+    for keyword in ("problem", "smallest", "scope", "region", "capabilit", "privacy", "semantic"):
+        assert keyword in feature, f"feature template misses {keyword!r}"
+
+    pr = (ROOT / ".github/pull_request_template.md").read_text(encoding="utf-8").lower()
+    for keyword in (
+        "schema",
+        "ruleset",
+        "version",
+        "run_id",
+        "evidence",
+        "privacy",
+        "synthetic",
+        "pytest",
+        "ruff",
+        "mypy",
+    ):
+        assert keyword in pr, f"PR template misses {keyword!r}"
+
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    for link in ("SECURITY.md", "CONTRIBUTING.md", "issue-roadmap"):
+        assert link in readme, f"README.md must link {link!r}"
+
+    contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+    assert ".specify/memory/constitution.md" not in contributing, (
+        "CONTRIBUTING.md must not require the internal constitution"
+    )

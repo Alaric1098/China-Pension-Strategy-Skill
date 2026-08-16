@@ -104,7 +104,7 @@ jobs:
       - name: SBOM and dependency lock
         run: |
           pip freeze > release-evidence/dependencies.txt
-          cyclonedx-py --format json --output release-evidence/sbom.json
+          cyclonedx-py environment --of json -o release-evidence/sbom.json
 
       - name: Build
         run: python -m build

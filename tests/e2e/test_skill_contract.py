@@ -341,6 +341,35 @@ def test_policy_expiry_workflow_is_scheduled_and_actionable() -> None:
     assert "exit 1" in workflow
 
 
+def test_release_workflow_attests_and_publishes_prerelease() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+
+    assert "on:" in workflow
+    assert re.search(r"tags:\s*\n\s*-\s*['\"]?v\*", workflow), (
+        "release must trigger only on v* tags"
+    )
+    assert "contents: write" in workflow
+    assert "id-token: write" in workflow
+    assert "attestations: write" in workflow
+
+    for command in (
+        "python -m build",
+        "pip-audit",
+        "pip-licenses",
+        "detect-secrets",
+        "cyclonedx",
+        "SHA256SUMS",
+        "python -m pytest",
+        "attest-build-provenance@v3",
+        "gh release create",
+        "--prerelease",
+        "--verify-tag",
+        "--notes-file",
+        "docs/releases/v0.1.2.md",
+    ):
+        assert command in workflow, f"release workflow misses {command!r}"
+
+
 def test_package_release_and_engine_semantics_are_independently_versioned() -> None:
     spec = importlib.util.find_spec("china_pension_strategy.version")
     assert spec is not None, "version module must separate package and engine versions"

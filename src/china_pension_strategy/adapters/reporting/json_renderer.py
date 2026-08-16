@@ -7,13 +7,13 @@ schema validation, carry the validated analysis output, and fail safely.
 from __future__ import annotations
 
 import json
-import os
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+from china_pension_strategy.adapters.data_root import data_root
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.run import AnalysisRun
 from china_pension_strategy.version import PACKAGE_VERSION
@@ -21,9 +21,8 @@ from china_pension_strategy.version import PACKAGE_VERSION
 ENVELOPE_SCHEMA_VERSION = "1.0.0"
 TOOL_NAME = "china-pension-strategy"
 
-_SOURCE_ROOT = Path(os.path.realpath(__file__)).resolve().parents[4]
-_DEFAULT_ENVELOPE_SCHEMA_PATH = _SOURCE_ROOT / "schemas" / "tool-envelope.schema.json"
-_DEFAULT_OUTPUT_SCHEMA_PATH = _SOURCE_ROOT / "schemas" / "analysis-output.schema.json"
+_DEFAULT_ENVELOPE_SCHEMA_PATH = data_root() / "schemas" / "tool-envelope.schema.json"
+_DEFAULT_OUTPUT_SCHEMA_PATH = data_root() / "schemas" / "analysis-output.schema.json"
 
 
 class RenderError(Exception):

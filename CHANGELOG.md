@@ -9,6 +9,7 @@
 - 引入 Ruff 与增量 mypy 质量门禁（#6）：`quality` extra 固定 `mypy==2.3.1`、`ruff==0.16.3`、`types-jsonschema==4.26.0.20260518`；本地与 CI 使用同一配置，修复 244 个 lint 问题与三层 mypy 错误，无 broad ignores 或目录排除。
 - 补齐公开安全与贡献治理（#7）：`SECURITY.md` 私有漏洞报告路径、三类 Issue 模板、PR 模板，`CONTRIBUTING.md` 收敛为公开治理来源，README 增加治理链接。
 - 增加标签触发的工程发行自动化：质量门禁、测试、pip-audit、许可证清单、密钥基线、SBOM、构建校验和、安装/升级/回滚/重放演练、证据上传与构建证明（attestation），以 Pre-release 发布并明确不授予独立生产审批。
+- 修复发行安装形态的数据定位：新增 `CHINA_PENSION_DATA_ROOT` 探测链（环境变量 > `share/china-pension-strategy` 数据目录 > 仓库根），schemas 与 `policy-data` 随 wheel 一起分发，wheel 安装后可直接运行；`0.1.1` 仅可运行于源码/editable 形态，回滚演练以此验证。
 - 完整门禁：657 项自动化测试、设计文档、设计契约、架构审计、Ruff 与 mypy 全部通过。
 
 ## 0.1.1 - 2026-08-15

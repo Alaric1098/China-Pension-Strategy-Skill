@@ -77,5 +77,11 @@ warn_unused_ignores = true
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.data-files]
+"share/china-pension-strategy/schemas" = ["schemas/*.json"]
+"share/china-pension-strategy/policy-data" = ["policy-data/*.json"]
+"share/china-pension-strategy/policy-data/packages" = ["policy-data/packages/*.json"]
+"share/china-pension-strategy/policy-data/sources" = ["policy-data/sources/*.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

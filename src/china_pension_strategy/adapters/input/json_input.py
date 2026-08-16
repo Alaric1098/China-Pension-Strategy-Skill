@@ -14,6 +14,8 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+from china_pension_strategy.adapters.data_root import data_root
+
 CODE_FILE_NOT_FOUND = "INPUT_FILE_NOT_FOUND"
 CODE_JSON_INVALID = "INPUT_JSON_INVALID"
 CODE_SCHEMA_INVALID = "INPUT_SCHEMA_INVALID"
@@ -22,7 +24,7 @@ CODE_CONSENT_MISSING = "INPUT_CONSENT_MISSING"
 CODE_CLASSIFICATION_INSUFFICIENT = "INPUT_CLASSIFICATION_INSUFFICIENT"
 CODE_PURPOSE_MISSING = "INPUT_PURPOSE_MISSING"
 
-_DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parents[4] / "schemas" / "person-input.schema.json"
+_DEFAULT_SCHEMA_PATH = data_root() / "schemas" / "person-input.schema.json"
 _ACCEPTED_CLASSIFICATIONS = ("S2-CONFIDENTIAL", "S3-RESTRICTED")
 _EXPIRED_DELETION_STATUSES = ("EXPIRED", "DELETED")
 

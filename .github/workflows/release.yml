@@ -118,7 +118,9 @@ jobs:
           python -m venv /tmp/replay-venv
           /tmp/replay-venv/bin/python -m pip install --quiet --upgrade pip
           git worktree add --detach /tmp/v011 034bdf65a7269f077ff8287547138fbac9560008
-          /tmp/replay-venv/bin/python -m pip install --quiet /tmp/v011
+          # v0.1.1 predates bundled wheel data and is only runnable in its
+          # source/editable form; v0.1.2 ships data inside the wheel.
+          /tmp/replay-venv/bin/python -m pip install --quiet -e /tmp/v011
           golden() {
             /tmp/replay-venv/bin/china-pension analyze \
               --input evals/fixtures/golden-beijing-flex-2026.json \
@@ -128,7 +130,7 @@ jobs:
           ID1=$(golden /tmp/runs-v011)
           /tmp/replay-venv/bin/python -m pip install --quiet --force-reinstall dist/china_pension_strategy-*.whl
           ID2=$(golden /tmp/runs-v012)
-          /tmp/replay-venv/bin/python -m pip install --quiet --force-reinstall /tmp/v011
+          /tmp/replay-venv/bin/python -m pip install --quiet --force-reinstall -e /tmp/v011
           ID3=$(golden /tmp/runs-v011b)
           printf "v0.1.1=%s\nv0.1.2=%s\nrollback=%s\n" "$ID1" "$ID2" "$ID3" \
             | tee release-evidence/install-upgrade-rollback-replay.txt

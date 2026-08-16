@@ -19,6 +19,7 @@ from typing import Any, cast
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+from china_pension_strategy.adapters.data_root import data_root
 from china_pension_strategy.domain.policy import (
     AnalysisMode,
     EngineeringReview,
@@ -33,8 +34,8 @@ from china_pension_strategy.domain.policy import (
 )
 from china_pension_strategy.domain.values import YearMonth
 
-DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parents[4] / "schemas" / "policy-package.schema.json"
-DEFAULT_PACKAGES_DIR = Path(__file__).resolve().parents[4] / "policy-data" / "packages"
+DEFAULT_SCHEMA_PATH = data_root() / "schemas" / "policy-package.schema.json"
+DEFAULT_PACKAGES_DIR = data_root() / "policy-data" / "packages"
 
 CODE_PACKAGE_NOT_FOUND = "POLICY_PACKAGE_NOT_FOUND"
 CODE_PACKAGE_INVALID = "POLICY_PACKAGE_INVALID"

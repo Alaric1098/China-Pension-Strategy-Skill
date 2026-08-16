@@ -77,7 +77,7 @@ jobs:
       - name: Detect secrets
         run: |
           detect-secrets scan --baseline .secrets.baseline >/dev/null 2>&1
-          detect-secrets scan > "$RUNNER_TEMP/secrets.json"
+          detect-secrets scan --exclude-files '\.secrets\.baseline' > "$RUNNER_TEMP/secrets.json"
           python - "$RUNNER_TEMP/secrets.json" <<'PY'
           import json
           import pathlib

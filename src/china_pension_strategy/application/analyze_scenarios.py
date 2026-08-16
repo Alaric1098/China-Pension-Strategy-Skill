@@ -1,15 +1,17 @@
 """Deterministic monthly scenario generation and ranking."""
 
+from collections.abc import Iterable, Mapping, Sequence
 from decimal import Decimal
-from typing import Iterable, Mapping, Sequence
 
+from china_pension_strategy.application.calculate_months import (
+    monthly_contributions,
+)
 from china_pension_strategy.domain.calculation import SubsidyAssessment
 from china_pension_strategy.domain.eligibility import EligibilityStatus
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.policy import PolicyRule
 from china_pension_strategy.domain.scenario import (
     ActionType,
-    Assumption,
     CashFlow,
     Scenario,
     ScenarioAction,
@@ -22,10 +24,6 @@ from china_pension_strategy.domain.values import (
     RoundingMode,
     YearMonth,
     YearMonthRange,
-)
-from china_pension_strategy.application.calculate_months import (
-    assess_subsidy,
-    monthly_contributions,
 )
 
 CNY = "CNY"
@@ -88,12 +86,8 @@ def generate_scenario(
     sensitivity: Mapping[str, object] | None = None,
 ) -> Scenario:
     """Generate the monthly cash-flow scenario for one action sequence."""
-    stopping = any(
-        action.action_type is ActionType.STOP_CONTRIBUTING for action in actions
-    )
-    continuing = any(
-        action.action_type is ActionType.CONTINUE_CONTRIBUTING for action in actions
-    )
+    stopping = any(action.action_type is ActionType.STOP_CONTRIBUTING for action in actions)
+    continuing = any(action.action_type is ActionType.CONTINUE_CONTRIBUTING for action in actions)
     if continuing and stopping:
         raise ScenarioGenerationError("a scenario cannot both stop and continue")
 
@@ -106,9 +100,7 @@ def generate_scenario(
             raise ScenarioGenerationError(
                 "CONTINUE_CONTRIBUTING requires contribution rules and base"
             )
-        schedule = monthly_contributions(
-            contribution_rules, contribution_base, months, rounding
-        )
+        schedule = monthly_contributions(contribution_rules, contribution_base, months, rounding)
         for entry in schedule:
             contributions[entry.month] = {
                 "pension": entry.pension,
@@ -119,27 +111,20 @@ def generate_scenario(
     if (
         subsidy_assessment is not None
         and subsidy_assessment.status is EligibilityStatus.ELIGIBLE
-        and any(
-            action.action_type is ActionType.APPLY_FOR_SUBSIDY
-            for action in actions
-        )
+        and any(action.action_type is ActionType.APPLY_FOR_SUBSIDY for action in actions)
     ):
         for month in months:
             if (
                 subsidy_assessment.start_month is not None
                 and subsidy_assessment.end_month is not None
                 and subsidy_assessment.monthly_subsidy is not None
-                and subsidy_assessment.start_month
-                <= month
-                <= subsidy_assessment.end_month
+                and subsidy_assessment.start_month <= month <= subsidy_assessment.end_month
             ):
                 subsidies[month] = subsidy_assessment.monthly_subsidy
 
     flows = build_monthly_cash_flows(months, contributions, subsidies)
     totals = {
-        name: sum(
-            (getattr(flow, name).amount for flow in flows), Decimal("0.00")
-        )
+        name: sum((getattr(flow, name).amount for flow in flows), Decimal("0.00"))
         for name in (
             "pension",
             "medical",
@@ -200,9 +185,7 @@ def select_recommended(
 ) -> Scenario:
     """Return the top feasible scenario; raise when none is feasible."""
     feasible = [
-        scenario
-        for scenario in ranked
-        if scenario.feasibility is ScenarioFeasibility.FEASIBLE
+        scenario for scenario in ranked if scenario.feasibility is ScenarioFeasibility.FEASIBLE
     ]
     if not feasible:
         raise ScenarioGenerationError("no feasible scenario to recommend")

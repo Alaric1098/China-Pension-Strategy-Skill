@@ -23,7 +23,9 @@ SCHEME = ENTERPRISE_EMPLOYEE_BASIC_PENSION
 
 
 def month(year: int, month_number: int, source_id: str = "detail") -> ContributionMonth:
-    return ContributionMonth(scheme=SCHEME, month=YearMonth(year, month_number), source_id=source_id)
+    return ContributionMonth(
+        scheme=SCHEME, month=YearMonth(year, month_number), source_id=source_id
+    )
 
 
 def aggregate(reported: int, source_id: str = "account-summary") -> AggregatedCount:
@@ -34,7 +36,7 @@ def months_span(start: int, end: int, source_id: str = "detail") -> tuple[Contri
     year, month_number = divmod(start - 1, 12)
     current = YearMonth(year + 2000, month_number + 1)
     entries = []
-    for offset in range(end - start + 1):
+    for _offset in range(end - start + 1):
         entries.append(ContributionMonth(SCHEME, current, source_id))
         current = current.add_months(1)
     return tuple(entries)
@@ -46,9 +48,7 @@ def test_duplicate_month_is_counted_once_and_reported() -> None:
         month(2026, 1, "detail-b"),
         month(2026, 2, "detail-a"),
     )
-    result = reconcile_contribution_records(
-        ReconcileRequest(scheme=SCHEME, month_entries=entries)
-    )
+    result = reconcile_contribution_records(ReconcileRequest(scheme=SCHEME, month_entries=entries))
     assert result.confirmed_months == 2
     assert len(result.duplicates) == 1
     assert result.duplicates[0].month == YearMonth(2026, 1)
@@ -57,9 +57,7 @@ def test_duplicate_month_is_counted_once_and_reported() -> None:
 
 def test_179_month_history_confirms_179() -> None:
     entries = months_span(1, 179)
-    result = reconcile_contribution_records(
-        ReconcileRequest(scheme=SCHEME, month_entries=entries)
-    )
+    result = reconcile_contribution_records(ReconcileRequest(scheme=SCHEME, month_entries=entries))
     assert result.confirmed_months == 179
     assert not result.conflicts
     assert not result.duplicates
@@ -67,17 +65,13 @@ def test_179_month_history_confirms_179() -> None:
 
 def test_180_month_history_confirms_180() -> None:
     entries = months_span(1, 180)
-    result = reconcile_contribution_records(
-        ReconcileRequest(scheme=SCHEME, month_entries=entries)
-    )
+    result = reconcile_contribution_records(ReconcileRequest(scheme=SCHEME, month_entries=entries))
     assert result.confirmed_months == 180
 
 
 def test_181_month_history_confirms_181() -> None:
     entries = months_span(1, 181)
-    result = reconcile_contribution_records(
-        ReconcileRequest(scheme=SCHEME, month_entries=entries)
-    )
+    result = reconcile_contribution_records(ReconcileRequest(scheme=SCHEME, month_entries=entries))
     assert result.confirmed_months == 181
 
 
@@ -131,9 +125,7 @@ def test_competing_aggregates_both_conflict() -> None:
     )
     assert aggregate_conflict.status is ConflictStatus.UNRESOLVED
     detail_conflict = next(
-        conflict
-        for conflict in result.conflicts
-        if conflict.assertion_refs[0] == "summary-b"
+        conflict for conflict in result.conflicts if conflict.assertion_refs[0] == "summary-b"
     )
     assert "detail" in detail_conflict.assertion_refs
 
@@ -250,15 +242,13 @@ def _year_month() -> st.SearchStrategy[YearMonth]:
 @settings(max_examples=100)
 def test_adding_unique_valid_month_never_reduces_confirmed_months(existing, extra) -> None:
     entries = [
-        ContributionMonth(SCHEME, ym, f"source-{index}")
-        for index, ym in enumerate(existing)
+        ContributionMonth(SCHEME, ym, f"source-{index}") for index, ym in enumerate(existing)
     ]
     before = reconcile_contribution_records(
         ReconcileRequest(scheme=SCHEME, month_entries=entries)
     ).confirmed_months
     extra_entries = [
-        ContributionMonth(SCHEME, ym, f"extra-{index}")
-        for index, ym in enumerate(extra)
+        ContributionMonth(SCHEME, ym, f"extra-{index}") for index, ym in enumerate(extra)
     ]
     after = reconcile_contribution_records(
         ReconcileRequest(scheme=SCHEME, month_entries=(*entries, *extra_entries))
@@ -268,11 +258,7 @@ def test_adding_unique_valid_month_never_reduces_confirmed_months(existing, extr
 
 def test_duplicate_reconciliation_is_deterministic() -> None:
     entries = months_span(1, 179) + months_span(1, 60)
-    first = reconcile_contribution_records(
-        ReconcileRequest(scheme=SCHEME, month_entries=entries)
-    )
-    second = reconcile_contribution_records(
-        ReconcileRequest(scheme=SCHEME, month_entries=entries)
-    )
+    first = reconcile_contribution_records(ReconcileRequest(scheme=SCHEME, month_entries=entries))
+    second = reconcile_contribution_records(ReconcileRequest(scheme=SCHEME, month_entries=entries))
     assert first == second
     assert first.confirmed_months == 179

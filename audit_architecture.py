@@ -3,7 +3,6 @@ import json
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parent
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -54,14 +53,10 @@ def structural_checks() -> list[dict[str, object]]:
         {
             "id": "eligibility_capability_contract",
             "description": "资格与能力状态是封闭枚举",
-            "passed": eligibility.get("properties", {})
-            .get("status", {})
-            .get("enum")
+            "passed": eligibility.get("properties", {}).get("status", {}).get("enum")
             == ["ELIGIBLE", "INELIGIBLE", "UNKNOWN"]
             and bool(eligibility.get("allOf"))
-            and capability.get("properties", {})
-            .get("status", {})
-            .get("enum")
+            and capability.get("properties", {}).get("status", {}).get("enum")
             == ["AVAILABLE", "PARTIAL", "BLOCKED"],
             "assertions": ["eligibility enum and condition derivation", "capability enum"],
         },
@@ -89,7 +84,12 @@ def structural_checks() -> list[dict[str, object]]:
                     '"expires_at"',
                 )
             ),
-            "assertions": ["event definition", "official source pairing", "approval and expiry", "value shape"],
+            "assertions": [
+                "event definition",
+                "official source pairing",
+                "approval and expiry",
+                "value shape",
+            ],
         },
         {
             "id": "dual_time_identity_contract",
@@ -184,7 +184,11 @@ def main() -> int:
     elif args.gaps:
         print(gaps)
     elif args.json:
-        print(json.dumps({"score": score, "gaps": gaps, "checks": checks}, ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                {"score": score, "gaps": gaps, "checks": checks}, ensure_ascii=False, indent=2
+            )
+        )
     else:
         print(f"Architecture coverage: {score}/100; remaining gaps: {gaps}")
         for check in checks:

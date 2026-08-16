@@ -2,7 +2,6 @@ import copy
 
 import pytest
 
-
 DIGEST_A = "sha256:" + "a" * 64
 DIGEST_B = "sha256:" + "b" * 64
 

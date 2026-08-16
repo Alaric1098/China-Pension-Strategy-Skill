@@ -1,5 +1,5 @@
 from dataclasses import replace
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
@@ -24,8 +24,7 @@ from china_pension_strategy.domain.policy import (
     RuleType,
 )
 
-
-KNOWN_AT = datetime(2026, 8, 11, tzinfo=timezone.utc)
+KNOWN_AT = datetime(2026, 8, 11, tzinfo=UTC)
 
 
 def make_source(**changes: object) -> PolicySource:
@@ -53,18 +52,35 @@ def make_rule(**changes: object) -> PolicyRule:
         "jurisdiction_role": JurisdictionRole.NATIONAL_BASELINE,
         "population_scope": "enterprise participants",
         "inputs": ({"input_id": "months", "value_type": "INTEGER", "required": True},),
-        "conditions": ({"condition_id": "adult", "input_ref": "months", "operator": ">=", "value_type": "INTEGER", "value": 0},),
-        "results": ({"result_id": "minimum", "output_field": "minimum_months", "value_type": "INTEGER", "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 180}},),
+        "conditions": (
+            {
+                "condition_id": "adult",
+                "input_ref": "months",
+                "operator": ">=",
+                "value_type": "INTEGER",
+                "value": 0,
+            },
+        ),
+        "results": (
+            {
+                "result_id": "minimum",
+                "output_field": "minimum_months",
+                "value_type": "INTEGER",
+                "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 180},
+            },
+        ),
         "exceptions": (),
         "effective_from": date(2025, 1, 1),
         "effective_to": None,
-        "transaction_from": datetime(2025, 1, 2, tzinfo=timezone.utc),
+        "transaction_from": datetime(2025, 1, 2, tzinfo=UTC),
         "transaction_to": None,
         "legal_hierarchy": LegalHierarchy.NATIONAL_LAW,
         "explicit_override_refs": (),
         "source_refs": ("source-a",),
         "parameters": {},
-        "test_vectors": ({"vector_id": "v1", "input": {"months": 179}, "expected": {"minimum_months": 180}},),
+        "test_vectors": (
+            {"vector_id": "v1", "input": {"months": 179}, "expected": {"minimum_months": 180}},
+        ),
     }
     values.update(changes)
     return PolicyRule(**values)  # type: ignore[arg-type]
@@ -149,7 +165,7 @@ def test_higher_legal_hierarchy_wins_without_using_recency_or_specificity() -> N
     lower = make_rule(
         rule_id="municipal",
         legal_hierarchy=LegalHierarchy.MUNICIPAL_IMPLEMENTING_RULE,
-        transaction_from=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        transaction_from=datetime(2026, 1, 1, tzinfo=UTC),
     )
     higher = make_rule(rule_id="national", legal_hierarchy=LegalHierarchy.NATIONAL_LAW)
 
@@ -166,9 +182,7 @@ def test_explicit_override_can_replace_a_higher_hierarchy_rule() -> None:
         explicit_override_refs=("baseline",),
     )
 
-    resolved = resolve_policy(
-        MemoryPolicyRepository(with_rules(baseline, exception)), query()
-    )
+    resolved = resolve_policy(MemoryPolicyRepository(with_rules(baseline, exception)), query())
 
     assert [rule.rule_id for rule in resolved.rules] == ["exception"]
 
@@ -177,7 +191,14 @@ def test_incompatible_survivors_return_deterministic_ambiguity() -> None:
     first = make_rule(rule_id="z-rule")
     second = make_rule(
         rule_id="a-rule",
-        results=({"result_id": "minimum", "output_field": "minimum_months", "value_type": "INTEGER", "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 240}},),
+        results=(
+            {
+                "result_id": "minimum",
+                "output_field": "minimum_months",
+                "value_type": "INTEGER",
+                "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 240},
+            },
+        ),
     )
 
     with pytest.raises(AmbiguousPolicyRuleError) as raised:
@@ -236,9 +257,7 @@ def test_complete_tables_with_different_row_outputs_are_ambiguous() -> None:
 
 
 def test_behaviorally_identical_rules_ignore_ids_and_resolve_exception_edges() -> None:
-    def rule(
-        rule_id: str, condition_id: str, result_id: str, exception_id: str
-    ) -> PolicyRule:
+    def rule(rule_id: str, condition_id: str, result_id: str, exception_id: str) -> PolicyRule:
         return make_rule(
             rule_id=rule_id,
             conditions=(
@@ -275,9 +294,7 @@ def test_behaviorally_identical_rules_ignore_ids_and_resolve_exception_edges() -
     first = rule("rule-a", "condition-a", "result-a", "exception-a")
     second = rule("rule-b", "condition-b", "result-b", "exception-b")
 
-    resolved = resolve_policy(
-        MemoryPolicyRepository(with_rules(first, second)), query()
-    )
+    resolved = resolve_policy(MemoryPolicyRepository(with_rules(first, second)), query())
 
     assert [rule.rule_id for rule in resolved.rules] == ["rule-a", "rule-b"]
 
@@ -343,9 +360,7 @@ def test_behaviorally_identical_tables_ignore_top_level_and_row_ids() -> None:
     first = table("table-a", "a")
     second = table("table-b", "b")
 
-    resolved = resolve_policy(
-        MemoryPolicyRepository(with_rules(first, second)), query()
-    )
+    resolved = resolve_policy(MemoryPolicyRepository(with_rules(first, second)), query())
 
     assert [rule.rule_id for rule in resolved.rules] == ["table-a", "table-b"]
 
@@ -374,9 +389,7 @@ def test_incompatible_higher_precedence_rule_blocks_compatible_lower_rule() -> N
     )
 
     with pytest.raises(RulesetIncompatibleError):
-        resolve_policy(
-            MemoryPolicyRepository(lower, higher), query(engine_version="0.9.0")
-        )
+        resolve_policy(MemoryPolicyRepository(lower, higher), query(engine_version="0.9.0"))
 
 
 def test_non_executable_higher_precedence_rule_does_not_fall_through() -> None:
@@ -421,19 +434,19 @@ def test_mvp_reviewed_is_rejected_outside_local_mvp() -> None:
     [
         pytest.param(
             date(2025, 6, 1),
-            datetime(2025, 6, 1, tzinfo=timezone.utc),
+            datetime(2025, 6, 1, tzinfo=UTC),
             "original",
             id="replay-before-correction-is-recorded",
         ),
         pytest.param(
             date(2025, 6, 1),
-            datetime(2026, 2, 1, tzinfo=timezone.utc),
+            datetime(2026, 2, 1, tzinfo=UTC),
             "retrospective-correction",
             id="replay-after-retrospective-correction",
         ),
         pytest.param(
             date(2026, 1, 1),
-            datetime(2026, 2, 1, tzinfo=timezone.utc),
+            datetime(2026, 2, 1, tzinfo=UTC),
             "current",
             id="replay-new-effective-period",
         ),
@@ -443,28 +456,26 @@ def test_bitemporal_historical_replay(as_of, known_at, expected_rule) -> None:
     original = make_rule(
         rule_id="original",
         effective_to=date(2026, 1, 1),
-        transaction_from=datetime(2025, 1, 1, tzinfo=timezone.utc),
-        transaction_to=datetime(2026, 1, 15, tzinfo=timezone.utc),
+        transaction_from=datetime(2025, 1, 1, tzinfo=UTC),
+        transaction_to=datetime(2026, 1, 15, tzinfo=UTC),
     )
     correction = make_rule(
         rule_id="retrospective-correction",
         effective_to=date(2026, 1, 1),
-        transaction_from=datetime(2026, 1, 15, tzinfo=timezone.utc),
+        transaction_from=datetime(2026, 1, 15, tzinfo=UTC),
     )
     current = make_rule(
         rule_id="current",
         effective_from=date(2026, 1, 1),
-        transaction_from=datetime(2026, 1, 15, tzinfo=timezone.utc),
+        transaction_from=datetime(2026, 1, 15, tzinfo=UTC),
     )
     first = make_package(
         package_id="package-v1",
-        transaction_from=datetime(2025, 1, 1, tzinfo=timezone.utc),
-        provenance=(
-            make_source(retrieved_at=datetime(2024, 12, 20, tzinfo=timezone.utc)),
-        ),
+        transaction_from=datetime(2025, 1, 1, tzinfo=UTC),
+        provenance=(make_source(retrieved_at=datetime(2024, 12, 20, tzinfo=UTC)),),
         engineering_review=EngineeringReview(
             "engineer-a",
-            datetime(2024, 12, 28, tzinfo=timezone.utc),
+            datetime(2024, 12, 28, tzinfo=UTC),
             True,
             True,
         ),
@@ -472,13 +483,11 @@ def test_bitemporal_historical_replay(as_of, known_at, expected_rule) -> None:
     )
     second = make_package(
         package_id="package-v2",
-        transaction_from=datetime(2026, 1, 15, tzinfo=timezone.utc),
-        provenance=(
-            make_source(retrieved_at=datetime(2026, 1, 10, tzinfo=timezone.utc)),
-        ),
+        transaction_from=datetime(2026, 1, 15, tzinfo=UTC),
+        provenance=(make_source(retrieved_at=datetime(2026, 1, 10, tzinfo=UTC)),),
         engineering_review=EngineeringReview(
             "engineer-a",
-            datetime(2026, 1, 12, tzinfo=timezone.utc),
+            datetime(2026, 1, 12, tzinfo=UTC),
             True,
             True,
         ),
@@ -501,7 +510,14 @@ def test_bitemporal_historical_replay(as_of, known_at, expected_rule) -> None:
                 make_rule(rule_id="row-a"),
                 make_rule(
                     rule_id="row-b",
-                    results=({"result_id": "minimum", "output_field": "minimum_months", "value_type": "INTEGER", "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 181}},),
+                    results=(
+                        {
+                            "result_id": "minimum",
+                            "output_field": "minimum_months",
+                            "value_type": "INTEGER",
+                            "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 181},
+                        },
+                    ),
                 ),
             ),
             AmbiguousPolicyRuleError,
@@ -586,7 +602,14 @@ def test_same_bare_rule_id_across_packages_reports_qualified_ambiguity() -> None
     first = make_rule(rule_id="shared")
     second = make_rule(
         rule_id="shared",
-        results=({"result_id": "minimum", "output_field": "minimum_months", "value_type": "INTEGER", "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 240}},),
+        results=(
+            {
+                "result_id": "minimum",
+                "output_field": "minimum_months",
+                "value_type": "INTEGER",
+                "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 240},
+            },
+        ),
     )
 
     with pytest.raises(AmbiguousPolicyRuleError) as raised:
@@ -628,8 +651,18 @@ def test_condition_scalar_type_tags_are_canonically_distinct() -> None:
         return make_rule(
             rule_id=rule_id,
             inputs=({"input_id": "months", "value_type": value_type, "required": True},),
-            conditions=({"condition_id": "c", "input_ref": "months", "operator": "=", "value_type": value_type, "value": value},),
-            test_vectors=({"vector_id": "v", "input": {"months": value}, "expected": {"minimum_months": 180}},),
+            conditions=(
+                {
+                    "condition_id": "c",
+                    "input_ref": "months",
+                    "operator": "=",
+                    "value_type": value_type,
+                    "value": value,
+                },
+            ),
+            test_vectors=(
+                {"vector_id": "v", "input": {"months": value}, "expected": {"minimum_months": 180}},
+            ),
         )
 
     integer_rule = rule("int-rule", 1, "INTEGER")
@@ -654,9 +687,7 @@ def test_equal_decimal_values_with_different_precision_share_a_signature() -> No
         parameters={"cap": {"value_type": "DECIMAL", "value": Decimal("1.0")}},
     )
 
-    resolved = resolve_policy(
-        MemoryPolicyRepository(with_rules(plain, padded)), query()
-    )
+    resolved = resolve_policy(MemoryPolicyRepository(with_rules(plain, padded)), query())
 
     assert {rule.rule_id for rule in resolved.rules} == {
         "decimal-padded",

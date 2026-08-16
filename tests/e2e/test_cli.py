@@ -225,9 +225,7 @@ def test_requested_capability_without_output_is_reported_as_partial(tmp_path: Pa
         for warning in envelope["warnings"]
     )
     run_id = envelope["data"]["run_id"]
-    stored = json.loads(
-        (runs_dir / run_id / "analysis.json").read_text(encoding="utf-8")
-    )
+    stored = json.loads((runs_dir / run_id / "analysis.json").read_text(encoding="utf-8"))
     assert "pension_estimation" not in stored
     dependencies = {
         item["capability_id"]: item["status"]
@@ -269,9 +267,7 @@ def test_unimplemented_retirement_age_capability_is_partial(tmp_path: Path) -> N
 
     assert envelope["status"] == "partial"
     run_id = envelope["data"]["run_id"]
-    stored = json.loads(
-        (runs_dir / run_id / "analysis.json").read_text(encoding="utf-8")
-    )
+    stored = json.loads((runs_dir / run_id / "analysis.json").read_text(encoding="utf-8"))
     assert stored["capability_statuses"]["RETIREMENT_AGE"] == "PARTIAL"
 
 
@@ -304,9 +300,7 @@ def test_cross_region_without_cross_region_facts_is_partial(tmp_path: Path) -> N
 
     assert envelope["status"] == "partial"
     run_id = envelope["data"]["run_id"]
-    stored = json.loads(
-        (tmp_path / "runs" / run_id / "analysis.json").read_text(encoding="utf-8")
-    )
+    stored = json.loads((tmp_path / "runs" / run_id / "analysis.json").read_text(encoding="utf-8"))
     assert stored["capability_statuses"]["CROSS_REGION_COMPARISON"] == "PARTIAL"
     assert "cross_region_comparison" not in stored
 
@@ -420,9 +414,7 @@ def test_privacy_redact_warns_and_redacts_stored_value(tmp_path: Path) -> None:
     run_id = envelope["data"]["run_id"]
     stored = (runs_dir / run_id / "analysis.json").read_text(encoding="utf-8")
     assert "13800138000" not in stored
-    manifest = json.loads(
-        (runs_dir / run_id / "manifest.json").read_text(encoding="utf-8")
-    )
+    manifest = json.loads((runs_dir / run_id / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["warnings_count"] == len(envelope["warnings"])
 
 
@@ -473,11 +465,15 @@ def test_cleanup_deletes_expired_artifacts_and_writes_deletion_manifest(
     assert artifacts["manifest"].is_file()
     assert artifacts["analysis"].is_file()
 
-    kept = run_cli("cleanup", "--runs-dir", str(runs_dir), "--expires-before", "2026-09-01T00:00:00Z")
+    kept = run_cli(
+        "cleanup", "--runs-dir", str(runs_dir), "--expires-before", "2026-09-01T00:00:00Z"
+    )
     assert kept.returncode == 0, kept.stderr
     assert artifacts["manifest"].is_file()
 
-    cleanup = run_cli("cleanup", "--runs-dir", str(runs_dir), "--expires-before", "2027-01-01T00:00:00Z")
+    cleanup = run_cli(
+        "cleanup", "--runs-dir", str(runs_dir), "--expires-before", "2027-01-01T00:00:00Z"
+    )
     assert cleanup.returncode == 0, cleanup.stderr
     assert not artifacts["manifest"].exists()
     assert not artifacts["analysis"].exists()

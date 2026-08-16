@@ -26,40 +26,28 @@ REAL_SCHEMA_PATH = ROOT / "schemas" / "policy-package.schema.json"
 
 
 def test_repository_loads_all_official_packages() -> None:
-    repository = JsonPolicyRepository(
-        packages_dir=REAL_PACKAGES_DIR, schema_path=REAL_SCHEMA_PATH
-    )
+    repository = JsonPolicyRepository(packages_dir=REAL_PACKAGES_DIR, schema_path=REAL_SCHEMA_PATH)
     packages = tuple(repository.list_packages())
     names = {package.package_id for package in packages}
     assert "cn-pension/beijing/flex-employment-2026.1" in names
     assert "cn-pension/beijing/flex-subsidy-2026.1" in names
     assert "cn-pension/national/enterprise-minimum-2026.1" in names
     assert all(package.review_status is ReviewStatus.MVP_REVIEWED for package in packages)
-    assert all(
-        package.execution_modes == (AnalysisMode.LOCAL_MVP,) for package in packages
-    )
+    assert all(package.execution_modes == (AnalysisMode.LOCAL_MVP,) for package in packages)
 
 
 def test_repository_converts_rules_with_typed_scalars() -> None:
-    repository = JsonPolicyRepository(
-        packages_dir=REAL_PACKAGES_DIR, schema_path=REAL_SCHEMA_PATH
-    )
-    package = repository.load_package(
-        REAL_PACKAGES_DIR / "beijing-flex-employment.json"
-    )
+    repository = JsonPolicyRepository(packages_dir=REAL_PACKAGES_DIR, schema_path=REAL_SCHEMA_PATH)
+    package = repository.load_package(REAL_PACKAGES_DIR / "beijing-flex-employment.json")
     contribution = next(
-        rule
-        for rule in package.rules
-        if rule.rule_id == "beijing-flex-pension-contribution"
+        rule for rule in package.rules if rule.rule_id == "beijing-flex-pension-contribution"
     )
     assert contribution.rule_type is RuleType.POLICY_RULE
     assert contribution.conditions[0]["value"].as_tuple().exponent == -2
 
 
 def test_repository_rejects_missing_file() -> None:
-    repository = JsonPolicyRepository(
-        packages_dir=REAL_PACKAGES_DIR, schema_path=REAL_SCHEMA_PATH
-    )
+    repository = JsonPolicyRepository(packages_dir=REAL_PACKAGES_DIR, schema_path=REAL_SCHEMA_PATH)
     with pytest.raises(PackageNotFoundError) as excinfo:
         repository.load_package(ROOT / "policy-data" / "packages" / "missing.json")
     assert excinfo.value.code == "POLICY_PACKAGE_NOT_FOUND"
@@ -121,9 +109,7 @@ def test_repository_rejects_schema_invalid_package(tmp_path) -> None:
 
 def test_repository_rejects_digest_mismatch(tmp_path) -> None:
     original = json.loads(
-        (REAL_PACKAGES_DIR / "national-enterprise-pension.json").read_text(
-            encoding="utf-8"
-        )
+        (REAL_PACKAGES_DIR / "national-enterprise-pension.json").read_text(encoding="utf-8")
     )
     tampered = dict(original)
     tampered["content_digest"] = "sha256:" + "f" * 64
@@ -137,9 +123,7 @@ def test_repository_rejects_digest_mismatch(tmp_path) -> None:
 
 def test_repository_detects_rule_level_tampering(tmp_path) -> None:
     original = json.loads(
-        (REAL_PACKAGES_DIR / "national-enterprise-pension.json").read_text(
-            encoding="utf-8"
-        )
+        (REAL_PACKAGES_DIR / "national-enterprise-pension.json").read_text(encoding="utf-8")
     )
     tampered = dict(original)
     tampered["rules"] = [

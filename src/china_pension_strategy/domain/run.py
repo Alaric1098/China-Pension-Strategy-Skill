@@ -1,13 +1,13 @@
 """Immutable analysis run identity, state machine, and manifest projection."""
 
-from collections.abc import Mapping
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
 import hashlib
 import json
 import re
-from typing import Any, Iterator
+from collections.abc import Iterator, Mapping
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import StrEnum
+from typing import Any, cast
 
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.policy import AnalysisMode, ReviewStatus
@@ -31,7 +31,7 @@ _VALIDATION_KEYS = frozenset(
 )
 
 
-class RunStatus(str, Enum):
+class RunStatus(StrEnum):
     """Lifecycle state of an analysis run."""
 
     RUNNING = "RUNNING"
@@ -39,7 +39,7 @@ class RunStatus(str, Enum):
     FAILED = "FAILED"
 
 
-class PublicationStatus(str, Enum):
+class PublicationStatus(StrEnum):
     """Publication lifecycle of a stored run."""
 
     LOCAL_ONLY = "LOCAL_ONLY"
@@ -131,13 +131,9 @@ class ComponentVersions:
     def __post_init__(self) -> None:
         for field_name in ("engine", "input_schema", "output_schema"):
             if _VERSION_RE.fullmatch(getattr(self, field_name)) is None:
-                raise DomainValidationError(
-                    f"{field_name} must be a semantic version"
-                )
+                raise DomainValidationError(f"{field_name} must be a semantic version")
         if self.manifest_schema != MANIFEST_VERSION:
-            raise DomainValidationError(
-                "manifest_schema must match the manifest version"
-            )
+            raise DomainValidationError("manifest_schema must match the manifest version")
         _require_text(self.rounding_profile, "rounding_profile")
 
 
@@ -191,27 +187,17 @@ class AnalysisRun:
             raise DomainValidationError("analysis_mode must be an AnalysisMode")
 
         statuses = tuple(self.review_statuses)
-        if not statuses or not all(
-            isinstance(value, ReviewStatus) for value in statuses
-        ):
-            raise DomainValidationError(
-                "review_statuses must contain ReviewStatus values"
-            )
+        if not statuses or not all(isinstance(value, ReviewStatus) for value in statuses):
+            raise DomainValidationError("review_statuses must contain ReviewStatus values")
         if len(statuses) != len(set(statuses)):
             raise DomainValidationError("review_statuses cannot contain duplicates")
         object.__setattr__(self, "review_statuses", statuses)
 
         if not isinstance(self.component_versions, ComponentVersions):
-            raise DomainValidationError(
-                "component_versions must be a ComponentVersions"
-            )
+            raise DomainValidationError("component_versions must be a ComponentVersions")
         rulesets = tuple(self.policy_rulesets)
-        if not rulesets or not all(
-            isinstance(ruleset, RulesetReference) for ruleset in rulesets
-        ):
-            raise DomainValidationError(
-                "policy_rulesets must contain RulesetReference values"
-            )
+        if not rulesets or not all(isinstance(ruleset, RulesetReference) for ruleset in rulesets):
+            raise DomainValidationError("policy_rulesets must contain RulesetReference values")
         object.__setattr__(self, "policy_rulesets", rulesets)
 
         for field_name in (
@@ -221,14 +207,10 @@ class AnalysisRun:
             "output_digest",
         ):
             if _DIGEST_RE.fullmatch(getattr(self, field_name)) is None:
-                raise DomainValidationError(
-                    f"{field_name} must be a sha256 digest"
-                )
+                raise DomainValidationError(f"{field_name} must be a sha256 digest")
         artifacts = tuple(self.artifact_digests)
         if any(_DIGEST_RE.fullmatch(digest) is None for digest in artifacts):
-            raise DomainValidationError(
-                "artifact_digests must contain sha256 digests"
-            )
+            raise DomainValidationError("artifact_digests must contain sha256 digests")
         object.__setattr__(self, "artifact_digests", artifacts)
 
         if not isinstance(self.adapter_versions, Mapping):
@@ -236,9 +218,7 @@ class AnalysisRun:
         adapters: dict[str, str] = {}
         for name, version in self.adapter_versions.items():
             if _IDENTIFIER_RE.fullmatch(name) is None:
-                raise DomainValidationError(
-                    f"adapter version key {name!r} is invalid"
-                )
+                raise DomainValidationError(f"adapter version key {name!r} is invalid")
             if _VERSION_RE.fullmatch(version) is None:
                 raise DomainValidationError(
                     f"adapter version value for {name!r} must be a semantic version"
@@ -247,9 +227,7 @@ class AnalysisRun:
         object.__setattr__(self, "adapter_versions", _FrozenDict(adapters))
 
         if not isinstance(self.validation, Mapping) or set(self.validation) != _VALIDATION_KEYS:
-            raise DomainValidationError(
-                "validation must declare the four schema gates"
-            )
+            raise DomainValidationError("validation must declare the four schema gates")
         if not all(isinstance(value, bool) for value in self.validation.values()):
             raise DomainValidationError("validation gates must be boolean values")
         if not all(self.validation.values()):
@@ -264,27 +242,19 @@ class AnalysisRun:
         ):
             value = getattr(self, field_name)
             if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-                raise DomainValidationError(
-                    f"{field_name} must be a non-negative integer"
-                )
+                raise DomainValidationError(f"{field_name} must be a non-negative integer")
         if not isinstance(self.created_at, datetime) or self.created_at.tzinfo is None:
-            raise DomainValidationError(
-                "created_at must be a timezone-aware datetime"
-            )
+            raise DomainValidationError("created_at must be a timezone-aware datetime")
         if not isinstance(self.status, RunStatus):
             raise DomainValidationError("status must be a RunStatus")
         if not isinstance(self.publication_status, PublicationStatus):
-            raise DomainValidationError(
-                "publication_status must be a PublicationStatus"
-            )
+            raise DomainValidationError("publication_status must be a PublicationStatus")
 
         if (
             ReviewStatus.MVP_REVIEWED in statuses
             and self.analysis_mode is not AnalysisMode.LOCAL_MVP
         ):
-            raise DomainValidationError(
-                "MVP_REVIEWED runs must use LOCAL_MVP analysis mode"
-            )
+            raise DomainValidationError("MVP_REVIEWED runs must use LOCAL_MVP analysis mode")
         if self.analysis_mode is AnalysisMode.PRODUCTION and any(
             value is not ReviewStatus.PRODUCTION_APPROVED for value in statuses
         ):
@@ -293,9 +263,7 @@ class AnalysisRun:
             )
         if self.publication_status is PublicationStatus.PUBLISHED:
             if ReviewStatus.MVP_REVIEWED in statuses:
-                raise DomainValidationError(
-                    "MVP_REVIEWED runs cannot be PUBLISHED"
-                )
+                raise DomainValidationError("MVP_REVIEWED runs cannot be PUBLISHED")
             if ReviewStatus.PRODUCTION_APPROVED not in statuses:
                 raise DomainValidationError(
                     "PUBLISHED runs require PRODUCTION_APPROVED review status"
@@ -328,9 +296,7 @@ class AnalysisRun:
     def publish(self) -> None:
         """Publish this run after the review and publication gates pass."""
         if ReviewStatus.MVP_REVIEWED in self.review_statuses:
-            raise PublicationProhibitedError(
-                "MVP_REVIEWED runs cannot be published"
-            )
+            raise PublicationProhibitedError("MVP_REVIEWED runs cannot be published")
         if ReviewStatus.PRODUCTION_APPROVED not in self.review_statuses:
             raise MissingProductionApprovalError(
                 "PUBLISHED runs require PRODUCTION_APPROVED review status"
@@ -340,8 +306,7 @@ class AnalysisRun:
     def _transition_status(self, target: RunStatus) -> None:
         if target not in _RUN_TRANSITIONS[self.status]:
             raise RunStateTransitionError(
-                f"cannot transition run status from {self.status.value} "
-                f"to {target.value}"
+                f"cannot transition run status from {self.status.value} to {target.value}"
             )
         object.__setattr__(self, "status", target)
 
@@ -409,22 +374,17 @@ class AnalysisRun:
     def from_manifest(cls, manifest: Mapping[str, object]) -> "AnalysisRun":
         """Reconstruct a run from its v2 manifest, recomputing its run_id."""
         try:
+            manifest = cast(dict[str, Any], manifest)
             return cls(
                 parent_run_id=manifest["parent_run_id"],
                 analysis_mode=AnalysisMode(manifest["analysis_mode"]),
-                review_statuses=tuple(
-                    ReviewStatus(value) for value in manifest["review_statuses"]
-                ),
+                review_statuses=tuple(ReviewStatus(value) for value in manifest["review_statuses"]),
                 component_versions=ComponentVersions(
                     engine=manifest["component_versions"]["engine"],
                     input_schema=manifest["component_versions"]["input_schema"],
                     output_schema=manifest["component_versions"]["output_schema"],
-                    manifest_schema=manifest["component_versions"][
-                        "manifest_schema"
-                    ],
-                    rounding_profile=manifest["component_versions"][
-                        "rounding_profile"
-                    ],
+                    manifest_schema=manifest["component_versions"]["manifest_schema"],
+                    rounding_profile=manifest["component_versions"]["rounding_profile"],
                 ),
                 policy_rulesets=tuple(
                     RulesetReference(
@@ -447,11 +407,7 @@ class AnalysisRun:
                 unresolved_conflicts_count=manifest["unresolved_conflicts_count"],
                 duration_ms=manifest["duration_ms"],
                 created_at=datetime.fromisoformat(manifest["created_at"]),
-                publication_status=PublicationStatus(
-                    manifest["publication_status"]
-                ),
+                publication_status=PublicationStatus(manifest["publication_status"]),
             )
         except (KeyError, TypeError, ValueError) as error:
-            raise DomainValidationError(
-                f"invalid run manifest: {error}"
-            ) from error
+            raise DomainValidationError(f"invalid run manifest: {error}") from error

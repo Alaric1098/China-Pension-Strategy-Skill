@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.reconciliation import (
-    ENTERPRISE_EMPLOYEE_BASIC_PENSION,
     AggregatedCount,
     ConflictStatus,
     ContributionMonth,
@@ -25,18 +24,10 @@ class ReconcileRequest:
     def __post_init__(self) -> None:
         if not isinstance(self.scheme, str) or not self.scheme.strip():
             raise DomainValidationError("scheme must be a non-empty string")
-        if not all(
-            isinstance(entry, ContributionMonth) for entry in self.month_entries
-        ):
-            raise DomainValidationError(
-                "month_entries must contain ContributionMonth values"
-            )
-        if not all(
-            isinstance(count, AggregatedCount) for count in self.aggregate_counts
-        ):
-            raise DomainValidationError(
-                "aggregate_counts must contain AggregatedCount values"
-            )
+        if not all(isinstance(entry, ContributionMonth) for entry in self.month_entries):
+            raise DomainValidationError("month_entries must contain ContributionMonth values")
+        if not all(isinstance(count, AggregatedCount) for count in self.aggregate_counts):
+            raise DomainValidationError("aggregate_counts must contain AggregatedCount values")
 
 
 def reconcile_contribution_records(
@@ -50,12 +41,8 @@ def reconcile_contribution_records(
     schemes are excluded and reported separately.
     """
     scheme = request.scheme
-    own_entries = [
-        entry for entry in request.month_entries if entry.scheme == scheme
-    ]
-    other_entries = [
-        entry for entry in request.month_entries if entry.scheme != scheme
-    ]
+    own_entries = [entry for entry in request.month_entries if entry.scheme == scheme]
+    other_entries = [entry for entry in request.month_entries if entry.scheme != scheme]
     aggregates = [count for count in request.aggregate_counts if count.scheme == scheme]
 
     detail_count = len({entry.month for entry in own_entries})
@@ -68,9 +55,7 @@ def reconcile_contribution_records(
                 RecordConflict(
                     conflict_id=f"conflict-aggregate-detail-{index}",
                     fact_scope=f"{scheme} contribution months",
-                    assertion_refs=tuple(
-                        dict.fromkeys([count.source_id, *detail_assertion_refs])
-                    ),
+                    assertion_refs=tuple(dict.fromkeys([count.source_id, *detail_assertion_refs])),
                     status=ConflictStatus.UNRESOLVED,
                 )
             )
@@ -79,9 +64,7 @@ def reconcile_contribution_records(
             if left.reported_months != right.reported_months:
                 conflicts.append(
                     RecordConflict(
-                        conflict_id=(
-                            f"conflict-aggregate-vs-aggregate-{left_index}"
-                        ),
+                        conflict_id=(f"conflict-aggregate-vs-aggregate-{left_index}"),
                         fact_scope=f"{scheme} contribution months",
                         assertion_refs=(left.source_id, right.source_id),
                         status=ConflictStatus.UNRESOLVED,

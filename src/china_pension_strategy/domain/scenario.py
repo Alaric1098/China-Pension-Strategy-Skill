@@ -1,18 +1,16 @@
 """Monthly scenario generation and deterministic ranking artifacts."""
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
-from enum import Enum
-from typing import Iterable, Mapping, TypeVar
+from enum import StrEnum
 
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.values import Money, YearMonth, YearMonthRange
 
-T = TypeVar("T")
 
-
-def _tuple(values: Iterable[T], field_name: str) -> tuple[T, ...]:
+def _tuple[T](values: Iterable[T], field_name: str) -> tuple[T, ...]:
     if isinstance(values, (str, bytes, bytearray)):
         raise DomainValidationError(f"{field_name} must be a collection")
     try:
@@ -33,12 +31,12 @@ def _require_unique(values: tuple[str, ...], field_name: str) -> None:
         raise DomainValidationError(f"{field_name} cannot contain duplicates")
 
 
-class ScenarioFeasibility(str, Enum):
+class ScenarioFeasibility(StrEnum):
     FEASIBLE = "FEASIBLE"
     INFEASIBLE = "INFEASIBLE"
 
 
-class ActionType(str, Enum):
+class ActionType(StrEnum):
     CONTINUE_CONTRIBUTING = "CONTINUE_CONTRIBUTING"
     STOP_CONTRIBUTING = "STOP_CONTRIBUTING"
     APPLY_FOR_SUBSIDY = "APPLY_FOR_SUBSIDY"
@@ -55,9 +53,7 @@ class ScenarioAction:
             raise DomainValidationError("month must be a YearMonth")
         if not isinstance(self.action_type, ActionType):
             raise DomainValidationError("action_type must be an ActionType")
-        object.__setattr__(
-            self, "assumption_refs", _tuple(self.assumption_refs, "assumption_refs")
-        )
+        object.__setattr__(self, "assumption_refs", _tuple(self.assumption_refs, "assumption_refs"))
         _require_unique(self.assumption_refs, "assumption_refs")
 
 
@@ -94,9 +90,7 @@ class CashFlow:
             - self.subsidy.amount
         )
         if self.net_outflow.amount != expected:
-            raise DomainValidationError(
-                "net_outflow must equal gross contributions minus subsidy"
-            )
+            raise DomainValidationError("net_outflow must equal gross contributions minus subsidy")
 
 
 @dataclass(frozen=True)
@@ -113,9 +107,7 @@ class ScenarioOutcome:
         for field_name in ("ending_confirmed_months", "ending_gap_months"):
             value = getattr(self, field_name)
             if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-                raise DomainValidationError(
-                    f"{field_name} must be a non-negative integer"
-                )
+                raise DomainValidationError(f"{field_name} must be a non-negative integer")
         for field_name in (
             "total_pension",
             "total_medical",
@@ -169,19 +161,13 @@ class Assumption:
             "dependency_treatment",
         ):
             _require_text(getattr(self, field_name), field_name)
-        if not isinstance(self.source_date, date) or isinstance(
-            self.source_date, datetime
-        ):
+        if not isinstance(self.source_date, date) or isinstance(self.source_date, datetime):
             raise DomainValidationError("source_date must be a date")
         if not isinstance(self.expires_at, datetime) or self.expires_at.tzinfo is None:
             raise DomainValidationError("expires_at must be a timezone-aware datetime")
-        object.__setattr__(
-            self, "provenance_refs", _tuple(self.provenance_refs, "provenance_refs")
-        )
+        object.__setattr__(self, "provenance_refs", _tuple(self.provenance_refs, "provenance_refs"))
         _require_unique(self.provenance_refs, "provenance_refs")
-        if self.distribution is not None and not isinstance(
-            self.distribution, Mapping
-        ):
+        if self.distribution is not None and not isinstance(self.distribution, Mapping):
             raise DomainValidationError("distribution must be a mapping or None")
 
 
@@ -201,9 +187,7 @@ class Scenario:
         _require_text(self.scenario_id, "scenario_id")
         if not isinstance(self.feasibility, ScenarioFeasibility):
             raise DomainValidationError("feasibility must be a ScenarioFeasibility")
-        object.__setattr__(
-            self, "capability_refs", _tuple(self.capability_refs, "capability_refs")
-        )
+        object.__setattr__(self, "capability_refs", _tuple(self.capability_refs, "capability_refs"))
         _require_unique(self.capability_refs, "capability_refs")
         if not isinstance(self.horizon, YearMonthRange):
             raise DomainValidationError("horizon must be a YearMonthRange")
@@ -216,15 +200,9 @@ class Scenario:
         object.__setattr__(self, "thresholds", _tuple(self.thresholds, "thresholds"))
         if not isinstance(self.sensitivity, Mapping):
             raise DomainValidationError("sensitivity must be a mapping")
-        if not all(
-            isinstance(flow, CashFlow) for flow in self.monthly_cash_flows
-        ):
-            raise DomainValidationError(
-                "monthly_cash_flows must contain CashFlow values"
-            )
-        if not all(
-            isinstance(action, ScenarioAction) for action in self.actions
-        ):
+        if not all(isinstance(flow, CashFlow) for flow in self.monthly_cash_flows):
+            raise DomainValidationError("monthly_cash_flows must contain CashFlow values")
+        if not all(isinstance(action, ScenarioAction) for action in self.actions):
             raise DomainValidationError("actions must contain ScenarioAction values")
         if not all(isinstance(threshold, Threshold) for threshold in self.thresholds):
             raise DomainValidationError("thresholds must contain Threshold values")
@@ -233,9 +211,7 @@ class Scenario:
         if self.monthly_cash_flows:
             months = tuple(flow.month for flow in self.monthly_cash_flows)
             if months != tuple(self.horizon):
-                raise DomainValidationError(
-                    "cash flow months must exactly match the horizon"
-                )
+                raise DomainValidationError("cash flow months must exactly match the horizon")
 
 
 @dataclass(frozen=True)

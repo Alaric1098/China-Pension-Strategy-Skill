@@ -9,9 +9,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
-
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "scripts" / "policy_expiry_report.py"
 
@@ -120,7 +117,11 @@ def test_current_expired_package_drives_exit_code(tmp_path) -> None:
     """A current package whose rule version expired keeps the gate red."""
     pkg_dir = _write_packages(
         tmp_path,
-        [_package_record("cn-pension/test/flex-employment-2026.1", None, rule_effective_to="2026-06-30")],
+        [
+            _package_record(
+                "cn-pension/test/flex-employment-2026.1", None, rule_effective_to="2026-06-30"
+            )
+        ],
     )
     result = _run_report(pkg_dir, "2026-08-14")
     assert "[CURRENT]" in result.stdout
@@ -134,7 +135,9 @@ def test_mixed_scenario_counts_only_current(tmp_path) -> None:
         tmp_path,
         [
             _package_record("cn-pension/test/flex-medical-2024.1", "2025-12-31", historical=True),
-            _package_record("cn-pension/test/flex-medical-2026.1", None, rule_effective_to="2026-12-31"),
+            _package_record(
+                "cn-pension/test/flex-medical-2026.1", None, rule_effective_to="2026-12-31"
+            ),
         ],
     )
     result = _run_report(pkg_dir, "2026-08-14")

@@ -1,5 +1,4 @@
-import json
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -29,7 +28,6 @@ from china_pension_strategy.domain.scenario import (
     ActionType,
     Assumption,
     CashFlow,
-    Recommendation,
     Scenario,
     ScenarioAction,
     ScenarioFeasibility,
@@ -58,7 +56,13 @@ def rule(
         {"input_id": "contribution_base", "value_type": "DECIMAL", "required": True},
     ),
     conditions: tuple[dict, ...] = (
-        {"condition_id": "positive", "input_ref": "contribution_base", "operator": ">", "value_type": "DECIMAL", "value": "0.00"},
+        {
+            "condition_id": "positive",
+            "input_ref": "contribution_base",
+            "operator": ">",
+            "value_type": "DECIMAL",
+            "value": "0.00",
+        },
     ),
 ) -> PolicyRule:
     def converted(cond: dict) -> dict:
@@ -88,7 +92,7 @@ def rule(
         exceptions=(),
         effective_from=date(2026, 1, 1),
         effective_to=None,
-        transaction_from=datetime(2026, 8, 11, tzinfo=timezone.utc),
+        transaction_from=datetime(2026, 8, 11, tzinfo=UTC),
         transaction_to=None,
         legal_hierarchy=LegalHierarchy.MUNICIPAL_REGULATION,
         explicit_override_refs=(),
@@ -170,8 +174,7 @@ def horizon() -> YearMonthRange:
 
 def actions(*types: ActionType) -> tuple[ScenarioAction, ...]:
     return tuple(
-        ScenarioAction(month=YearMonth(2026, 9), action_type=action_type)
-        for action_type in types
+        ScenarioAction(month=YearMonth(2026, 9), action_type=action_type) for action_type in types
     )
 
 
@@ -313,7 +316,7 @@ def test_thresholds_and_assumptions_are_carried() -> None:
         population="Synthetic population",
         provenance_refs=("official-statistic-001",),
         approved_by="reviewer-001",
-        expires_at=datetime(2027, 1, 1, tzinfo=timezone.utc),
+        expires_at=datetime(2027, 1, 1, tzinfo=UTC),
         dependency_treatment="Sensitivity only",
     )
     scenario = generate_scenario(
@@ -485,11 +488,13 @@ def test_cumulative_outflow_is_last_net_sums() -> None:
 @given(st.integers(min_value=0, max_value=40))
 @settings(max_examples=50)
 def test_cumulative_outflow_equals_sum_of_net_outflows(month_count) -> None:
-    months = tuple(
-        YearMonth(2026, 9).add_months(offset) for offset in range(month_count)
-    )
+    months = tuple(YearMonth(2026, 9).add_months(offset) for offset in range(month_count))
     contributions = {
-        month: {"pension": money("1400.00"), "medical": money("0.00"), "unemployment": money("0.00")}
+        month: {
+            "pension": money("1400.00"),
+            "medical": money("0.00"),
+            "unemployment": money("0.00"),
+        }
         for month in months
     }
     subsidies = {}
@@ -502,9 +507,7 @@ def test_cumulative_outflow_equals_sum_of_net_outflows(month_count) -> None:
 
 
 def test_unknown_eligibility_produces_no_subsidy_flows() -> None:
-    unknown = assess_subsidy(
-        (subsidy_rule(),), {}, YearMonth(2026, 8), RoundingMode.HALF_UP
-    )
+    unknown = assess_subsidy((subsidy_rule(),), {}, YearMonth(2026, 8), RoundingMode.HALF_UP)
     assert unknown.status is EligibilityStatus.UNKNOWN
     scenario = generate_scenario(
         scenario_id="continue",

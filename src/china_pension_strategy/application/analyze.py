@@ -5,42 +5,46 @@ only, so identical requests produce identical run IDs. `created_at` is never
 part of any digest.
 """
 
+import hashlib
+import json
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-import hashlib
-import json
 from time import perf_counter_ns
-from typing import Mapping, Sequence
+from typing import Any, cast
 
-from china_pension_strategy.application.calculate_months import (
-    assess_subsidy,
-    evaluate_rule,
-    gap_from_rule,
-)
-from china_pension_strategy.application.cross_region import compare_monthly_contributions, determine_pension_place
-from china_pension_strategy.application.estimate_pension import estimate_pension
-from china_pension_strategy.application.reconcile_records import (
-    ReconcileRequest,
-    reconcile_contribution_records,
-)
-from china_pension_strategy.application.recommend import build_recommendation
-from china_pension_strategy.application.resolve_policy import (
-    PolicyQuery,
-    PolicyVersionNotFoundError,
-)
 from china_pension_strategy.application.analyze_scenarios import (
     generate_scenario,
     rank_scenarios,
     select_recommended,
 )
+from china_pension_strategy.application.calculate_months import (
+    assess_subsidy,
+    evaluate_rule,
+    gap_from_rule,
+)
+from china_pension_strategy.application.cross_region import (
+    compare_monthly_contributions,
+    determine_pension_place,
+)
+from china_pension_strategy.application.estimate_pension import estimate_pension
+from china_pension_strategy.application.recommend import build_recommendation
+from china_pension_strategy.application.reconcile_records import (
+    ReconcileRequest,
+    reconcile_contribution_records,
+)
+from china_pension_strategy.application.resolve_policy import (
+    PolicyQuery,
+    PolicyVersionNotFoundError,
+)
+from china_pension_strategy.domain.benefit import PensionEstimate
 from china_pension_strategy.domain.calculation import SubsidyAssessment
 from china_pension_strategy.domain.eligibility import CapabilityStatus, EligibilityStatus
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.policy import (
     AnalysisMode,
-    JurisdictionRole,
     PolicyPackage,
     PolicyRule,
     ReviewStatus,
@@ -51,9 +55,9 @@ from china_pension_strategy.domain.reconciliation import (
     ReconcileResult,
 )
 from china_pension_strategy.domain.run import (
+    MANIFEST_VERSION,
     AnalysisRun,
     ComponentVersions,
-    MANIFEST_VERSION,
     RulesetReference,
 )
 from china_pension_strategy.domain.scenario import (
@@ -126,16 +130,9 @@ class AnalysisRequest:
         if not isinstance(self.as_of_effective_date, date) or isinstance(
             self.as_of_effective_date, datetime
         ):
-            raise AnalysisRequestError(
-                "as_of_effective_date must be a plain date"
-            )
-        if (
-            not isinstance(self.as_known_at, datetime)
-            or self.as_known_at.tzinfo is None
-        ):
-            raise AnalysisRequestError(
-                "as_known_at must be a timezone-aware datetime"
-            )
+            raise AnalysisRequestError("as_of_effective_date must be a plain date")
+        if not isinstance(self.as_known_at, datetime) or self.as_known_at.tzinfo is None:
+            raise AnalysisRequestError("as_known_at must be a timezone-aware datetime")
         if not isinstance(self.analysis_mode, AnalysisMode):
             raise AnalysisRequestError("analysis_mode must be an AnalysisMode")
         if not isinstance(self.rounding, RoundingMode):
@@ -224,30 +221,20 @@ def _scoped_packages(
     contributions) all survive; single-winner precedence is a policy-adapter
     concern and is intentionally not applied here.
     """
-    wanted = {
-        (query.scheme, query.topic, query.jurisdiction)
-        for query in request.policy_queries
-    }
+    wanted = {(query.scheme, query.topic, query.jurisdiction) for query in request.policy_queries}
     scoped = [
         package
         for package in repository.list_packages()
         if (package.scheme, package.topic, package.jurisdiction) in wanted
-        and package.applies_at(
-            request.as_of_effective_date, request.as_known_at
-        )
+        and package.applies_at(request.as_of_effective_date, request.as_known_at)
     ]
     if not scoped:
-        raise PolicyVersionNotFoundError(
-            "no policy package matches scope and time"
-        )
+        raise PolicyVersionNotFoundError("no policy package matches scope and time")
     return tuple(sorted(scoped, key=lambda package: package.package_id))
 
 
 def _output_fields(rule: PolicyRule) -> tuple[str, ...]:
-    return tuple(
-        result.get("output_field", "")
-        for result in rule.results
-    )
+    return tuple(cast(str, result.get("output_field", "")) for result in rule.results)
 
 
 def _requirement_rule(
@@ -257,21 +244,15 @@ def _requirement_rule(
         rule
         for package in packages
         for rule in package.rules
-        if any(
-            field in ("minimum_months", "requirement_months")
-            for field in _output_fields(rule)
-        )
+        if any(field in ("minimum_months", "requirement_months") for field in _output_fields(rule))
     ]
     if len(rules) != 1:
         raise AnalysisRequestError(
-            "exactly one package rule must produce the minimum-months "
-            "requirement"
+            "exactly one package rule must produce the minimum-months requirement"
         )
     rule = rules[0]
     field = (
-        "requirement_months"
-        if "requirement_months" in _output_fields(rule)
-        else "minimum_months"
+        "requirement_months" if "requirement_months" in _output_fields(rule) else "minimum_months"
     )
     return rule, field
 
@@ -310,8 +291,8 @@ def _base_limits_warnings(
             continue
         for rule in package.rules:
             parameters = rule.parameters
-            floor = parameters.get("base_floor")
-            ceiling = parameters.get("base_ceiling")
+            floor = cast(Mapping[str, object] | None, parameters.get("base_floor"))
+            ceiling = cast(Mapping[str, object] | None, parameters.get("base_ceiling"))
             if floor is not None and contribution_base < Decimal(str(floor["value"])):
                 warnings.append(
                     f"CONTRIBUTION_BASE_BELOW_FLOOR: {package.package_id} "
@@ -324,16 +305,22 @@ def _base_limits_warnings(
                     f"declared base {contribution_base} is above the published "
                     f"ceiling {ceiling['value']}; result uses the declared base."
                 )
-            medical_floor = parameters.get("medical_base_floor")
-            medical_ceiling = parameters.get("medical_base_ceiling")
-            if medical_floor is not None and contribution_base < Decimal(str(medical_floor["value"])):
+            medical_floor = cast(Mapping[str, object] | None, parameters.get("medical_base_floor"))
+            medical_ceiling = cast(
+                Mapping[str, object] | None, parameters.get("medical_base_ceiling")
+            )
+            if medical_floor is not None and contribution_base < Decimal(
+                str(medical_floor["value"])
+            ):
                 warnings.append(
                     f"CONTRIBUTION_BASE_BELOW_MEDICAL_FLOOR: {package.package_id} "
                     f"declared base {contribution_base} is below the medical "
                     f"floor {medical_floor['value']}; medical contribution uses "
                     f"the declared base."
                 )
-            if medical_ceiling is not None and contribution_base > Decimal(str(medical_ceiling["value"])):
+            if medical_ceiling is not None and contribution_base > Decimal(
+                str(medical_ceiling["value"])
+            ):
                 warnings.append(
                     f"CONTRIBUTION_BASE_ABOVE_MEDICAL_CEILING: {package.package_id} "
                     f"declared base {contribution_base} is above the medical "
@@ -359,22 +346,20 @@ def _run_estimate(
     request: AnalysisRequest,
     benefit_rules: tuple[PolicyRule, ...],
     average_contribution_index: Decimal,
-) -> object:
+) -> PensionEstimate:
     """Run one pension estimate with a given average contribution index."""
     return estimate_pension(
         benefit_rules,
         birth=YearMonth(
-            int(request.pension_inputs["birth_year"]),
-            int(request.pension_inputs["birth_month"]),
+            int(cast(int, request.pension_inputs["birth_year"])),
+            int(cast(int, request.pension_inputs["birth_month"])),
         ),
         gender_category=str(request.pension_inputs["gender_category"]),
         total_contribution_months=int(
-            request.pension_inputs["total_contribution_months"]
+            cast(int, request.pension_inputs["total_contribution_months"])
         ),
         average_contribution_index=average_contribution_index,
-        account_balance=Money(
-            Decimal(str(request.pension_inputs["account_balance"])), CNY
-        ),
+        account_balance=Money(Decimal(str(request.pension_inputs["account_balance"])), CNY),
         account_as_of=request.account_as_of_year_month or _as_of_month(request),
         c_ping_override=(
             Decimal(str(request.pension_inputs["c_ping_override"]))
@@ -438,11 +423,9 @@ def _sensitivity_output(
     if not tiers_raw:
         return None
     rows = []
-    for tier in tiers_raw:
+    for tier in cast(tuple[object, ...], tiers_raw):
         try:
-            estimate = _run_estimate(
-                request, benefit_rules, Decimal(str(tier))
-            )
+            estimate = _run_estimate(request, benefit_rules, Decimal(str(tier)))
         except (DomainValidationError, KeyError, TypeError, ValueError):
             continue
         rows.append(
@@ -512,10 +495,7 @@ def _back_payment_output(
     if "BACK_PAYMENT" not in request.requested_capabilities:
         return None
     back_rules = [
-        rule
-        for package in packages
-        if package.topic == "back_payment"
-        for rule in package.rules
+        rule for package in packages if package.topic == "back_payment" for rule in package.rules
     ]
     if not back_rules:
         return None
@@ -526,7 +506,7 @@ def _back_payment_output(
         if rule.rule_id == "national-minimum-years-schedule":
             outputs = evaluate_rule(rule, {"retirement_year": year})
             if outputs and "minimum_months_at_year" in outputs:
-                months = int(outputs["minimum_months_at_year"])
+                months = int(cast(int, outputs["minimum_months_at_year"]))
                 schedule = {
                     "retirement_year": year,
                     "minimum_months": months,
@@ -575,9 +555,7 @@ def _residents_pension_output(
                 if outputs and "monthly_account_pension" in outputs:
                     account = str(outputs["monthly_account_pension"])
         if basic is not None and account is not None:
-            total = str(
-                (Decimal(basic) + Decimal(account)).quantize(Decimal("0.01"))
-            )
+            total = str((Decimal(basic) + Decimal(account)).quantize(Decimal("0.01")))
     return {
         "basic_pension": basic,
         "payment_coefficient": 139,
@@ -599,12 +577,12 @@ def _cross_region_output(
     region_months_raw = request.pension_inputs.get("region_contribution_months", ())
     home = str(request.pension_inputs.get("home_region", ""))
     current = str(request.pension_inputs.get("current_region", ""))
-    regions = request.pension_inputs.get("comparison_regions", ())
+    regions = cast(tuple[object, ...], request.pension_inputs.get("comparison_regions", ()))
     has_place_inputs = bool(home and current and region_months_raw)
     has_comparison_inputs = bool(request.contribution_base is not None and regions)
     if not has_place_inputs and not has_comparison_inputs:
         return None
-    comparison = {}
+    comparison: dict[str, Any] = {}
     if has_place_inputs:
         try:
             place_rules = tuple(
@@ -614,8 +592,8 @@ def _cross_region_output(
                 for rule in package.rules
             )
             region_months = {
-                str(item["region"]): int(item["months"])
-                for item in region_months_raw
+                str(item["region"]): int(cast(int, item["months"]))
+                for item in cast(tuple[Mapping[str, object], ...], region_months_raw)
             }
             comparison["pension_place"] = determine_pension_place(
                 place_rules,
@@ -629,9 +607,15 @@ def _cross_region_output(
     # Contribution rules live in the province layer for tier-2 cities
     # (chengdu -> sichuan CN-51, etc.); municipalities are single-level.
     jurisdiction_map = {
-        "beijing": "CN-11", "shanghai": "CN-31", "guangzhou": "CN-4401",
-        "shenzhen": "CN-4403", "hangzhou": "CN-33", "chengdu": "CN-51",
-        "wuhan": "CN-42", "nanjing": "CN-32", "tianjin": "CN-12",
+        "beijing": "CN-11",
+        "shanghai": "CN-31",
+        "guangzhou": "CN-4401",
+        "shenzhen": "CN-4403",
+        "hangzhou": "CN-33",
+        "chengdu": "CN-51",
+        "wuhan": "CN-42",
+        "nanjing": "CN-32",
+        "tianjin": "CN-12",
         "chongqing": "CN-50",
     }
     if has_comparison_inputs:
@@ -648,7 +632,7 @@ def _cross_region_output(
             comparison["region_comparison"] = compare_monthly_contributions(
                 rules_by_jurisdiction,
                 regions=[(str(r), jurisdiction_map[str(r)]) for r in regions],
-                contribution_base=request.contribution_base,
+                contribution_base=cast(Decimal, request.contribution_base),
             )
         except (DomainValidationError, KeyError, TypeError, ValueError):
             comparison["region_comparison"] = None
@@ -691,14 +675,13 @@ def _personal_pension_tax_output(
             str(request.pension_inputs.get("personal_pension_annual_contribution", "0"))
         )
         marginal = Decimal(str(request.pension_inputs.get("marginal_tax_rate", "0")))
-        years = int(request.pension_inputs.get("personal_pension_years", 0))
+        years = int(cast(int, request.pension_inputs.get("personal_pension_years", 0)))
     except (TypeError, ValueError):
         return None
     deductible = min(contribution, limit)
     annual_tax_saving = deductible * marginal
     accumulated = deductible * Decimal(years)
     withdrawal_tax = accumulated * withdrawal_rate
-    net_benefit = annual_tax_saving - (withdrawal_tax / Decimal(max(years, 1)))
     return {
         "annual_contribution_limit": str(limit),
         "deductible_contribution": str(deductible),
@@ -716,8 +699,7 @@ def _requested_capability_statuses(
     optional_outputs: Mapping[str, object | None],
 ) -> tuple[dict[str, CapabilityStatus], tuple[str, ...]]:
     statuses = {
-        capability: CapabilityStatus.AVAILABLE
-        for capability in request.requested_capabilities
+        capability: CapabilityStatus.AVAILABLE for capability in request.requested_capabilities
     }
     warnings: list[str] = []
     for capability, value in optional_outputs.items():
@@ -796,9 +778,7 @@ def _scenarios(
     wants_subsidy = "SUBSIDY_TIMING" in request.requested_capabilities
     if wants_contribution and contribution_rules and request.contribution_base is not None:
         continue_actions = (
-            ScenarioAction(
-                month=as_of_month, action_type=ActionType.CONTINUE_CONTRIBUTING
-            ),
+            ScenarioAction(month=as_of_month, action_type=ActionType.CONTINUE_CONTRIBUTING),
         )
         scenarios.append(
             generate_scenario(
@@ -847,7 +827,11 @@ def _scenarios(
                         "SUBSIDY_TIMING",
                     ),
                     thresholds=request.thresholds,
-                    sensitivity={"assumption_refs": tuple(assumption.assumption_id for assumption in request.assumptions)},
+                    sensitivity={
+                        "assumption_refs": tuple(
+                            assumption.assumption_id for assumption in request.assumptions
+                        )
+                    },
                 )
             )
     return tuple(scenarios)
@@ -944,9 +928,9 @@ def analyze(
                     rule_end = rule.effective_to
                     if rule_end is None:
                         continue
-                    months_left = (
-                        rule_end.year - request.as_of_effective_date.year
-                    ) * 12 + (rule_end.month - request.as_of_effective_date.month)
+                    months_left = (rule_end.year - request.as_of_effective_date.year) * 12 + (
+                        rule_end.month - request.as_of_effective_date.month
+                    )
                     if 0 <= months_left <= 18:
                         base_limitations.append(
                             f"Rule {package.package_id}/{rule.rule_id} expires "
@@ -984,8 +968,7 @@ def analyze(
     }
     if capability_warnings:
         output["capability_statuses"] = {
-            capability: status.value
-            for capability, status in capability_statuses.items()
+            capability: status.value for capability, status in capability_statuses.items()
         }
     if pension_estimation is not None:
         output["pension_estimation"] = pension_estimation
@@ -1008,8 +991,7 @@ def analyze(
             "population_scope": request.population_scope,
             "as_of_effective_date": request.as_of_effective_date,
             "month_entries": [
-                (entry.scheme, str(entry.month), entry.source_id)
-                for entry in request.month_entries
+                (entry.scheme, str(entry.month), entry.source_id) for entry in request.month_entries
             ],
             "aggregate_counts": [
                 (entry.scheme, entry.reported_months, entry.source_id)
@@ -1104,9 +1086,7 @@ def _scenario_output(value: object) -> object:
             "scenario_id": value.scenario_id,
             "feasibility": value.feasibility.value,
             "capability_refs": list(value.capability_refs),
-            "horizon": [
-                str(month) for month in value.horizon
-            ],
+            "horizon": [str(month) for month in value.horizon],
             "cash_flows": [
                 {
                     "month": str(flow.month),
@@ -1158,9 +1138,7 @@ def _scenario_output(value: object) -> object:
                     "fact_scope": conflict.fact_scope,
                     "assertion_refs": list(conflict.assertion_refs),
                     "status": conflict.status.value,
-                    "resolution_evidence_refs": list(
-                        conflict.resolution_evidence_refs
-                    ),
+                    "resolution_evidence_refs": list(conflict.resolution_evidence_refs),
                 }
                 for conflict in value.conflicts
             ],

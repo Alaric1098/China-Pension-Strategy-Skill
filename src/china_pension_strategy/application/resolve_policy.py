@@ -1,11 +1,14 @@
 """Deterministic bitemporal policy resolution."""
 
-from dataclasses import dataclass
-from datetime import date, datetime, date as date_type, datetime as datetime_type
-from decimal import Decimal
-from enum import Enum
 import re
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
+from datetime import date, datetime
+from datetime import date as date_type
+from datetime import datetime as datetime_type
+from decimal import Decimal
+from enum import StrEnum
+from typing import cast
 
 from china_pension_strategy.domain.policy import (
     AnalysisMode,
@@ -30,7 +33,7 @@ class RulesetIncompatibleError(PolicyResolutionError):
     code = "RULESET_INCOMPATIBLE"
 
 
-class ConflictDimension(str, Enum):
+class ConflictDimension(StrEnum):
     SCHEME = "SCHEME"
     JURISDICTION_ROLE = "JURISDICTION_ROLE"
     EFFECTIVE_TIME = "EFFECTIVE_TIME"
@@ -56,13 +59,11 @@ class AmbiguousPolicyRuleError(PolicyResolutionError):
         ):
             raise ValueError("conflict_dimensions must be a non-empty unique set")
         if not all(
-            isinstance(dimension, ConflictDimension)
-            for dimension in self.conflict_dimensions
+            isinstance(dimension, ConflictDimension) for dimension in self.conflict_dimensions
         ):
             raise TypeError("conflict_dimensions must contain ConflictDimension values")
         super().__init__(
-            "incompatible policy rules survive resolution: "
-            + ", ".join(self.competing_rule_ids)
+            "incompatible policy rules survive resolution: " + ", ".join(self.competing_rule_ids)
         )
 
 
@@ -93,9 +94,7 @@ _HIERARCHY_RANK = {
     LegalHierarchy.MUNICIPAL_IMPLEMENTING_RULE: 1,
 }
 _VERSION = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
-_CONSTRAINT = re.compile(
-    r"^(>=|<=|==|>|<)((?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*)){0,2})$"
-)
+_CONSTRAINT = re.compile(r"^(>=|<=|==|>|<)((?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*)){0,2})$")
 
 
 def _version(value: str) -> tuple[int, int, int]:
@@ -113,9 +112,7 @@ def _is_compatible(engine_version: str, compatibility: str) -> bool:
     for raw_constraint in constraints:
         match = _CONSTRAINT.fullmatch(raw_constraint.strip())
         if match is None:
-            raise RulesetIncompatibleError(
-                f"invalid engine compatibility range: {compatibility}"
-            )
+            raise RulesetIncompatibleError(f"invalid engine compatibility range: {compatibility}")
         operator, version_text = match.groups()
         expected_parts = tuple(int(part) for part in version_text.split("."))
         expected = expected_parts + (0,) * (3 - len(expected_parts))
@@ -141,7 +138,7 @@ def _canonical(value: object) -> object:
     if isinstance(value, (tuple, list)):
         return tuple(_canonical(item) for item in value)
     if isinstance(value, (set, frozenset)):
-        return tuple(sorted(_canonical(item) for item in value))
+        return tuple(sorted((_canonical(item) for item in value), key=repr))
     if isinstance(value, bool):
         return ("bool", value)
     if isinstance(value, int):
@@ -167,15 +164,9 @@ def _canonical_unordered(values: Iterable[object]) -> tuple[object, ...]:
     return tuple(sorted((_canonical(value) for value in values), key=repr))
 
 
-def _canonical_without_ids(
-    record: Mapping[str, object], excluded_ids: set[str]
-) -> object:
+def _canonical_without_ids(record: Mapping[str, object], excluded_ids: set[str]) -> object:
     return tuple(
-        sorted(
-            (key, _canonical(value))
-            for key, value in record.items()
-            if key not in excluded_ids
-        )
+        sorted((key, _canonical(value)) for key, value in record.items() if key not in excluded_ids)
     )
 
 
@@ -189,12 +180,9 @@ def _result_semantics(result: Mapping[str, object]) -> object:
 
 def _exception_semantics(rule: PolicyRule) -> tuple[object, ...]:
     conditions_by_id = {
-        condition["condition_id"]: _condition_semantics(condition)
-        for condition in rule.conditions
+        condition["condition_id"]: _condition_semantics(condition) for condition in rule.conditions
     }
-    results_by_id = {
-        result["result_id"]: _result_semantics(result) for result in rule.results
-    }
+    results_by_id = {result["result_id"]: _result_semantics(result) for result in rule.results}
     exceptions = []
     for exception in rule.exceptions:
         exceptions.append(
@@ -204,14 +192,14 @@ def _exception_semantics(rule: PolicyRule) -> tuple[object, ...]:
                     "conditions",
                     _canonical_unordered(
                         conditions_by_id[reference]
-                        for reference in exception["condition_refs"]
+                        for reference in cast(tuple[str, ...], exception["condition_refs"])
                     ),
                 ),
                 (
                     "results",
                     _canonical_unordered(
                         results_by_id[reference]
-                        for reference in exception["result_refs"]
+                        for reference in cast(tuple[str, ...], exception["result_refs"])
                     ),
                 ),
             )
@@ -242,13 +230,14 @@ def _canonical_decision_rows(rule: PolicyRule) -> tuple[object, ...]:
                     "conditions",
                     _canonical_unordered(
                         _condition_semantics(condition)
-                        for condition in row["conditions"]
+                        for condition in cast(tuple[Mapping[str, object], ...], row["conditions"])
                     ),
                 ),
                 (
                     "results",
                     _canonical_unordered(
-                        _result_semantics(result) for result in row["results"]
+                        _result_semantics(result)
+                        for result in cast(tuple[Mapping[str, object], ...], row["results"])
                     ),
                 ),
             )
@@ -260,9 +249,7 @@ def _decision_signature(rule: PolicyRule) -> object:
     return (
         rule.rule_type.value,
         _canonical_unordered(rule.inputs),
-        _canonical_unordered(
-            _condition_semantics(condition) for condition in rule.conditions
-        ),
+        _canonical_unordered(_condition_semantics(condition) for condition in rule.conditions),
         _canonical_unordered(_result_semantics(result) for result in rule.results),
         _exception_semantics(rule),
         _canonical(rule.parameters),
@@ -275,14 +262,11 @@ def _mode_permits(package: PolicyPackage, mode: AnalysisMode) -> bool:
     if mode not in package.execution_modes:
         return False
     return not (
-        package.review_status is ReviewStatus.MVP_REVIEWED
-        and mode is not AnalysisMode.LOCAL_MVP
+        package.review_status is ReviewStatus.MVP_REVIEWED and mode is not AnalysisMode.LOCAL_MVP
     )
 
 
-def resolve_policy(
-    repository: PolicyRepository, query: PolicyQuery
-) -> ResolvedPolicy:
+def resolve_policy(repository: PolicyRepository, query: PolicyQuery) -> ResolvedPolicy:
     scoped_packages = tuple(
         package
         for package in repository.list_packages()
@@ -325,9 +309,7 @@ def resolve_policy(
             (ConflictDimension.RULE_OVERRIDE,),
         )
 
-    highest_rank = max(
-        _HIERARCHY_RANK[rule.legal_hierarchy] for _, rule in survivors
-    )
+    highest_rank = max(_HIERARCHY_RANK[rule.legal_hierarchy] for _, rule in survivors)
     survivors = tuple(
         (package, rule)
         for package, rule in survivors
@@ -344,9 +326,7 @@ def resolve_policy(
             ),
         )
 
-    selected = tuple(
-        sorted(survivors, key=lambda pair: _qualified_rule_id(*pair))
-    )
+    selected = tuple(sorted(survivors, key=lambda pair: _qualified_rule_id(*pair)))
     selected_rules = tuple(rule for _, rule in selected)
     selected_rule_ids = {id(rule) for rule in selected_rules}
     selected_packages = tuple(
@@ -366,9 +346,7 @@ def resolve_policy(
         raise RulesetIncompatibleError(
             "the applicable precedence winner is incompatible with the engine"
         )
-    if not all(
-        _mode_permits(package, query.analysis_mode) for package in selected_packages
-    ):
+    if not all(_mode_permits(package, query.analysis_mode) for package in selected_packages):
         raise PolicyVersionNotFoundError(
             "the applicable precedence winner is not executable in this mode"
         )

@@ -31,9 +31,7 @@ class GapResult:
         ):
             value = getattr(self, field_name)
             if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-                raise DomainValidationError(
-                    f"{field_name} must be a non-negative integer"
-                )
+                raise DomainValidationError(f"{field_name} must be a non-negative integer")
         if self.remaining_months != max(self.requirement_months - self.confirmed_months, 0):
             raise DomainValidationError("remaining_months must be requirement minus confirmed")
         if not isinstance(self.schedule, tuple) or not all(
@@ -73,9 +71,7 @@ class MonthlyContribution:
             - self.subsidy.amount
         )
         if self.net_outflow.amount != expected:
-            raise DomainValidationError(
-                "net_outflow must equal gross contributions minus subsidy"
-            )
+            raise DomainValidationError("net_outflow must equal gross contributions minus subsidy")
 
 
 @dataclass(frozen=True)
@@ -122,6 +118,4 @@ class SubsidyAssessment:
                 self.duration_months,
             )
         ):
-            raise DomainValidationError(
-                "non-ELIGIBLE assessments cannot carry subsidy details"
-            )
+            raise DomainValidationError("non-ELIGIBLE assessments cannot carry subsidy details")

@@ -1,7 +1,7 @@
 """Privacy scanner and person-input loader adapter tests."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -9,13 +9,13 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from china_pension_strategy.adapters.input.json_input import (
+    CODE_CLASSIFICATION_INSUFFICIENT,
     CODE_CONSENT_MISSING,
+    CODE_EXPIRED,
     CODE_FILE_NOT_FOUND,
     CODE_JSON_INVALID,
-    CODE_SCHEMA_INVALID,
-    CODE_EXPIRED,
-    CODE_CLASSIFICATION_INSUFFICIENT,
     CODE_PURPOSE_MISSING,
+    CODE_SCHEMA_INVALID,
     InputExpiredError,
     InputFileNotFoundError,
     InputGovernanceError,
@@ -66,16 +66,16 @@ def test_valid_identity_card_is_blocked(scanner):
     categories = [finding.category for finding in decision.findings]
     assert CATEGORY_IDENTITY_CARD in categories
     assert VALID_IDENTITY_CARD not in decision.redacted
-    identity = next(finding for finding in decision.findings if finding.category == CATEGORY_IDENTITY_CARD)
+    identity = next(
+        finding for finding in decision.findings if finding.category == CATEGORY_IDENTITY_CARD
+    )
     assert identity.reason == "chinese identity card with valid checksum"
 
 
 def test_identity_card_checksum_must_validate(scanner):
     decision = scanner.scan_text(f"号码：{INVALID_CHECKSUM_ID}")
 
-    assert not any(
-        finding.category == CATEGORY_IDENTITY_CARD for finding in decision.findings
-    )
+    assert not any(finding.category == CATEGORY_IDENTITY_CARD for finding in decision.findings)
 
 
 def test_phone_bank_card_and_social_security_detected(scanner):
@@ -238,7 +238,9 @@ def test_scan_findings_are_bounded_and_non_overlapping(text):
     spans = [(finding.start, finding.end) for finding in decision.findings]
     for start, end in spans:
         assert 0 <= start <= end <= len(text)
-    for (first_start, first_end), (second_start, second_end) in zip(spans, spans[1:]):
+    for (_first_start, first_end), (second_start, _second_end) in zip(
+        spans, spans[1:], strict=False
+    ):
         assert first_end <= second_start
 
 
@@ -285,7 +287,7 @@ def write_input(tmp_path: Path, payload: object, name: str = "input.json") -> Pa
 def test_loader_returns_valid_person_input(loader, person_input, tmp_path):
     path = write_input(tmp_path, person_input)
 
-    loaded = loader.load(path, now=datetime(2026, 9, 1, tzinfo=timezone.utc))
+    loaded = loader.load(path, now=datetime(2026, 9, 1, tzinfo=UTC))
 
     assert loaded == person_input
     assert loaded["consent_id"] == "consent-synthetic-001"
@@ -315,7 +317,7 @@ def test_loader_schema_error_does_not_leak_contents(loader, person_input, tmp_pa
     path = write_input(tmp_path, invalid)
 
     with pytest.raises(InputSchemaError) as error:
-        loader.load(path, now=datetime(2026, 9, 1, tzinfo=timezone.utc))
+        loader.load(path, now=datetime(2026, 9, 1, tzinfo=UTC))
 
     assert error.value.code == CODE_SCHEMA_INVALID
     assert "SENTINEL-424242" not in str(error.value)
@@ -344,20 +346,22 @@ def test_loader_rejects_expired_input(loader, person_input, tmp_path):
     path = write_input(tmp_path, person_input)
 
     with pytest.raises(InputExpiredError) as error:
-        loader.load(path, now=datetime(2026, 10, 1, tzinfo=timezone.utc))
+        loader.load(path, now=datetime(2026, 10, 1, tzinfo=UTC))
     assert error.value.code == CODE_EXPIRED
 
     already_deleted = dict(person_input, deletion_status="DELETED")
     with pytest.raises(InputExpiredError) as error:
         loader.load(
             write_input(tmp_path, already_deleted, "deleted.json"),
-            now=datetime(2026, 8, 12, tzinfo=timezone.utc),
+            now=datetime(2026, 8, 12, tzinfo=UTC),
         )
     assert error.value.code == CODE_EXPIRED
 
 
 def test_scan_record_returns_scan_findings_type():
-    finding = ScanFinding(CATEGORY_PHONE, ScanAction.REDACT, ("phone",), 0, 11, "mobile phone number")
+    finding = ScanFinding(
+        CATEGORY_PHONE, ScanAction.REDACT, ("phone",), 0, 11, "mobile phone number"
+    )
 
     assert finding.category == CATEGORY_PHONE
     assert finding.action is ScanAction.REDACT

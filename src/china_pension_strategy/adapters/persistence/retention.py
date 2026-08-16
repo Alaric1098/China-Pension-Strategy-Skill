@@ -12,10 +12,11 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any
 
 EXPIRED_DELETION_STATUSES = ("EXPIRED", "DELETED")
 _MANIFEST_SCHEMA_VERSION = "1.0.0"
@@ -28,7 +29,7 @@ class DeletionResult:
 
 
 def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class RetentionManager:
@@ -42,7 +43,9 @@ class RetentionManager:
         manifest_dir: str | Path | None = None,
     ) -> None:
         self.base_dir = Path(base_dir)
-        self.manifest_dir = Path(manifest_dir) if manifest_dir is not None else self.base_dir / "manifests"
+        self.manifest_dir = (
+            Path(manifest_dir) if manifest_dir is not None else self.base_dir / "manifests"
+        )
         self._clock = clock if clock is not None else _utc_now
 
     def is_expired(self, record: Mapping[str, Any], *, now: datetime | None = None) -> bool:
@@ -57,7 +60,7 @@ class RetentionManager:
         except ValueError:
             return False
         if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
+            expires_at = expires_at.replace(tzinfo=UTC)
         current = now if now is not None else self._clock()
         return current >= expires_at
 

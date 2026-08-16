@@ -9,7 +9,8 @@ report them safely without leaking internals.
 
 from __future__ import annotations
 
-from typing import Protocol
+from collections.abc import Mapping
+from typing import Any, Protocol, cast
 
 from china_pension_strategy.adapters.regions.beijing import (
     BeijingRegionAdapter,
@@ -24,13 +25,14 @@ from china_pension_strategy.adapters.regions.shanghai import ShanghaiRegionAdapt
 from china_pension_strategy.adapters.regions.shenzhen import ShenzhenRegionAdapter
 from china_pension_strategy.adapters.regions.tianjin import TianjinRegionAdapter
 from china_pension_strategy.adapters.regions.wuhan import WuhanRegionAdapter
+from china_pension_strategy.application.analyze import AnalysisRequest
 from china_pension_strategy.version import ENGINE_SEMANTICS_VERSION
 
 
 class RegionAdapter(Protocol):
     """Minimal structural contract every region adapter implements."""
 
-    def to_analysis_request(self, person_input: dict) -> object: ...
+    def to_analysis_request(self, person_input: Mapping[str, object]) -> AnalysisRequest: ...
 
 
 _REGISTRY: dict[str, type[RegionAdapter]] = {
@@ -62,7 +64,7 @@ def create_region_adapter(
             "REGION_UNKNOWN",
             f"unknown region: {region}",
         )
-    return _REGISTRY[region](engine_version=engine_version)
+    return cast(Any, _REGISTRY[region])(engine_version=engine_version)
 
 
 __all__ = ["create_region_adapter", "RegionAdapter", "RegionMappingError"]

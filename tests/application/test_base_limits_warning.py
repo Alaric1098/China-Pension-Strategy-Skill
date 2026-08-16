@@ -5,10 +5,8 @@ base; it warns in the envelope while keeping numeric output (and therefore
 run ids) unchanged.
 """
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
-
-import pytest
 
 from china_pension_strategy.application.analyze import _base_limits_warnings
 from china_pension_strategy.domain.policy import (
@@ -36,16 +34,20 @@ def _rule(
         exceptions=(),
         effective_from=date(2025, 1, 1),
         effective_to=None,
-        transaction_from=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        transaction_from=datetime(2026, 1, 1, tzinfo=UTC),
         transaction_to=None,
         legal_hierarchy=LegalHierarchy.MUNICIPAL_REGULATION,
         explicit_override_refs=(),
         source_refs=("test-source",),
-        inputs=(
-            {"input_id": "contribution_base", "value_type": "DECIMAL", "required": True},
-        ),
+        inputs=({"input_id": "contribution_base", "value_type": "DECIMAL", "required": True},),
         conditions=(
-            {"condition_id": "always", "input_ref": "contribution_base", "operator": ">=", "value_type": "DECIMAL", "value": Decimal("0.00")},
+            {
+                "condition_id": "always",
+                "input_ref": "contribution_base",
+                "operator": ">=",
+                "value_type": "DECIMAL",
+                "value": Decimal("0.00"),
+            },
         ),
         results=(
             {
@@ -86,7 +88,7 @@ def _package(rule: PolicyRule, topic: str = "flexible_employment_contribution") 
         engine_compatibility=">=0.1,<1.0",
         effective_from=date(2025, 1, 1),
         effective_to=None,
-        transaction_from=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        transaction_from=datetime(2026, 1, 1, tzinfo=UTC),
         transaction_to=None,
         content_digest="sha256:" + "a" * 64,
         provenance=(
@@ -97,7 +99,7 @@ def _package(rule: PolicyRule, topic: str = "flexible_employment_contribution") 
                 authority_level="MUNICIPAL_HRSS",
                 document_number=None,
                 publication_date=date(2025, 1, 1),
-                retrieved_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+                retrieved_at=datetime(2026, 1, 1, tzinfo=UTC),
                 locator="test",
                 source_digest="sha256:" + "a" * 64,
             ),
@@ -105,7 +107,7 @@ def _package(rule: PolicyRule, topic: str = "flexible_employment_contribution") 
         rules=(rule,),
         engineering_review=EngineeringReview(
             reviewer_id="test",
-            reviewed_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            reviewed_at=datetime(2026, 1, 1, tzinfo=UTC),
             schema_validation_passed=True,
             rule_tests_passed=True,
         ),

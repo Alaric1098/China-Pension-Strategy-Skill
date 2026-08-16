@@ -4,7 +4,9 @@ import pytest
 
 
 def output_with_dependency() -> dict:
-    money = lambda amount: {"currency": "CNY", "amount": amount}
+    def money(amount):
+        return {"currency": "CNY", "amount": amount}
+
     return {
         "status": "success",
         "capabilities": [

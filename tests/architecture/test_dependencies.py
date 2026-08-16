@@ -3,7 +3,6 @@ import importlib
 import importlib.util
 from pathlib import Path
 
-
 PACKAGE_NAME = "china_pension_strategy"
 FORBIDDEN_DOMAIN_LAYERS = {"application", "ports", "adapters", "entrypoints"}
 FORBIDDEN_APPLICATION_LAYERS = {"adapters", "entrypoints"}
@@ -38,6 +37,8 @@ FORBIDDEN_INFRASTRUCTURE_DEPENDENCIES = {
     "sqlite3",
     "subprocess",
 }
+
+
 def _imported_modules(tree: ast.AST) -> set[str]:
     imported = set()
     for node in ast.walk(tree):
@@ -52,9 +53,7 @@ def _imported_modules(tree: ast.AST) -> set[str]:
     return imported
 
 
-def _dependency_violations(
-    package_root: Path, source_layers: set[str] | None = None
-) -> list[str]:
+def _dependency_violations(package_root: Path, source_layers: set[str] | None = None) -> list[str]:
     violations = []
     forbidden_layers = {
         "domain": FORBIDDEN_DOMAIN_LAYERS,
@@ -76,25 +75,17 @@ def _dependency_violations(
             continue
 
         module_name = ".".join((PACKAGE_NAME, *module_parts))
-        tree = ast.parse(
-            source_path.read_text(encoding="utf-8"), filename=str(source_path)
-        )
+        tree = ast.parse(source_path.read_text(encoding="utf-8"), filename=str(source_path))
         for imported in sorted(_imported_modules(tree)):
             imported_parts = imported.split(".")
             root = imported_parts[0]
             imported_layer = (
-                imported_parts[1]
-                if root == PACKAGE_NAME and len(imported_parts) > 1
-                else root
+                imported_parts[1] if root == PACKAGE_NAME and len(imported_parts) > 1 else root
             )
             imports_outward_layer = imported_layer in forbidden_layers[source_layer]
             imports_forbidden_dependency = (
-                source_layer == "domain"
-                and root not in ALLOWED_DOMAIN_DEPENDENCIES
-            ) or (
-                source_layer != "domain"
-                and root in FORBIDDEN_INFRASTRUCTURE_DEPENDENCIES
-            )
+                source_layer == "domain" and root not in ALLOWED_DOMAIN_DEPENDENCIES
+            ) or (source_layer != "domain" and root in FORBIDDEN_INFRASTRUCTURE_DEPENDENCIES)
             if imports_outward_layer or imports_forbidden_dependency:
                 violations.append(f"{module_name} imports {imported}")
 
@@ -108,9 +99,7 @@ def _check_domain_dependencies() -> None:
 
     violations = []
     for package_location in package_spec.submodule_search_locations:
-        violations.extend(
-            _dependency_violations(Path(package_location), source_layers={"domain"})
-        )
+        violations.extend(_dependency_violations(Path(package_location), source_layers={"domain"}))
 
     assert not violations, "Forbidden domain dependencies:\n" + "\n".join(violations)
 
@@ -146,12 +135,10 @@ def test_static_scan_finds_outward_application_and_port_imports(tmp_path) -> Non
     violations = _dependency_violations(package_root)
 
     assert violations == [
-        "china_pension_strategy.application.use_case imports "
-        "china_pension_strategy.adapters.store",
+        "china_pension_strategy.application.use_case imports china_pension_strategy.adapters.store",
         "china_pension_strategy.application.use_case imports "
         "china_pension_strategy.adapters.store.Repository",
-        "china_pension_strategy.ports.repository imports "
-        "china_pension_strategy.entrypoints.cli",
+        "china_pension_strategy.ports.repository imports china_pension_strategy.entrypoints.cli",
         "china_pension_strategy.ports.repository imports "
         "china_pension_strategy.entrypoints.cli.main",
     ]
@@ -181,8 +168,7 @@ def test_static_scan_finds_database_process_network_and_sdk_imports(tmp_path) ->
     violations = _dependency_violations(package_root)
 
     assert violations == [
-        f"china_pension_strategy.domain.service imports {dependency}"
-        for dependency in dependencies
+        f"china_pension_strategy.domain.service imports {dependency}" for dependency in dependencies
     ]
 
 

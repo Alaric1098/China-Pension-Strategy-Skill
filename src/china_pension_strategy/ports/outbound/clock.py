@@ -1,6 +1,6 @@
 """Outbound clock boundary for deterministic time injection."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 
@@ -15,4 +15,4 @@ class SystemClock:
     """Wall clock that reads the current time from the operating system."""
 
     def now_utc(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)

@@ -75,7 +75,9 @@ def main() -> int:
     args = parser.parse_args()
 
     as_of = date.fromisoformat(args.as_of) if args.as_of else date.today()
-    packages_dir = Path(args.packages_dir) if args.packages_dir else ROOT / "policy-data" / "packages"
+    packages_dir = (
+        Path(args.packages_dir) if args.packages_dir else ROOT / "policy-data" / "packages"
+    )
     historical_entries: list[dict] = []
     current_entries: list[dict] = []
     for path in sorted(packages_dir.glob("*.json")):
@@ -88,9 +90,7 @@ def main() -> int:
                 continue
             months_left = _months_between(as_of, end_date)
             if months_left <= args.horizon_months:
-                target.append(
-                    {**entry, "status": "EXPIRING_SOON", "months_remaining": months_left}
-                )
+                target.append({**entry, "status": "EXPIRING_SOON", "months_remaining": months_left})
 
     print(f"Policy expiry report (as of {as_of.isoformat()}, horizon {args.horizon_months} months)")
     if not current_entries and not historical_entries:
@@ -101,18 +101,26 @@ def main() -> int:
         print("  [HISTORICAL] (archived packages; not counted in the gate)")
         for entry in historical_entries:
             scope = entry["rule_id"] or "(package)"
-            print(f"    {entry['package_id']} / {scope} "
-                  f"({entry['topic']}, {entry['jurisdiction']}) "
-                  f"effective_to {entry['effective_to']} [{entry['status']}]")
+            print(
+                f"    {entry['package_id']} / {scope} "
+                f"({entry['topic']}, {entry['jurisdiction']}) "
+                f"effective_to {entry['effective_to']} [{entry['status']}]"
+            )
 
     if current_entries:
         print("  [CURRENT] (non-historical; drives the gate)")
         for entry in current_entries:
             scope = entry["rule_id"] or "(package)"
-            print(f"    [{entry['status']}] {entry['package_id']} / {scope} "
-                  f"({entry['topic']}, {entry['jurisdiction']}) "
-                  f"effective_to {entry['effective_to']}"
-                  + (f", {entry['months_remaining']} months left" if "months_remaining" in entry else ""))
+            print(
+                f"    [{entry['status']}] {entry['package_id']} / {scope} "
+                f"({entry['topic']}, {entry['jurisdiction']}) "
+                f"effective_to {entry['effective_to']}"
+                + (
+                    f", {entry['months_remaining']} months left"
+                    if "months_remaining" in entry
+                    else ""
+                )
+            )
     return 1 if current_entries else 0
 
 

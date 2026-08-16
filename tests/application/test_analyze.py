@@ -1,8 +1,8 @@
 """Tests for the composition use case in application.analyze."""
 
-from datetime import date, datetime, timezone
-from decimal import Decimal
 import importlib
+from datetime import UTC, date, datetime
+from decimal import Decimal
 
 import pytest
 
@@ -16,7 +16,6 @@ from china_pension_strategy.application.resolve_policy import (
     PolicyQuery,
     PolicyVersionNotFoundError,
 )
-from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.policy import (
     AnalysisMode,
     EngineeringReview,
@@ -34,7 +33,7 @@ from china_pension_strategy.domain.reconciliation import (
 )
 from china_pension_strategy.domain.values import YearMonth
 
-KNOWN_AT = datetime(2026, 8, 11, tzinfo=timezone.utc)
+KNOWN_AT = datetime(2026, 8, 11, tzinfo=UTC)
 AS_OF = date(2026, 8, 11)
 ENGINE = "0.1.0"
 
@@ -61,9 +60,7 @@ def contribution_rule(rule_id: str, field: str) -> PolicyRule:
         topic="flexible_employment_contribution",
         jurisdiction_role=JurisdictionRole.LOCAL_IMPLEMENTATION,
         population_scope="beijing flexible employment participants",
-        inputs=(
-            {"input_id": "contribution_base", "value_type": "DECIMAL", "required": True},
-        ),
+        inputs=({"input_id": "contribution_base", "value_type": "DECIMAL", "required": True},),
         conditions=(
             {
                 "condition_id": "positive",
@@ -154,7 +151,11 @@ def subsidy_rule() -> PolicyRule:
         jurisdiction_role=JurisdictionRole.LOCAL_IMPLEMENTATION,
         population_scope="beijing employment-difficulty flexible employment participants",
         inputs=(
-            {"input_id": "employment_difficulty_recognized", "value_type": "BOOLEAN", "required": True},
+            {
+                "input_id": "employment_difficulty_recognized",
+                "value_type": "BOOLEAN",
+                "required": True,
+            },
         ),
         conditions=(
             {
@@ -280,9 +281,16 @@ class FixedClock:
 def policy_repository() -> MemoryPolicyRepository:
     return MemoryPolicyRepository(
         make_package(minimum_rule(), "minimum_contribution", jurisdiction="CN"),
-        make_package(contribution_rule("pension-rule", "pension"), "flexible_employment_contribution"),
-        make_package(contribution_rule("medical-rule", "medical"), "flexible_employment_contribution"),
-        make_package(contribution_rule("unemployment-rule", "unemployment"), "flexible_employment_contribution"),
+        make_package(
+            contribution_rule("pension-rule", "pension"), "flexible_employment_contribution"
+        ),
+        make_package(
+            contribution_rule("medical-rule", "medical"), "flexible_employment_contribution"
+        ),
+        make_package(
+            contribution_rule("unemployment-rule", "unemployment"),
+            "flexible_employment_contribution",
+        ),
         make_package(subsidy_rule(), "flexible_employment_subsidy"),
     )
 
@@ -384,7 +392,7 @@ def test_analyze_run_id_is_idempotent() -> None:
         base_request(),
         policy_repository(),
         MemoryRunRepository(),
-        FixedClock(datetime(2026, 8, 12, tzinfo=timezone.utc)),
+        FixedClock(datetime(2026, 8, 12, tzinfo=UTC)),
     )
     assert first.run.run_id == later.run.run_id
     assert first.run.created_at != later.run.created_at
@@ -426,11 +434,7 @@ def test_analyze_without_contribution_base_omits_continue_scenarios() -> None:
     request = base_request()
     request = AnalysisRequest(
         **{
-            **{
-                key: value
-                for key, value in request.__dict__.items()
-                if key != "contribution_base"
-            },
+            **{key: value for key, value in request.__dict__.items() if key != "contribution_base"},
             "contribution_base": None,
         }
     )
@@ -481,9 +485,7 @@ def test_analyze_output_digest_matches_content() -> None:
 
 
 def test_analyze_manifest_metrics_reflect_warnings_and_elapsed_time(monkeypatch) -> None:
-    analyze_module = importlib.import_module(
-        "china_pension_strategy.application.analyze"
-    )
+    analyze_module = importlib.import_module("china_pension_strategy.application.analyze")
     ticks = iter((1_000_000, 4_500_000))
     monkeypatch.setattr(
         analyze_module,

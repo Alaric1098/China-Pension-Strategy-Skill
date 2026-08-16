@@ -1,8 +1,9 @@
 """Deterministic evaluator over resolved policy rules, parameters, and decision tables."""
 
+from collections.abc import Iterable, Mapping
 from datetime import date, datetime
 from decimal import ROUND_FLOOR, Decimal, InvalidOperation, localcontext
-from typing import Iterable, Mapping
+from typing import Any, cast
 
 from china_pension_strategy.domain.calculation import (
     GapResult,
@@ -50,7 +51,7 @@ def canonical_scalar(value_type: object, value: object) -> object:
     raise DomainValidationError(f"unsupported value_type {value_type!r}")
 
 
-def _order_key(value: object) -> object:
+def _order_key(value: object) -> tuple[Any, ...]:
     if isinstance(value, YearMonth):
         return (value.year * 12 + value.month,)
     if isinstance(value, date):
@@ -68,13 +69,11 @@ def _order_key(value: object) -> object:
     raise DomainValidationError(f"value {value!r} is not comparable")
 
 
-def _condition_matches(
-    condition: Mapping[str, object], inputs: Mapping[str, object]
-) -> bool:
+def _condition_matches(condition: Mapping[str, object], inputs: Mapping[str, object]) -> bool:
     input_ref = condition.get("input_ref")
     if input_ref not in inputs:
         return False
-    actual = canonical_scalar(condition.get("value_type"), inputs[input_ref])
+    actual = canonical_scalar(condition.get("value_type"), inputs[cast(str, input_ref)])
     expected = canonical_scalar(condition.get("value_type"), condition.get("value"))
     operator = condition.get("operator")
     if operator in ("=", "!="):
@@ -114,23 +113,17 @@ def evaluate_expression(
         reference_id = expression.get("reference_id")
         if reference_type == "INPUT":
             if reference_id not in inputs:
-                raise DomainValidationError(
-                    f"input reference {reference_id} is not provided"
-                )
-            return canonical_scalar(value_type, inputs[reference_id])
+                raise DomainValidationError(f"input reference {reference_id} is not provided")
+            return canonical_scalar(value_type, inputs[cast(str, reference_id)])
         if reference_type == "PARAMETER":
             if reference_id not in parameters:
-                raise DomainValidationError(
-                    f"parameter reference {reference_id} is not declared"
-                )
-            return canonical_scalar(value_type, parameters[reference_id])
-        raise DomainValidationError(
-            f"unsupported reference_type {reference_type!r}"
-        )
+                raise DomainValidationError(f"parameter reference {reference_id} is not declared")
+            return canonical_scalar(value_type, parameters[cast(str, reference_id)])
+        raise DomainValidationError(f"unsupported reference_type {reference_type!r}")
     if kind == "EXPRESSION":
         operands = [
             evaluate_expression(operand, inputs, parameters)
-            for operand in expression.get("operands", ())
+            for operand in cast(tuple[Mapping[str, object], ...], expression.get("operands", ()))
         ]
         operator = expression.get("operator")
         if operator == "ADD":
@@ -159,11 +152,15 @@ def _cast_result(value: object, value_type: object) -> object:
     if value_type == "DECIMAL":
         if isinstance(value, bool):
             raise DomainValidationError("DECIMAL result cannot be boolean")
-        return Decimal(value)
+        if isinstance(value, Decimal):
+            return value
+        return Decimal(str(value))
     if value_type == "INTEGER":
         if isinstance(value, bool):
             raise DomainValidationError("INTEGER result cannot be boolean")
-        return int(Decimal(value))
+        if isinstance(value, Decimal):
+            return int(value)
+        return int(Decimal(str(value)))
     if value_type == "BOOLEAN":
         return bool(value)
     if value_type == "STRING":
@@ -174,9 +171,7 @@ def _cast_result(value: object, value_type: object) -> object:
 def _numbers(operands: list[object]) -> list[Decimal]:
     values = []
     for operand in operands:
-        if isinstance(operand, bool) or not isinstance(
-            operand, (int, Decimal)
-        ):
+        if isinstance(operand, bool) or not isinstance(operand, (int, Decimal)):
             raise DomainValidationError("expression operands must be numeric")
         values.append(Decimal(operand))
     return values
@@ -243,7 +238,7 @@ def _power(operands: list[object]) -> object:
     with localcontext() as context:
         context.prec = 40
         try:
-            return base ** exponent
+            return base**exponent
         except (ValueError, InvalidOperation) as error:
             raise DomainValidationError(f"POWER evaluation failed: {error}") from error
 
@@ -261,35 +256,31 @@ def _max_of(operands: list[object]) -> object:
 
 
 def _rule_outputs(rule: PolicyRule, inputs: Mapping[str, object]) -> dict[str, object]:
-    parameters = {
-        name: _parameter_value(rule, name) for name in rule.parameters
-    }
+    parameters = {name: _parameter_value(rule, name) for name in rule.parameters}
     if rule.rule_type is RuleType.DECISION_TABLE:
         for row in rule.decision_rows:
             if all(
                 _condition_matches(condition, inputs)
-                for condition in row["conditions"]  # type: ignore[union-attr]
+                for condition in cast(tuple[Mapping[str, object], ...], row["conditions"])
             ):
                 return {
-                    result["output_field"]: evaluate_expression(
-                        result["value"], inputs, parameters
+                    cast(str, result["output_field"]): evaluate_expression(
+                        cast(Mapping[str, object], result["value"]), inputs, parameters
                     )
-                    for result in row["results"]
+                    for result in cast(tuple[Mapping[str, object], ...], row["results"])
                 }
         return {}
     if all(_condition_matches(condition, inputs) for condition in rule.conditions):
         return {
-            result["output_field"]: evaluate_expression(
-                result["value"], inputs, parameters
+            cast(str, result["output_field"]): evaluate_expression(
+                cast(Mapping[str, object], result["value"]), inputs, parameters
             )
             for result in rule.results
         }
     return {}
 
 
-def evaluate_rule(
-    rule: PolicyRule, inputs: Mapping[str, object]
-) -> Mapping[str, object] | None:
+def evaluate_rule(rule: PolicyRule, inputs: Mapping[str, object]) -> Mapping[str, object] | None:
     """Evaluate one rule; None when its conditions do not match."""
     outputs = _rule_outputs(rule, inputs)
     return outputs if outputs else None
@@ -315,9 +306,7 @@ def calculate_gap(
     confirmed_months: int,
     as_of: YearMonth,
 ) -> GapResult:
-    if isinstance(requirement_months, bool) or not isinstance(
-        requirement_months, int
-    ):
+    if isinstance(requirement_months, bool) or not isinstance(requirement_months, int):
         raise DomainValidationError("requirement_months must be an integer")
     if isinstance(confirmed_months, bool) or not isinstance(confirmed_months, int):
         raise DomainValidationError("confirmed_months must be an integer")
@@ -342,9 +331,7 @@ def gap_from_rule(
 ) -> GapResult:
     outputs = _rule_outputs(rule, {"confirmed_months": confirmed_months})
     if requirement_field not in outputs:
-        raise DomainValidationError(
-            f"rule {rule.rule_id} does not produce {requirement_field}"
-        )
+        raise DomainValidationError(f"rule {rule.rule_id} does not produce {requirement_field}")
     requirement = outputs[requirement_field]
     if isinstance(requirement, bool) or not isinstance(requirement, int):
         raise DomainValidationError("requirement must be an integer")
@@ -377,16 +364,12 @@ def monthly_contributions(
             rule, {"contribution_base": contribution_base}
         ).items():
             if output_field in outputs:
-                raise DomainValidationError(
-                    f"duplicate contribution output {output_field}"
-                )
+                raise DomainValidationError(f"duplicate contribution output {output_field}")
             outputs[output_field] = value
 
     def field(name: str) -> Money:
         if name not in outputs:
-            raise DomainValidationError(
-                f"contribution rules do not produce {name}"
-            )
+            raise DomainValidationError(f"contribution rules do not produce {name}")
         return _money(outputs[name], rounding)
 
     def optional_field(name: str) -> Money:
@@ -404,9 +387,7 @@ def monthly_contributions(
     zero = Money(Decimal("0.00"), CNY)
     result = []
     for month in months:
-        net = Money(
-            pension.amount + medical.amount + unemployment.amount, CNY
-        )
+        net = Money(pension.amount + medical.amount + unemployment.amount, CNY)
         result.append(
             MonthlyContribution(
                 scheme=scheme,
@@ -437,9 +418,7 @@ def assess_subsidy(
         rule_ids.append(rule.rule_id)
         for output_field, value in outputs.items():
             if output_field in merged:
-                raise DomainValidationError(
-                    f"competing subsidy outputs for {output_field}"
-                )
+                raise DomainValidationError(f"competing subsidy outputs for {output_field}")
             merged[output_field] = value
 
     eligible = merged.get("subsidy_eligible")
@@ -454,17 +433,10 @@ def assess_subsidy(
                 rule_refs=tuple(rule_ids),
             )
         fully_evaluable = any(
-            all(
-                declaration.get("input_id") in inputs
-                for declaration in rule.inputs
-            )
+            all(declaration.get("input_id") in inputs for declaration in rule.inputs)
             for rule in rules
         )
-        status = (
-            EligibilityStatus.INELIGIBLE
-            if fully_evaluable
-            else EligibilityStatus.UNKNOWN
-        )
+        status = EligibilityStatus.INELIGIBLE if fully_evaluable else EligibilityStatus.UNKNOWN
         return SubsidyAssessment(
             status=status,
             monthly_subsidy=None,
@@ -487,9 +459,7 @@ def assess_subsidy(
     if not isinstance(duration, int) or isinstance(duration, bool):
         raise DomainValidationError("subsidy_duration_months must be an integer")
     if not isinstance(start_offset, int) or isinstance(start_offset, bool):
-        raise DomainValidationError(
-            "subsidy_start_offset_months must be an integer"
-        )
+        raise DomainValidationError("subsidy_start_offset_months must be an integer")
     amount_fields = [
         (field, value)
         for field, value in merged.items()

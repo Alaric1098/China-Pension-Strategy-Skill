@@ -8,9 +8,10 @@ the composition use case.
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
-from typing import Mapping, Sequence
+from typing import Any, cast
 
 from china_pension_strategy.application.analyze import AnalysisRequest, AnalysisRequestError
 from china_pension_strategy.application.resolve_policy import PolicyQuery
@@ -73,7 +74,7 @@ class BeijingRegionAdapter:
         Pension-benefit queries are added only when PENSION_ESTIMATION is
         requested, so existing runs keep identical query scopes and run_ids.
         """
-        common = {
+        common: dict[str, Any] = {
             "as_of_effective_date": as_of_effective_date,
             "as_known_at": as_known_at,
             "engine_version": self._engine_version,
@@ -177,6 +178,7 @@ class BeijingRegionAdapter:
         person_input: Mapping[str, object],
     ) -> AnalysisRequest:
         """Map a validated person-input record into an analysis request."""
+        person_input = cast(dict[str, Any], person_input)
         created_at = datetime.fromisoformat(str(person_input["created_at"]))
         as_of = created_at.date()
         if "analysis_date" in person_input:
@@ -300,7 +302,7 @@ class BeijingRegionAdapter:
                     analysis_mode=analysis_mode,
                     requested_capabilities=capabilities,
                     comparison_regions=tuple(
-                        pension_inputs.get("comparison_regions", ())
+                        cast(tuple[str, ...], pension_inputs.get("comparison_regions", ()))
                     ),
                 ),
                 month_entries=tuple(month_entries),

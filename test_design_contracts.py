@@ -4,7 +4,6 @@ from pathlib import Path
 
 import audit_architecture
 
-
 ROOT = Path(__file__).resolve().parent
 SCHEMA_PATH = ROOT / "docs" / "schemas" / "analysis-output.schema.json"
 
@@ -59,7 +58,9 @@ class OutputSchemaContractTests(unittest.TestCase):
         self.assertIn("event_definition", assumption["required"])
         self.assertIn("distribution", assumption["properties"])
         self.assertTrue(
-            {"source_date", "population", "approved_by", "expires_at"}.issubset(assumption["required"])
+            {"source_date", "population", "approved_by", "expires_at"}.issubset(
+                assumption["required"]
+            )
         )
         self.assertIn("oneOf", assumption)
         self.assertEqual(assumption["properties"]["provenance_refs"]["minItems"], 1)

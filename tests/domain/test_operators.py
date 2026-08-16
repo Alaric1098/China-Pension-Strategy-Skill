@@ -1,14 +1,13 @@
 """FLOOR_DIVIDE and POWER operator tests (benefit estimation prerequisites)."""
 
-import math
 from decimal import Decimal, localcontext
 
 import pytest
 
-from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.application.calculate_months import (
     evaluate_expression,
 )
+from china_pension_strategy.domain.errors import DomainValidationError
 
 
 def expr(operator, operands, value_type="DECIMAL"):
@@ -25,30 +24,20 @@ def lit(value, value_type="DECIMAL"):
 
 
 def test_floor_divide_positive() -> None:
-    result = evaluate_expression(
-        expr("FLOOR_DIVIDE", [lit("7"), lit("4")], "INTEGER"), {}, {}
-    )
+    result = evaluate_expression(expr("FLOOR_DIVIDE", [lit("7"), lit("4")], "INTEGER"), {}, {})
     assert result == 1
-    result = evaluate_expression(
-        expr("FLOOR_DIVIDE", [lit("1"), lit("4")], "INTEGER"), {}, {}
-    )
+    result = evaluate_expression(expr("FLOOR_DIVIDE", [lit("1"), lit("4")], "INTEGER"), {}, {})
     assert result == 0
 
 
 def test_floor_divide_negative_floor_semantics() -> None:
     # Python // semantics: floor, not truncation.
-    assert evaluate_expression(
-        expr("FLOOR_DIVIDE", [lit("-1"), lit("4")], "INTEGER"), {}, {}
-    ) == -1
-    assert evaluate_expression(
-        expr("FLOOR_DIVIDE", [lit("-5"), lit("2")], "INTEGER"), {}, {}
-    ) == -3
+    assert evaluate_expression(expr("FLOOR_DIVIDE", [lit("-1"), lit("4")], "INTEGER"), {}, {}) == -1
+    assert evaluate_expression(expr("FLOOR_DIVIDE", [lit("-5"), lit("2")], "INTEGER"), {}, {}) == -3
 
 
 def test_floor_divide_decimal_operands() -> None:
-    result = evaluate_expression(
-        expr("FLOOR_DIVIDE", [lit("7.5"), lit("2.0")], "INTEGER"), {}, {}
-    )
+    result = evaluate_expression(expr("FLOOR_DIVIDE", [lit("7.5"), lit("2.0")], "INTEGER"), {}, {})
     assert result == 3
 
 
@@ -70,7 +59,10 @@ def test_power_basic() -> None:
 def test_power_monthly_compounding() -> None:
     # (1 + 0.0262/12)^12
     result = evaluate_expression(
-        expr("POWER", [expr("ADD", [lit("1.0"), expr("DIVIDE", [lit("0.0262"), lit("12.0")])]), lit("12")]),
+        expr(
+            "POWER",
+            [expr("ADD", [lit("1.0"), expr("DIVIDE", [lit("0.0262"), lit("12.0")])]), lit("12")],
+        ),
         {},
         {},
     )

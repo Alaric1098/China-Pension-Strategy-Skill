@@ -4,8 +4,9 @@ import json
 import os
 import time
 import uuid
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from china_pension_strategy.application.manifest_validation import (
     ManifestSemanticValidationError,
@@ -78,14 +79,19 @@ class FileRunRepository:
             raise ManifestSemanticsError(
                 f"stored manifest for {run_id!r} fails semantic checks: {error}"
             ) from error
-        except (DomainValidationError, json.JSONDecodeError, TypeError, ValueError, KeyError) as error:
+        except (
+            DomainValidationError,
+            json.JSONDecodeError,
+            TypeError,
+            ValueError,
+            KeyError,
+        ) as error:
             raise ManifestInvalidError(
                 f"stored manifest for {run_id!r} is invalid: {error}"
             ) from error
         if run.run_id != manifest["run_id"]:
             raise ManifestDigestMismatchError(
-                f"stored manifest for {run_id!r} run_id does not match "
-                f"its content digests"
+                f"stored manifest for {run_id!r} run_id does not match its content digests"
             )
         return run
 

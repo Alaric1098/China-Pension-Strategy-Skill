@@ -105,11 +105,11 @@ flowchart LR
 
 **可能涉及：** `pyproject.toml`、`.github/workflows/ci.yml`、`CONTRIBUTING.md`、`src/china_pension_strategy/`、`tests/`。
 
-- [ ] 先用 CI 或配置契约测试锁定 Python 3.12、3.13、3.14 运行时矩阵、单独 quality job、命令和失败输出要求。
-- [ ] 评估 Ruff 与 mypy 或 pyright 的现状错误，记录工具选择和最小可信基线。
-- [ ] 在 `pyproject.toml` 配置选定工具，不增加 broad ignores、全局豁免或目录排除。
-- [ ] 按小批次修复真实 lint/type 问题，每批保持行为测试通过。
-- [ ] 将最终命令加入 `CONTRIBUTING.md` 与 CI，并验证错误能定位到文件和行号。
+- [x] 先用 CI 或配置契约测试锁定 Python 3.12、3.13、3.14 运行时矩阵、单独 quality job、命令和失败输出要求。已落地：`tests/e2e/test_skill_contract.py::test_ci_has_reproducible_quality_gate` + `.github/workflows/ci.yml`。
+- [x] 评估 Ruff 与 mypy 或 pyright 的现状错误，记录工具选择和最小可信基线。已落地：Ruff `0.16.3` + mypy `2.3.1`，先修 244 个 lint 错误（213 自动 + 31 手动）与各层 mypy 错误，无 broad ignores 或目录排除。
+- [x] 在 `pyproject.toml` 配置选定工具，不增加 broad ignores、全局豁免或目录排除。
+- [x] 按小批次修复真实 lint/type 问题，每批保持行为测试通过。已按 domain/ports、application、adapters/entrypoints 三层批次修复，最终 655 个测试通过。
+- [x] 将最终命令加入 `CONTRIBUTING.md` 与 CI，并验证错误能定位到文件和行号。mypy/Ruff 输出均含文件与行号。
 
 **验收标准：** 本地与 CI 使用同一配置；三种 Python 版本均执行运行时测试，单独 quality job 对全部 Python 文件执行 Ruff，并对 `src/china_pension_strategy` 执行 mypy；没有 broad ignores 或目录 exclusions；测试和脚本类型覆盖作为后续增量扩大，不得削弱生产源码基线。
 

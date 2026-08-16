@@ -1,6 +1,7 @@
 """Outbound policy package repository boundary."""
 
-from typing import Iterable, Protocol
+from collections.abc import Iterable
+from typing import Protocol
 
 from china_pension_strategy.domain.policy import PolicyPackage
 

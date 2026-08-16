@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timezone
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 REDACTED_PLACEHOLDER = "<redacted>"
 
@@ -55,7 +56,12 @@ SENSITIVE_FIELD_NAMES = frozenset(
 
 _SENSITIVE_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"\b1[3-9]\d{9}\b"), "[phone]"),
-    (re.compile(r"\b[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|[12]\d|3[01])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx]\b"), "[id-card]"),
+    (
+        re.compile(
+            r"\b[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|[12]\d|3[01])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx]\b"
+        ),
+        "[id-card]",
+    ),
     (re.compile(r"\b\d{16,19}\b"), "[bank-card]"),
     (re.compile(r"\b\d{3}-\d{2}-\d{4}\b"), "[ssn]"),
     (re.compile(r"\b[A-Za-z]{1,4}\d{8,16}\b"), "[serial]"),
@@ -73,9 +79,7 @@ def safe_text(value: object) -> str:
 class AuditLog:
     """Append-only JSONL audit log writing one safe entry per line."""
 
-    def __init__(
-        self, path: str | Path, *, sensitive_fields: frozenset[str] | None = None
-    ) -> None:
+    def __init__(self, path: str | Path, *, sensitive_fields: frozenset[str] | None = None) -> None:
         self.path = Path(path)
         self._sensitive_fields = (
             sensitive_fields if sensitive_fields is not None else SENSITIVE_FIELD_NAMES
@@ -83,7 +87,7 @@ class AuditLog:
 
     def append(self, entry: Mapping[str, Any]) -> None:
         """Redact, timestamp, and append one JSONL entry."""
-        stamped = {"logged_at": datetime.now(timezone.utc).isoformat()}
+        stamped = {"logged_at": datetime.now(UTC).isoformat()}
         stamped.update(self.redact(entry))
         line = json.dumps(stamped, ensure_ascii=False)
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -110,7 +114,10 @@ class AuditLog:
         if key in self._sensitive_fields:
             return REDACTED_PLACEHOLDER
         if isinstance(value, dict):
-            return {child: self._redact_value(child_value, child) for child, child_value in value.items()}
+            return {
+                child: self._redact_value(child_value, child)
+                for child, child_value in value.items()
+            }
         if isinstance(value, list):
             return [self._redact_value(item, key) for item in value]
         if isinstance(value, str):

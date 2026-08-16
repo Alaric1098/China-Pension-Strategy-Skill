@@ -19,9 +19,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from collections.abc import Mapping, Sequence
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Mapping, Sequence
 
 from china_pension_strategy.adapters.audit.jsonl_audit import AuditLog
 from china_pension_strategy.adapters.input.json_input import (
@@ -156,7 +156,9 @@ def _run_analyze(
         adapter = create_region_adapter(region, engine_version=engine)
         request = adapter.to_analysis_request(redacted)
     except RegionMappingError as error:
-        raise CliError(EXIT_INPUT_INVALID, f"region mapping error ({error.code}): {error}") from error
+        raise CliError(
+            EXIT_INPUT_INVALID, f"region mapping error ({error.code}): {error}"
+        ) from error
 
     policy_repository = _load_packages(packages_dir)
     run_directory = Path(runs_dir)
@@ -203,7 +205,7 @@ def _run_analyze(
                 }
             )
         except OSError:
-            raise CliError(EXIT_RUNTIME_ERROR, "failed to write audit record")
+            raise CliError(EXIT_RUNTIME_ERROR, "failed to write audit record") from None
     sys.stdout.write(json.dumps(envelope, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
     return EXIT_OK
 
@@ -217,9 +219,7 @@ def _run_render(
     repository = FileRunRepository(Path(runs_dir))
     try:
         run = repository.load(run_id)
-        manifest = json.loads(
-            repository.manifest_path(run_id).read_text(encoding="utf-8")
-        )
+        manifest = json.loads(repository.manifest_path(run_id).read_text(encoding="utf-8"))
     except Exception as error:
         raise CliError(EXIT_RUN_NOT_FOUND, f"run not found: {run_id}") from error
     artifact_file = Path(runs_dir) / run_id / "analysis.json"
@@ -262,7 +262,7 @@ def _run_cleanup(runs_dir: str, expires_before: str) -> int:
     except ValueError as error:
         raise CliError(EXIT_USAGE, f"invalid expires-before timestamp: {expires_before}") from error
     if cutoff.tzinfo is None:
-        cutoff = cutoff.replace(tzinfo=timezone.utc)
+        cutoff = cutoff.replace(tzinfo=UTC)
     base = Path(runs_dir)
     manager = RetentionManager(base)
     expired_artifacts: list[str] = []
@@ -323,7 +323,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"error: unexpected failure: {type(error).__name__}", file=sys.stderr)
         return EXIT_RUNTIME_ERROR
     parser.error(f"unknown command: {args.command}")
-    return EXIT_USAGE
 
 
 if __name__ == "__main__":

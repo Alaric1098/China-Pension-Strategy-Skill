@@ -42,9 +42,7 @@ def test_capability_assessment_accepts_exact_requirement_partition(
         status=status,
         required_fact_ids=("fact-age", "fact-detail"),
         satisfied_fact_ids=tuple(
-            fact_id
-            for fact_id in ("fact-age", "fact-detail")
-            if fact_id not in missing
+            fact_id for fact_id in ("fact-age", "fact-detail") if fact_id not in missing
         ),
         missing_fact_ids=missing,
         blocker_codes=blockers,
@@ -151,9 +149,7 @@ def test_capability_rejects_scalar_id_collections(malformed: object) -> None:
         ("rule_refs", 42),
     ],
 )
-def test_condition_rejects_scalar_reference_collections(
-    field_name: str, malformed: object
-) -> None:
+def test_condition_rejects_scalar_reference_collections(field_name: str, malformed: object) -> None:
     arguments = {
         "condition_id": "condition-age",
         "status": ConditionStatus.SATISFIED,
@@ -178,9 +174,7 @@ def test_condition_rejects_scalar_reference_collections(
         ("conditions", condition(ConditionStatus.SATISFIED)),
     ],
 )
-def test_eligibility_rejects_scalar_collections(
-    field_name: str, malformed: object
-) -> None:
+def test_eligibility_rejects_scalar_collections(field_name: str, malformed: object) -> None:
     arguments = {
         "assessment_id": "assessment-1",
         "capability_id": "SUBSIDY_ELIGIBILITY",
@@ -222,11 +216,7 @@ def test_eligibility_status_is_mechanically_derived(
     assert assessment.status is expected
 
 
-@given(
-    statuses=st.lists(
-        st.sampled_from(tuple(ConditionStatus)), min_size=1, max_size=20
-    )
-)
+@given(statuses=st.lists(st.sampled_from(tuple(ConditionStatus)), min_size=1, max_size=20))
 def test_eligibility_derivation_property(statuses: list[ConditionStatus]) -> None:
     assessment = EligibilityAssessment(
         assessment_id="assessment-property",

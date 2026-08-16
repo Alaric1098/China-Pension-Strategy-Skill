@@ -25,9 +25,7 @@ CNY = "CNY"
 
 def load_rules(package_name: str) -> tuple[PolicyRule, ...]:
     package = json.loads(
-        (ROOT / "policy-data" / "packages" / f"{package_name}.json").read_text(
-            encoding="utf-8"
-        )
+        (ROOT / "policy-data" / "packages" / f"{package_name}.json").read_text(encoding="utf-8")
     )
     return tuple(_rule(record) for record in package["rules"])
 
@@ -57,8 +55,10 @@ def _rule(record: dict) -> PolicyRule:
     from china_pension_strategy.domain.policy import (
         JurisdictionRole,
         LegalHierarchy,
-        PolicyRule as PR,
         RuleType,
+    )
+    from china_pension_strategy.domain.policy import (
+        PolicyRule as PR,
     )
 
     rule_type = RuleType(record["rule_type"])
@@ -78,7 +78,9 @@ def _rule(record: dict) -> PolicyRule:
         {
             "vector_id": v["vector_id"],
             "input": {k: _convert_scalar(input_types[k], val) for k, val in v["input"].items()},
-            "expected": {k: _convert_scalar(result_types[k], val) for k, val in v["expected"].items()},
+            "expected": {
+                k: _convert_scalar(result_types[k], val) for k, val in v["expected"].items()
+            },
         }
         for v in record["test_vectors"]
     )
@@ -87,7 +89,8 @@ def _rule(record: dict) -> PolicyRule:
     if rule_type is RuleType.DECISION_TABLE:
         input_domains = {
             input_id: tuple(
-                _convert_scalar(input_types[input_id], val) for val in record["input_domains"][input_id]
+                _convert_scalar(input_types[input_id], val)
+                for val in record["input_domains"][input_id]
             )
             for input_id in record["input_domains"]
         }
@@ -95,7 +98,8 @@ def _rule(record: dict) -> PolicyRule:
             {
                 "row_id": row["row_id"],
                 "conditions": tuple(
-                    {**c, "value": _convert_scalar(c["value_type"], c["value"])} for c in row["conditions"]
+                    {**c, "value": _convert_scalar(c["value_type"], c["value"])}
+                    for c in row["conditions"]
                 ),
                 "results": tuple(
                     {**res, "value": _convert_expression(res["value"])} for res in row["results"]
@@ -117,7 +121,9 @@ def _rule(record: dict) -> PolicyRule:
         effective_from=date.fromisoformat(record["effective_from"]),
         effective_to=date.fromisoformat(record["effective_to"]) if record["effective_to"] else None,
         transaction_from=datetime.fromisoformat(record["transaction_from"]),
-        transaction_to=datetime.fromisoformat(record["transaction_to"]) if record["transaction_to"] else None,
+        transaction_to=datetime.fromisoformat(record["transaction_to"])
+        if record["transaction_to"]
+        else None,
         legal_hierarchy=LegalHierarchy(record["legal_hierarchy"]),
         explicit_override_refs=tuple(record["explicit_override_refs"]),
         source_refs=tuple(record["source_refs"]),
@@ -182,9 +188,7 @@ def test_c_ping_table_and_override() -> None:
 
 def test_project_stored_balance() -> None:
     balance = Money(Decimal("100000.00"), CNY)
-    stored = project_stored_balance(
-        rules(), balance, ym(2026, 8), ym(2038, 11), Decimal("0.0262")
-    )
+    stored = project_stored_balance(rules(), balance, ym(2026, 8), ym(2038, 11), Decimal("0.0262"))
     assert stored.amount > Decimal("100000.00")
     assert stored.currency == CNY
 

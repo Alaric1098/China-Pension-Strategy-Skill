@@ -8,14 +8,15 @@ value itself.
 
 from __future__ import annotations
 
-import enum
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from enum import StrEnum
+from typing import Any
 
 
-class ScanAction(str, enum.Enum):
+class ScanAction(StrEnum):
     ALLOW = "ALLOW"
     REDACT = "REDACT"
     BLOCK = "BLOCK"
@@ -173,7 +174,7 @@ def _valid_identity_card(value: str) -> bool:
     digits = value[:17]
     if not digits.isdigit():
         return False
-    total = sum(int(digit) * weight for digit, weight in zip(digits, _ID_WEIGHTS))
+    total = sum(int(digit) * weight for digit, weight in zip(digits, _ID_WEIGHTS, strict=True))
     return value[-1].upper() == _ID_CHECK_CHARS[total % 11]
 
 
@@ -199,8 +200,7 @@ def _field_value_has_sensitive_shape(category: str, value: Any) -> bool:
         if category == CATEGORY_MONEY:
             return (
                 _MONEY_RE.search(text) is not None
-                or re.fullmatch(r"[+-]?\d+(?:\.\d+)?", text.replace(",", ""))
-                is not None
+                or re.fullmatch(r"[+-]?\d+(?:\.\d+)?", text.replace(",", "")) is not None
             )
         return True
     if not isinstance(value, int) or not text.isdigit():
@@ -238,7 +238,7 @@ class PrivacyScanner:
 
     def redact_record(self, record: Mapping[str, Any]) -> tuple[ScanDecision, dict[str, Any]]:
         """Return the aggregate decision plus a copy with values replaced."""
-        findings = self.scan_record(record)
+        findings = list(self.scan_record(record))
         redacted = self._replace_findings(record, findings)
         decision = self._decision_for(json.dumps(redacted, ensure_ascii=False), findings)
         return decision, redacted
@@ -273,9 +273,7 @@ class PrivacyScanner:
 
     @staticmethod
     def _overlaps(finding: ScanFinding, kept: list[ScanFinding]) -> bool:
-        return any(
-            finding.start < other.end and other.start < finding.end for other in kept
-        )
+        return any(finding.start < other.end and other.start < finding.end for other in kept)
 
     def _walk_record(
         self,
@@ -288,9 +286,7 @@ class PrivacyScanner:
                 child_path = (*path, key)
                 field_policy = _FIELD_CATEGORIES.get(key)
                 if key == "value" and isinstance(record.get("fact_type"), str):
-                    field_policy = _FIELD_CATEGORIES.get(
-                        record["fact_type"].casefold()
-                    )
+                    field_policy = _FIELD_CATEGORIES.get(record["fact_type"].casefold())
                 if (
                     field_policy is not None
                     and not isinstance(value, (dict, list))

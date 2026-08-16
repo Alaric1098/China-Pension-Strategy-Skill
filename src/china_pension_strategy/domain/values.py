@@ -1,17 +1,17 @@
 """Immutable calendar and monetary domain values."""
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 from decimal import (
     MAX_EMAX,
     MIN_EMIN,
-    Decimal,
     ROUND_DOWN,
     ROUND_HALF_EVEN,
     ROUND_HALF_UP,
+    Decimal,
     localcontext,
 )
-from enum import Enum
-from typing import Iterator
+from enum import StrEnum
 
 from china_pension_strategy.domain.errors import (
     CurrencyMismatchError,
@@ -73,7 +73,7 @@ class YearMonthRange:
             yield self.start.add_months(offset)
 
 
-class RoundingMode(str, Enum):
+class RoundingMode(StrEnum):
     """Supported explicit Decimal rounding policies."""
 
     HALF_UP = ROUND_HALF_UP
@@ -113,17 +113,16 @@ class Money:
             significant_digits = significant_digits[:-1]
             trailing_zeros += 1
         normalized_unit = Decimal(
-            (unit_parts.sign, significant_digits, unit_parts.exponent + trailing_zeros)
+            (unit_parts.sign, significant_digits, int(unit_parts.exponent) + trailing_zeros)
         )
         if normalized_unit.as_tuple().digits != (1,):
             raise DomainValidationError("rounding unit must be a power of ten")
         if not isinstance(rounding, RoundingMode):
             raise TypeError("rounding must be an explicit RoundingMode")
         amount_parts = self.amount.as_tuple()
-        target_exponent = normalized_unit.as_tuple().exponent
+        target_exponent = int(normalized_unit.as_tuple().exponent)
         precision = max(
-            len(amount_parts.digits)
-            + max(amount_parts.exponent - target_exponent, 0),
+            len(amount_parts.digits) + max(int(amount_parts.exponent) - target_exponent, 0),
             self.amount.adjusted() - target_exponent + 2,
             1,
         )
@@ -133,9 +132,7 @@ class Money:
             context.Emax = MAX_EMAX
             context.Emin = MIN_EMIN
             context.clamp = 0
-            result = self.amount.quantize(
-                normalized_unit, rounding=rounding.value
-            )
+            result = self.amount.quantize(normalized_unit, rounding=rounding.value)
         return Money(result, self.currency)
 
     def __add__(self, other: object) -> "Money":
@@ -153,11 +150,14 @@ class Money:
     def _add_exact(self, other: Decimal) -> Decimal:
         left_parts = self.amount.as_tuple()
         right_parts = other.as_tuple()
-        common_exponent = min(left_parts.exponent, right_parts.exponent)
-        precision = max(
-            len(left_parts.digits) + left_parts.exponent - common_exponent,
-            len(right_parts.digits) + right_parts.exponent - common_exponent,
-        ) + 1
+        common_exponent = min(int(left_parts.exponent), int(right_parts.exponent))
+        precision = (
+            max(
+                len(left_parts.digits) + int(left_parts.exponent) - common_exponent,
+                len(right_parts.digits) + int(right_parts.exponent) - common_exponent,
+            )
+            + 1
+        )
         with localcontext() as context:
             context.clear_traps()
             context.prec = precision

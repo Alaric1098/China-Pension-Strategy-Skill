@@ -1,5 +1,5 @@
 from dataclasses import FrozenInstanceError
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
@@ -19,8 +19,7 @@ from china_pension_strategy.domain.policy import (
     RuleType,
 )
 
-
-KNOWN_AT = datetime(2026, 8, 11, tzinfo=timezone.utc)
+KNOWN_AT = datetime(2026, 8, 11, tzinfo=UTC)
 
 
 def make_rule(**changes: object) -> PolicyRule:
@@ -32,18 +31,35 @@ def make_rule(**changes: object) -> PolicyRule:
         "jurisdiction_role": JurisdictionRole.NATIONAL_BASELINE,
         "population_scope": "enterprise participants",
         "inputs": ({"input_id": "months", "value_type": "INTEGER", "required": True},),
-        "conditions": ({"condition_id": "adult", "input_ref": "months", "operator": ">=", "value_type": "INTEGER", "value": 0},),
-        "results": ({"result_id": "minimum", "output_field": "minimum_months", "value_type": "INTEGER", "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 180}},),
+        "conditions": (
+            {
+                "condition_id": "adult",
+                "input_ref": "months",
+                "operator": ">=",
+                "value_type": "INTEGER",
+                "value": 0,
+            },
+        ),
+        "results": (
+            {
+                "result_id": "minimum",
+                "output_field": "minimum_months",
+                "value_type": "INTEGER",
+                "value": {"kind": "LITERAL", "value_type": "INTEGER", "value": 180},
+            },
+        ),
         "exceptions": (),
         "effective_from": date(2025, 1, 1),
         "effective_to": None,
-        "transaction_from": datetime(2025, 1, 2, tzinfo=timezone.utc),
+        "transaction_from": datetime(2025, 1, 2, tzinfo=UTC),
         "transaction_to": None,
         "legal_hierarchy": LegalHierarchy.NATIONAL_LAW,
         "explicit_override_refs": (),
         "source_refs": ("source-a",),
         "parameters": {},
-        "test_vectors": ({"vector_id": "v1", "input": {"months": 179}, "expected": {"minimum_months": 180}},),
+        "test_vectors": (
+            {"vector_id": "v1", "input": {"months": 179}, "expected": {"minimum_months": 180}},
+        ),
     }
     values.update(changes)
     return PolicyRule(**values)  # type: ignore[arg-type]
@@ -106,18 +122,12 @@ def test_policy_objects_are_frozen_and_nested_schema_values_are_immutable() -> N
 def test_policy_rule_matches_both_half_open_time_intervals() -> None:
     rule = make_rule(
         effective_to=date(2026, 1, 1),
-        transaction_to=datetime(2026, 2, 1, tzinfo=timezone.utc),
+        transaction_to=datetime(2026, 2, 1, tzinfo=UTC),
     )
 
-    assert rule.applies_at(
-        date(2025, 12, 31), datetime(2026, 1, 31, tzinfo=timezone.utc)
-    )
-    assert not rule.applies_at(
-        date(2026, 1, 1), datetime(2026, 1, 31, tzinfo=timezone.utc)
-    )
-    assert not rule.applies_at(
-        date(2025, 12, 31), datetime(2026, 2, 1, tzinfo=timezone.utc)
-    )
+    assert rule.applies_at(date(2025, 12, 31), datetime(2026, 1, 31, tzinfo=UTC))
+    assert not rule.applies_at(date(2026, 1, 1), datetime(2026, 1, 31, tzinfo=UTC))
+    assert not rule.applies_at(date(2025, 12, 31), datetime(2026, 2, 1, tzinfo=UTC))
 
 
 def test_mvp_reviewed_package_is_local_only() -> None:
@@ -168,16 +178,14 @@ def test_production_approval_requires_independent_reviewers_and_ordered_times() 
     with pytest.raises(DomainValidationError, match="at least two"):
         ProductionApproval("domain-a", ("approver-a",), KNOWN_AT, "sig:x", KNOWN_AT)
     with pytest.raises(DomainValidationError, match="distinct"):
-        ProductionApproval(
-            "domain-a", ("domain-a", "approver-b"), KNOWN_AT, "sig:x", KNOWN_AT
-        )
+        ProductionApproval("domain-a", ("domain-a", "approver-b"), KNOWN_AT, "sig:x", KNOWN_AT)
     with pytest.raises(DomainValidationError, match="published_at"):
         ProductionApproval(
             "domain-a",
             ("approver-a", "approver-b"),
             KNOWN_AT,
             "sig:x",
-            datetime(2026, 8, 10, tzinfo=timezone.utc),
+            datetime(2026, 8, 10, tzinfo=UTC),
         )
 
 
@@ -226,38 +234,104 @@ def test_package_digest_is_validated_even_when_review_booleans_pass() -> None:
     ("changes", "message"),
     [
         (
-            {"conditions": ({"condition_id": "c", "input_ref": "missing", "operator": "=", "value_type": "INTEGER", "value": 1},)},
+            {
+                "conditions": (
+                    {
+                        "condition_id": "c",
+                        "input_ref": "missing",
+                        "operator": "=",
+                        "value_type": "INTEGER",
+                        "value": 1,
+                    },
+                )
+            },
             "condition input_ref",
         ),
         (
-            {"exceptions": ({"exception_id": "e", "condition_refs": ("missing",), "effect": "EXCLUDE", "result_refs": ()},)},
+            {
+                "exceptions": (
+                    {
+                        "exception_id": "e",
+                        "condition_refs": ("missing",),
+                        "effect": "EXCLUDE",
+                        "result_refs": (),
+                    },
+                )
+            },
             "exception condition_refs",
         ),
         (
-            {"exceptions": ({"exception_id": "e", "condition_refs": ("adult",), "effect": "OVERRIDE", "result_refs": ("missing",)},)},
+            {
+                "exceptions": (
+                    {
+                        "exception_id": "e",
+                        "condition_refs": ("adult",),
+                        "effect": "OVERRIDE",
+                        "result_refs": ("missing",),
+                    },
+                )
+            },
             "exception result_refs",
         ),
         (
-            {"results": ({"result_id": "minimum", "output_field": "minimum_months", "value_type": "INTEGER", "value": {"kind": "REFERENCE", "reference_type": "INPUT", "reference_id": "missing", "value_type": "INTEGER"}},)},
+            {
+                "results": (
+                    {
+                        "result_id": "minimum",
+                        "output_field": "minimum_months",
+                        "value_type": "INTEGER",
+                        "value": {
+                            "kind": "REFERENCE",
+                            "reference_type": "INPUT",
+                            "reference_id": "missing",
+                            "value_type": "INTEGER",
+                        },
+                    },
+                )
+            },
             "expression INPUT",
         ),
         (
-            {"results": ({"result_id": "minimum", "output_field": "minimum_months", "value_type": "INTEGER", "value": {"kind": "REFERENCE", "reference_type": "PARAMETER", "reference_id": "missing", "value_type": "INTEGER"}},)},
+            {
+                "results": (
+                    {
+                        "result_id": "minimum",
+                        "output_field": "minimum_months",
+                        "value_type": "INTEGER",
+                        "value": {
+                            "kind": "REFERENCE",
+                            "reference_type": "PARAMETER",
+                            "reference_id": "missing",
+                            "value_type": "INTEGER",
+                        },
+                    },
+                )
+            },
             "expression PARAMETER",
         ),
         (
-            {"test_vectors": ({"vector_id": "v", "input": {"missing": 1}, "expected": {"minimum_months": 180}},)},
+            {
+                "test_vectors": (
+                    {
+                        "vector_id": "v",
+                        "input": {"missing": 1},
+                        "expected": {"minimum_months": 180},
+                    },
+                )
+            },
             "test vector input",
         ),
         (
-            {"test_vectors": ({"vector_id": "v", "input": {"months": 1}, "expected": {"missing": 180}},)},
+            {
+                "test_vectors": (
+                    {"vector_id": "v", "input": {"months": 1}, "expected": {"missing": 180}},
+                )
+            },
             "test vector expected",
         ),
     ],
 )
-def test_rule_rejects_unresolved_executable_references(
-    changes: dict, message: str
-) -> None:
+def test_rule_rejects_unresolved_executable_references(changes: dict, message: str) -> None:
     with pytest.raises(DomainValidationError, match=message):
         make_rule(**changes)
 
@@ -287,7 +361,14 @@ def test_recursive_expression_references_are_validated() -> None:
 
     with pytest.raises(DomainValidationError, match="expression INPUT"):
         make_rule(
-            results=({"result_id": "minimum", "output_field": "minimum_months", "value_type": "INTEGER", "value": nested},)
+            results=(
+                {
+                    "result_id": "minimum",
+                    "output_field": "minimum_months",
+                    "value_type": "INTEGER",
+                    "value": nested,
+                },
+            )
         )
 
 
@@ -310,9 +391,7 @@ def decision_row(row_id: str, conditions: tuple[dict, ...]) -> dict:
     }
 
 
-def decision_condition(
-    condition_id: str, input_ref: str, operator: str, value: object
-) -> dict:
+def decision_condition(condition_id: str, input_ref: str, operator: str, value: object) -> dict:
     return {
         "condition_id": condition_id,
         "input_ref": input_ref,
@@ -413,9 +492,7 @@ def test_domain_rejects_membership_condition_operators(operator: str) -> None:
 
 def test_rule_rejects_unsupported_input_value_type_and_non_boolean_required() -> None:
     with pytest.raises(DomainValidationError, match="value_type"):
-        make_rule(
-            inputs=({"input_id": "months", "value_type": "UNTYPED", "required": True},)
-        )
+        make_rule(inputs=({"input_id": "months", "value_type": "UNTYPED", "required": True},))
     with pytest.raises(DomainValidationError, match="required"):
         make_rule(inputs=({"input_id": "months", "value_type": "INTEGER", "required": 1},))
 
@@ -424,18 +501,52 @@ def test_rule_rejects_unsupported_input_value_type_and_non_boolean_required() ->
     ("changes", "message"),
     [
         (
-            {"conditions": ({"condition_id": "c", "input_ref": "months", "operator": "=", "value_type": "BOOLEAN", "value": True},)},
+            {
+                "conditions": (
+                    {
+                        "condition_id": "c",
+                        "input_ref": "months",
+                        "operator": "=",
+                        "value_type": "BOOLEAN",
+                        "value": True,
+                    },
+                )
+            },
             "value_type must match",
         ),
         (
-            {"conditions": ({"condition_id": "c", "input_ref": "months", "operator": "=", "value_type": "INTEGER", "value": "180"},)},
+            {
+                "conditions": (
+                    {
+                        "condition_id": "c",
+                        "input_ref": "months",
+                        "operator": "=",
+                        "value_type": "INTEGER",
+                        "value": "180",
+                    },
+                )
+            },
             "does not match",
         ),
         (
             {
                 "inputs": ({"input_id": "active", "value_type": "BOOLEAN", "required": True},),
-                "conditions": ({"condition_id": "c", "input_ref": "active", "operator": ">", "value_type": "BOOLEAN", "value": True},),
-                "test_vectors": ({"vector_id": "v", "input": {"active": True}, "expected": {"minimum_months": 180}},),
+                "conditions": (
+                    {
+                        "condition_id": "c",
+                        "input_ref": "active",
+                        "operator": ">",
+                        "value_type": "BOOLEAN",
+                        "value": True,
+                    },
+                ),
+                "test_vectors": (
+                    {
+                        "vector_id": "v",
+                        "input": {"active": True},
+                        "expected": {"minimum_months": 180},
+                    },
+                ),
             },
             "ordering",
         ),
@@ -452,7 +563,15 @@ def test_rule_condition_typed_boolean_input_rejects_ordering_operator() -> None:
     with pytest.raises(DomainValidationError, match="ordering"):
         make_rule(
             inputs=({"input_id": "active", "value_type": "BOOLEAN", "required": True},),
-            conditions=({"condition_id": "c", "input_ref": "active", "operator": "<=", "value_type": "BOOLEAN", "value": True},),
+            conditions=(
+                {
+                    "condition_id": "c",
+                    "input_ref": "active",
+                    "operator": "<=",
+                    "value_type": "BOOLEAN",
+                    "value": True,
+                },
+            ),
         )
 
 
@@ -488,32 +607,72 @@ def test_rule_parameter_type_mismatch_is_rejected() -> None:
         ),
         (
             "BOOLEAN",
-            {"kind": "REFERENCE", "reference_type": "INPUT", "reference_id": "months", "value_type": "BOOLEAN"},
+            {
+                "kind": "REFERENCE",
+                "reference_type": "INPUT",
+                "reference_id": "months",
+                "value_type": "BOOLEAN",
+            },
             "must match its target",
         ),
         (
             "INTEGER",
-            {"kind": "REFERENCE", "reference_type": "PARAMETER", "reference_id": "base", "value_type": "INTEGER"},
+            {
+                "kind": "REFERENCE",
+                "reference_type": "PARAMETER",
+                "reference_id": "base",
+                "value_type": "INTEGER",
+            },
             "must match its target",
         ),
         (
             "INTEGER",
-            {"kind": "EXPRESSION", "operator": "ADD", "value_type": "INTEGER", "operands": ({"kind": "LITERAL", "value_type": "INTEGER", "value": 1},)},
+            {
+                "kind": "EXPRESSION",
+                "operator": "ADD",
+                "value_type": "INTEGER",
+                "operands": ({"kind": "LITERAL", "value_type": "INTEGER", "value": 1},),
+            },
             "at least two",
         ),
         (
             "INTEGER",
-            {"kind": "EXPRESSION", "operator": "SUBTRACT", "value_type": "INTEGER", "operands": ({"kind": "LITERAL", "value_type": "INTEGER", "value": 3}, {"kind": "LITERAL", "value_type": "INTEGER", "value": 2}, {"kind": "LITERAL", "value_type": "INTEGER", "value": 1})},
+            {
+                "kind": "EXPRESSION",
+                "operator": "SUBTRACT",
+                "value_type": "INTEGER",
+                "operands": (
+                    {"kind": "LITERAL", "value_type": "INTEGER", "value": 3},
+                    {"kind": "LITERAL", "value_type": "INTEGER", "value": 2},
+                    {"kind": "LITERAL", "value_type": "INTEGER", "value": 1},
+                ),
+            },
             "exactly two",
         ),
         (
             "INTEGER",
-            {"kind": "EXPRESSION", "operator": "ADD", "value_type": "INTEGER", "operands": ({"kind": "LITERAL", "value_type": "INTEGER", "value": 1}, {"kind": "LITERAL", "value_type": "INTEGER", "value": True})},
+            {
+                "kind": "EXPRESSION",
+                "operator": "ADD",
+                "value_type": "INTEGER",
+                "operands": (
+                    {"kind": "LITERAL", "value_type": "INTEGER", "value": 1},
+                    {"kind": "LITERAL", "value_type": "INTEGER", "value": True},
+                ),
+            },
             "does not match",
         ),
         (
             "INTEGER",
-            {"kind": "EXPRESSION", "operator": "ADD", "value_type": "BOOLEAN", "operands": ({"kind": "LITERAL", "value_type": "BOOLEAN", "value": True}, {"kind": "LITERAL", "value_type": "BOOLEAN", "value": False})},
+            {
+                "kind": "EXPRESSION",
+                "operator": "ADD",
+                "value_type": "BOOLEAN",
+                "operands": (
+                    {"kind": "LITERAL", "value_type": "BOOLEAN", "value": True},
+                    {"kind": "LITERAL", "value_type": "BOOLEAN", "value": False},
+                ),
+            },
             "declared type",
         ),
     ],
@@ -545,7 +704,15 @@ def test_rule_rejects_expression_operators_on_incompatible_types() -> None:
                     "result_id": "minimum",
                     "output_field": "minimum_months",
                     "value_type": "STRING",
-                    "value": {"kind": "EXPRESSION", "operator": "ADD", "value_type": "STRING", "operands": ({"kind": "LITERAL", "value_type": "STRING", "value": "a"}, {"kind": "LITERAL", "value_type": "STRING", "value": "b"})},
+                    "value": {
+                        "kind": "EXPRESSION",
+                        "operator": "ADD",
+                        "value_type": "STRING",
+                        "operands": (
+                            {"kind": "LITERAL", "value_type": "STRING", "value": "a"},
+                            {"kind": "LITERAL", "value_type": "STRING", "value": "b"},
+                        ),
+                    },
                 },
             )
         )
@@ -556,7 +723,15 @@ def test_rule_rejects_expression_operators_on_incompatible_types() -> None:
                     "result_id": "minimum",
                     "output_field": "minimum_months",
                     "value_type": "INTEGER",
-                    "value": {"kind": "EXPRESSION", "operator": "DIVIDE", "value_type": "INTEGER", "operands": ({"kind": "LITERAL", "value_type": "INTEGER", "value": 6}, {"kind": "LITERAL", "value_type": "INTEGER", "value": 3})},
+                    "value": {
+                        "kind": "EXPRESSION",
+                        "operator": "DIVIDE",
+                        "value_type": "INTEGER",
+                        "operands": (
+                            {"kind": "LITERAL", "value_type": "INTEGER", "value": 6},
+                            {"kind": "LITERAL", "value_type": "INTEGER", "value": 3},
+                        ),
+                    },
                 },
             )
         )
@@ -567,7 +742,15 @@ def test_rule_rejects_expression_operators_on_incompatible_types() -> None:
                     "result_id": "minimum",
                     "output_field": "minimum_months",
                     "value_type": "BOOLEAN",
-                    "value": {"kind": "EXPRESSION", "operator": "MIN", "value_type": "BOOLEAN", "operands": ({"kind": "LITERAL", "value_type": "BOOLEAN", "value": True}, {"kind": "LITERAL", "value_type": "BOOLEAN", "value": False})},
+                    "value": {
+                        "kind": "EXPRESSION",
+                        "operator": "MIN",
+                        "value_type": "BOOLEAN",
+                        "operands": (
+                            {"kind": "LITERAL", "value_type": "BOOLEAN", "value": True},
+                            {"kind": "LITERAL", "value_type": "BOOLEAN", "value": False},
+                        ),
+                    },
                 },
             )
         )
@@ -582,7 +765,12 @@ def test_rule_parameter_reference_must_match_declared_parameter_type() -> None:
                     "result_id": "minimum",
                     "output_field": "minimum_months",
                     "value_type": "INTEGER",
-                    "value": {"kind": "REFERENCE", "reference_type": "PARAMETER", "reference_id": "base", "value_type": "INTEGER"},
+                    "value": {
+                        "kind": "REFERENCE",
+                        "reference_type": "PARAMETER",
+                        "reference_id": "base",
+                        "value_type": "INTEGER",
+                    },
                 },
             ),
         )
@@ -635,10 +823,20 @@ def test_decision_table_domain_values_must_match_declared_input_types() -> None:
         make_rule(
             rule_type=RuleType.DECISION_TABLE,
             inputs=({"input_id": "months", "value_type": "BOOLEAN", "required": True},),
-            conditions=({"condition_id": "active", "input_ref": "months", "operator": "=", "value_type": "BOOLEAN", "value": True},),
+            conditions=(
+                {
+                    "condition_id": "active",
+                    "input_ref": "months",
+                    "operator": "=",
+                    "value_type": "BOOLEAN",
+                    "value": True,
+                },
+            ),
             input_domains={"months": (0, 1)},
             decision_rows=rows,
-            test_vectors=({"vector_id": "v", "input": {"months": True}, "expected": {"minimum_months": 180}},),
+            test_vectors=(
+                {"vector_id": "v", "input": {"months": True}, "expected": {"minimum_months": 180}},
+            ),
         )
 
 
@@ -655,37 +853,35 @@ def test_decision_table_domain_values_must_match_declared_input_types() -> None:
         ),
     ],
 )
-def test_rule_test_vector_values_must_match_declared_types(
-    vector: dict, message: str
-) -> None:
+def test_rule_test_vector_values_must_match_declared_types(vector: dict, message: str) -> None:
     with pytest.raises(DomainValidationError, match=message):
         make_rule(test_vectors=(vector,))
 
 
 def test_package_transaction_from_cannot_precede_source_retrieval() -> None:
     source = PolicySource(
-        **{**make_source().__dict__, "retrieved_at": datetime(2025, 1, 3, tzinfo=timezone.utc)}
+        **{**make_source().__dict__, "retrieved_at": datetime(2025, 1, 3, tzinfo=UTC)}
     )
 
     with pytest.raises(DomainValidationError, match="source retrieval"):
         make_package(
-            transaction_from=datetime(2025, 1, 2, tzinfo=timezone.utc),
+            transaction_from=datetime(2025, 1, 2, tzinfo=UTC),
             provenance=(source,),
         )
 
 
 def test_package_transaction_from_cannot_precede_engineering_review() -> None:
     early_source = PolicySource(
-        **{**make_source().__dict__, "retrieved_at": datetime(2024, 12, 1, tzinfo=timezone.utc)}
+        **{**make_source().__dict__, "retrieved_at": datetime(2024, 12, 1, tzinfo=UTC)}
     )
 
     with pytest.raises(DomainValidationError, match="engineering review"):
         make_package(
-            transaction_from=datetime(2025, 1, 2, tzinfo=timezone.utc),
+            transaction_from=datetime(2025, 1, 2, tzinfo=UTC),
             provenance=(early_source,),
             engineering_review=EngineeringReview(
                 "engineer-a",
-                datetime(2025, 1, 3, tzinfo=timezone.utc),
+                datetime(2025, 1, 3, tzinfo=UTC),
                 True,
                 True,
             ),
@@ -694,16 +890,16 @@ def test_package_transaction_from_cannot_precede_engineering_review() -> None:
 
 def test_package_transaction_from_cannot_precede_production_publication() -> None:
     early_source = PolicySource(
-        **{**make_source().__dict__, "retrieved_at": datetime(2024, 12, 1, tzinfo=timezone.utc)}
+        **{**make_source().__dict__, "retrieved_at": datetime(2024, 12, 1, tzinfo=UTC)}
     )
 
     with pytest.raises(DomainValidationError, match="production publication"):
         make_package(
-            transaction_from=datetime(2025, 1, 2, tzinfo=timezone.utc),
+            transaction_from=datetime(2025, 1, 2, tzinfo=UTC),
             provenance=(early_source,),
             engineering_review=EngineeringReview(
                 "engineer-a",
-                datetime(2024, 12, 2, tzinfo=timezone.utc),
+                datetime(2024, 12, 2, tzinfo=UTC),
                 True,
                 True,
             ),
@@ -713,9 +909,9 @@ def test_package_transaction_from_cannot_precede_production_publication() -> Non
             production_approval=ProductionApproval(
                 "domain-a",
                 ("approver-a", "approver-b"),
-                datetime(2025, 1, 1, tzinfo=timezone.utc),
+                datetime(2025, 1, 1, tzinfo=UTC),
                 "sig:synthetic",
-                datetime(2025, 1, 3, tzinfo=timezone.utc),
+                datetime(2025, 1, 3, tzinfo=UTC),
             ),
         )
 

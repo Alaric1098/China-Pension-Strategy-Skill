@@ -6,7 +6,8 @@ analysis output. Cash flows are rendered as monthly tables with totals.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from china_pension_strategy.domain.run import AnalysisRun
 
@@ -36,9 +37,7 @@ def render_markdown(
     lines.append("## Reconciliation")
     lines.append("")
     if isinstance(reconciliation, Mapping):
-        lines.append(
-            f"- Confirmed months: {reconciliation.get('confirmed_months', 0)}"
-        )
+        lines.append(f"- Confirmed months: {reconciliation.get('confirmed_months', 0)}")
         conflicts = reconciliation.get("conflicts", [])
         if conflicts:
             lines.append(f"- Unresolved conflicts: {len(conflicts)}")
@@ -62,12 +61,11 @@ def render_markdown(
                     f"- Ending months: {outcomes.get('ending_confirmed_months', 0)} "
                     f"(gap {outcomes.get('ending_gap_months', 0)})"
                 )
-                lines.append(
-                    f"- Total net outflow: "
-                    f"{_money(outcomes.get('total_net_outflow'))}"
-                )
+                lines.append(f"- Total net outflow: {_money(outcomes.get('total_net_outflow'))}")
             lines.append("")
-            lines.append("| Month | Pension | Medical | Unemployment | Subsidy | Net | Cumulative |")
+            lines.append(
+                "| Month | Pension | Medical | Unemployment | Subsidy | Net | Cumulative |"
+            )
             lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
             for flow in scenario.get("cash_flows", []):
                 if not isinstance(flow, Mapping):
@@ -96,12 +94,8 @@ def render_markdown(
         lines.append(f"- Payment months: {estimation.get('payment_months', '')}")
         c_ping = estimation.get("c_ping")
         if isinstance(c_ping, Mapping):
-            lines.append(
-                f"- C_ping ({estimation.get('c_ping_year', '')}): {_money(c_ping)}"
-            )
-        lines.append(
-            f"- Record interest rate: {estimation.get('record_interest_rate', '')}"
-        )
+            lines.append(f"- C_ping ({estimation.get('c_ping_year', '')}): {_money(c_ping)}")
+        lines.append(f"- Record interest rate: {estimation.get('record_interest_rate', '')}")
         lines.append(
             f"- Account balance: {_money(estimation.get('account_balance'))} -> "
             f"stored: {_money(estimation.get('stored_balance'))}"

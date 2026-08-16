@@ -1,7 +1,7 @@
 """Tests for the immutable analysis run domain and manifest projection."""
 
 from dataclasses import FrozenInstanceError
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -17,9 +17,9 @@ from china_pension_strategy.domain.run import (
     PublicationProhibitedError,
     PublicationStatus,
     PublicationTransitionError,
-    RunStatus,
-    RunStateTransitionError,
     RulesetReference,
+    RunStateTransitionError,
+    RunStatus,
 )
 from china_pension_strategy.ports.outbound.clock import SystemClock
 
@@ -71,7 +71,7 @@ EXPECTED_VALIDATION_FIELDS = frozenset(
     }
 )
 
-CREATED_AT = datetime(2026, 8, 11, 2, 0, tzinfo=timezone.utc)
+CREATED_AT = datetime(2026, 8, 11, 2, 0, tzinfo=UTC)
 
 
 class FixedClock:

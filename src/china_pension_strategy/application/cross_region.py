@@ -23,9 +23,7 @@ def determine_pension_place(
     region_months: dict[str, int],
 ) -> dict:
     """Determine the pension-drawing place per 国办发〔2009〕66号 第六条."""
-    rule = next(
-        (r for r in place_rules if r.rule_id == "national-pension-place"), None
-    )
+    rule = next((r for r in place_rules if r.rule_id == "national-pension-place"), None)
     if rule is None:
         raise DomainValidationError("pension-place rule not found")
 

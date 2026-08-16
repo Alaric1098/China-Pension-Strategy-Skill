@@ -5,7 +5,6 @@ from pathlib import Path
 
 from audit_architecture import structural_checks
 
-
 ROOT = Path(__file__).resolve().parent
 README = ROOT / "README.md"
 

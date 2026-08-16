@@ -5,7 +5,6 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
-
 ROOT = Path(__file__).resolve().parents[2]
 DIGEST = "sha256:" + "a" * 64
 OTHER_DIGEST = "sha256:" + "b" * 64
@@ -18,7 +17,9 @@ def validator(relative_path: str) -> Draft202012Validator:
 
 
 def assert_valid(relative_path: str, instance: dict) -> None:
-    errors = sorted(validator(relative_path).iter_errors(instance), key=lambda error: list(error.path))
+    errors = sorted(
+        validator(relative_path).iter_errors(instance), key=lambda error: list(error.path)
+    )
     assert not errors, "\n".join(error.message for error in errors)
 
 
@@ -289,16 +290,16 @@ def test_policy_condition_typed_values_match_declared_type(
 
 
 @pytest.mark.parametrize("operator", ["IN", "NOT_IN"])
-def test_policy_schema_rejects_membership_condition_operators(
-    mvp_policy_package, operator
-):
+def test_policy_schema_rejects_membership_condition_operators(mvp_policy_package, operator):
     invalid = copy.deepcopy(mvp_policy_package)
     invalid["rules"][0]["conditions"][0]["operator"] = operator
 
     assert_invalid("schemas/policy-package.schema.json", invalid)
 
 
-def test_policy_result_accepts_strict_literal_reference_and_recursive_expressions(mvp_policy_package):
+def test_policy_result_accepts_strict_literal_reference_and_recursive_expressions(
+    mvp_policy_package,
+):
     path = "schemas/policy-package.schema.json"
     expressions = [
         {"kind": "LITERAL", "value_type": "DECIMAL", "value": "1400.00"},
@@ -402,7 +403,10 @@ def test_policy_parameters_are_typed_declarations(mvp_policy_package):
 
 def test_policy_override_refs_accept_bare_and_qualified_forms(mvp_policy_package):
     path = "schemas/policy-package.schema.json"
-    for refs in (["beijing-flex-pension-rate-2026"], ["other-package:beijing-flex-pension-rate-2026"]):
+    for refs in (
+        ["beijing-flex-pension-rate-2026"],
+        ["other-package:beijing-flex-pension-rate-2026"],
+    ):
         valid = copy.deepcopy(mvp_policy_package)
         valid["rules"][0]["explicit_override_refs"] = refs
         assert_valid(path, valid)
@@ -484,9 +488,7 @@ def test_mvp_policy_provenance_requires_official_gov_cn_authority(mvp_policy_pac
     "authority_level",
     ["PROVINCIAL_HRSS", "MUNICIPAL_GOVERNMENT", "MUNICIPAL_HRSS"],
 )
-def test_policy_schema_accepts_supported_local_authorities(
-    mvp_policy_package, authority_level
-):
+def test_policy_schema_accepts_supported_local_authorities(mvp_policy_package, authority_level):
     valid = copy.deepcopy(mvp_policy_package)
     valid["provenance"][0]["authority_level"] = authority_level
 
@@ -534,7 +536,11 @@ def tool_envelope() -> dict:
         "status": "partial",
         "data": {"run_id": "run-synthetic-001", "result_ref": "runs/run-synthetic-001/result.json"},
         "warnings": [
-            {"code": "CAPABILITY_PARTIAL", "message": "Synthetic limitation", "related_refs": ["cap-gap"]}
+            {
+                "code": "CAPABILITY_PARTIAL",
+                "message": "Synthetic limitation",
+                "related_refs": ["cap-gap"],
+            }
         ],
         "errors": [],
         "provenance": [DIGEST],
@@ -676,7 +682,9 @@ def test_run_manifest_explicitly_validates_v2_migration_of_documented_v1_shape(r
 
 @pytest.fixture
 def analysis_output() -> dict:
-    money = lambda amount: {"currency": "CNY", "amount": amount}
+    def money(amount):
+        return {"currency": "CNY", "amount": amount}
+
     return {
         "schema_version": "2.0.0",
         "run_id": "run-synthetic-001",
@@ -759,9 +767,17 @@ def analysis_output() -> dict:
                 "scenario_id": "continue-one-month",
                 "feasibility": "FEASIBLE",
                 "capability_refs": ["CONTRIBUTION_GAP"],
-                "horizon": {"start_month": "2026-09", "end_month": "2026-09", "inclusive_months": 1},
+                "horizon": {
+                    "start_month": "2026-09",
+                    "end_month": "2026-09",
+                    "inclusive_months": 1,
+                },
                 "actions": [
-                    {"month": "2026-09", "action_type": "CONTINUE_CONTRIBUTING", "assumption_refs": []}
+                    {
+                        "month": "2026-09",
+                        "action_type": "CONTINUE_CONTRIBUTING",
+                        "assumption_refs": [],
+                    }
                 ],
                 "monthly_cash_flows": [
                     {
@@ -784,9 +800,18 @@ def analysis_output() -> dict:
                     "total_net_outflow": money("1890.00"),
                 },
                 "thresholds": [
-                    {"threshold_id": "minimum-months", "metric": "confirmed_months", "operator": ">=", "value": "180"}
+                    {
+                        "threshold_id": "minimum-months",
+                        "metric": "confirmed_months",
+                        "operator": ">=",
+                        "value": "180",
+                    }
                 ],
-                "sensitivity": {"mode": "THRESHOLD", "assumption_refs": [], "summary": "One month closes the gap."},
+                "sensitivity": {
+                    "mode": "THRESHOLD",
+                    "assumption_refs": [],
+                    "summary": "One month closes the gap.",
+                },
             }
         ],
         "recommendation": {
@@ -806,7 +831,9 @@ def analysis_output() -> dict:
     }
 
 
-def test_analysis_output_covers_facts_gaps_policy_cash_flow_scenarios_and_recommendation(analysis_output):
+def test_analysis_output_covers_facts_gaps_policy_cash_flow_scenarios_and_recommendation(
+    analysis_output,
+):
     path = "docs/schemas/analysis-output.schema.json"
     assert_valid(path, analysis_output)
 
@@ -889,7 +916,10 @@ def test_capability_statuses_require_consistent_fact_and_non_fact_blockers(analy
         {"code": "CAPABILITY_LIMITED", "message": "Synthetic limitation", "related_refs": []}
     ]
     partial["capabilities"][0].update(
-        status="PARTIAL", missing_fact_ids=[], blocker_codes=[], limitations=["Bounded estimate only."]
+        status="PARTIAL",
+        missing_fact_ids=[],
+        blocker_codes=[],
+        limitations=["Bounded estimate only."],
     )
     assert_valid(path, partial)
 

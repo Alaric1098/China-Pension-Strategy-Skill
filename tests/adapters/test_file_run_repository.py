@@ -1,7 +1,7 @@
 """Tests for the filesystem-backed analysis run repository."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -67,21 +67,17 @@ def make_run(**overrides) -> AnalysisRun:
         warnings_count=0,
         unresolved_conflicts_count=0,
         duration_ms=512,
-        created_at=datetime(2026, 8, 11, 2, 0, tzinfo=timezone.utc),
+        created_at=datetime(2026, 8, 11, 2, 0, tzinfo=UTC),
     )
     defaults.update(overrides)
     return AnalysisRun(**defaults)
 
 
 def assert_manifest_schema_valid(manifest: dict) -> None:
-    schema = json.loads(
-        (ROOT / "schemas" / "run-manifest.schema.json").read_text(encoding="utf-8")
-    )
+    schema = json.loads((ROOT / "schemas" / "run-manifest.schema.json").read_text(encoding="utf-8"))
     Draft202012Validator.check_schema(schema)
     errors = list(
-        Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(
-            manifest
-        )
+        Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(manifest)
     )
     assert not errors, "\n".join(error.message for error in errors)
 
@@ -106,9 +102,7 @@ def test_save_is_idempotent_and_leaves_no_temp_files(tmp_path) -> None:
     assert list(first.parent.iterdir()) == [first]
 
 
-def test_save_failure_removes_temp_file_without_leaving_target(
-    tmp_path, monkeypatch
-) -> None:
+def test_save_failure_removes_temp_file_without_leaving_target(tmp_path, monkeypatch) -> None:
     run = make_run()
     repo = FileRunRepository(tmp_path)
 

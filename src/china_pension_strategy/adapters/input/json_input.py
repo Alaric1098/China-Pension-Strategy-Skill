@@ -8,7 +8,7 @@ file contents into error messages (schema failures report field paths only).
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -22,9 +22,7 @@ CODE_CONSENT_MISSING = "INPUT_CONSENT_MISSING"
 CODE_CLASSIFICATION_INSUFFICIENT = "INPUT_CLASSIFICATION_INSUFFICIENT"
 CODE_PURPOSE_MISSING = "INPUT_PURPOSE_MISSING"
 
-_DEFAULT_SCHEMA_PATH = (
-    Path(__file__).resolve().parents[4] / "schemas" / "person-input.schema.json"
-)
+_DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parents[4] / "schemas" / "person-input.schema.json"
 _ACCEPTED_CLASSIFICATIONS = ("S2-CONFIDENTIAL", "S3-RESTRICTED")
 _EXPIRED_DELETION_STATUSES = ("EXPIRED", "DELETED")
 
@@ -99,9 +97,7 @@ class PersonInputLoader:
                 "person input classification is not S2-CONFIDENTIAL or stricter",
             )
         if data.get("purpose") != "pension_strategy_analysis":
-            raise InputGovernanceError(
-                CODE_PURPOSE_MISSING, "person input refuses purpose"
-            )
+            raise InputGovernanceError(CODE_PURPOSE_MISSING, "person input refuses purpose")
 
     def _require_schema(self, data: dict[str, Any]) -> None:
         errors = sorted(
@@ -110,8 +106,7 @@ class PersonInputLoader:
         if not errors:
             return
         details = "; ".join(
-            "/".join(str(part) for part in error.absolute_path) or "<root>"
-            for error in errors[:3]
+            "/".join(str(part) for part in error.absolute_path) or "<root>" for error in errors[:3]
         )
         raise InputSchemaError(details)
 
@@ -120,7 +115,7 @@ class PersonInputLoader:
             raise InputExpiredError()
         expires_at = datetime.fromisoformat(str(data["expires_at"]))
         if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
-        current = now if now is not None else datetime.now(timezone.utc)
+            expires_at = expires_at.replace(tzinfo=UTC)
+        current = now if now is not None else datetime.now(UTC)
         if current >= expires_at:
             raise InputExpiredError()

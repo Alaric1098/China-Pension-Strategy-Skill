@@ -1,7 +1,7 @@
 """Tests for JSON envelope and Markdown reporting adapters."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -72,7 +72,7 @@ def make_run(**overrides) -> AnalysisRun:
         warnings_count=0,
         unresolved_conflicts_count=0,
         duration_ms=512,
-        created_at=datetime(2026, 8, 11, 2, 0, tzinfo=timezone.utc),
+        created_at=datetime(2026, 8, 11, 2, 0, tzinfo=UTC),
     )
     defaults.update(overrides)
     return AnalysisRun(**defaults)

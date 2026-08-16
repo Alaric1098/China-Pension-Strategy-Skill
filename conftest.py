@@ -23,7 +23,6 @@ installed library or CLI.
 
 import getpass
 import os
-import shutil
 import tempfile
 from pathlib import Path
 

@@ -3,6 +3,7 @@
 import json
 import subprocess
 import sys
+from datetime import UTC
 from pathlib import Path
 
 import jsonschema
@@ -42,8 +43,16 @@ def validate_person_input(record: dict) -> None:
 
 def test_schema_accepts_each_region_value() -> None:
     for region in (
-        "beijing", "shanghai", "guangzhou", "shenzhen",
-        "hangzhou", "chengdu", "wuhan", "nanjing", "tianjin", "chongqing",
+        "beijing",
+        "shanghai",
+        "guangzhou",
+        "shenzhen",
+        "hangzhou",
+        "chengdu",
+        "wuhan",
+        "nanjing",
+        "tianjin",
+        "chongqing",
     ):
         record = load_golden()
         record["region"] = region
@@ -97,12 +106,12 @@ def test_factory_unknown_region_raises() -> None:
 def test_province_layer_query_structure() -> None:
     """Province-tier cities query CN (national), CN-XX (province contribution),
     and CN-XXXX (city subsidy); municipalities collapse province and city."""
-    from datetime import date, datetime, timezone
+    from datetime import date, datetime
 
     from china_pension_strategy.domain.policy import AnalysisMode
 
     as_of = date(2026, 8, 11)
-    known = datetime(2026, 8, 11, 12, tzinfo=timezone.utc)
+    known = datetime(2026, 8, 11, 12, tzinfo=UTC)
     mode = AnalysisMode("LOCAL_MVP")
 
     layered = {
@@ -116,9 +125,7 @@ def test_province_layer_query_structure() -> None:
             as_of_effective_date=as_of, as_known_at=known, analysis_mode=mode
         )
         contribution_jurisdictions = {
-            q.jurisdiction
-            for q in queries
-            if q.topic == "flexible_employment_contribution"
+            q.jurisdiction for q in queries if q.topic == "flexible_employment_contribution"
         }
         assert {q.topic: q.jurisdiction for q in queries}["minimum_contribution"] == "CN"
         # province tier carries pension contribution (CN-XX) and the city layer
@@ -154,7 +161,10 @@ def test_cli_beijing_region_keeps_golden_run_id(tmp_path) -> None:
     assert envelope["status"] == "success"
     # Content-addressed: same facts + same region default must reproduce the
     # golden run id even though the input now carries an explicit region key.
-    assert envelope["data"]["run_id"] == "run-95e2c71f61a9b8510cc4097e9c930d53afb36a4892be154802ac96c4687731e9"
+    assert (
+        envelope["data"]["run_id"]
+        == "run-95e2c71f61a9b8510cc4097e9c930d53afb36a4892be154802ac96c4687731e9"
+    )
 
 
 def test_cli_unknown_region_fails_cleanly(tmp_path) -> None:

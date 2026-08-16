@@ -1,5 +1,5 @@
 from dataclasses import FrozenInstanceError
-from decimal import Decimal, Inexact, ROUND_CEILING, Rounded, localcontext
+from decimal import ROUND_CEILING, Decimal, Inexact, Rounded, localcontext
 
 import pytest
 from hypothesis import given
@@ -24,9 +24,7 @@ def test_year_month_has_canonical_text_and_calendar_ordering() -> None:
     assert january < YearMonth(2026, 2)
 
 
-@pytest.mark.parametrize(
-    "year, month", [(0, 1), (10_000, 1), (2026, 0), (2026, 13)]
-)
+@pytest.mark.parametrize("year, month", [(0, 1), (10_000, 1), (2026, 0), (2026, 13)])
 def test_year_month_rejects_invalid_calendar_values(year: int, month: int) -> None:
     with pytest.raises(DomainValidationError):
         YearMonth(year, month)
@@ -71,9 +69,7 @@ def test_inclusive_month_count_is_monotonic_when_end_is_extended(
     year=st.integers(min_value=1, max_value=9_999),
     month=st.integers(min_value=1, max_value=12),
 )
-def test_year_month_serialization_is_canonical_four_digit_text(
-    year: int, month: int
-) -> None:
+def test_year_month_serialization_is_canonical_four_digit_text(year: int, month: int) -> None:
     serialized = str(YearMonth(year, month))
 
     assert serialized == f"{year:04d}-{month:02d}"
@@ -86,12 +82,8 @@ def test_money_requires_decimal_and_explicit_rounding() -> None:
 
     amount = Money(Decimal("12.345"), "CNY")
 
-    assert amount.quantize(
-        Decimal("0.01"), RoundingMode.HALF_UP
-    ) == Money(Decimal("12.35"), "CNY")
-    assert amount.quantize(
-        Decimal("0.01"), RoundingMode.DOWN
-    ) == Money(Decimal("12.34"), "CNY")
+    assert amount.quantize(Decimal("0.01"), RoundingMode.HALF_UP) == Money(Decimal("12.35"), "CNY")
+    assert amount.quantize(Decimal("0.01"), RoundingMode.DOWN) == Money(Decimal("12.34"), "CNY")
 
 
 @pytest.mark.parametrize(
@@ -102,9 +94,7 @@ def test_money_requires_decimal_and_explicit_rounding() -> None:
         (Decimal("0.01"), Decimal("12.35")),
     ],
 )
-def test_money_accepts_power_of_ten_rounding_units(
-    unit: Decimal, expected: Decimal
-) -> None:
+def test_money_accepts_power_of_ten_rounding_units(unit: Decimal, expected: Decimal) -> None:
     amount = Money(Decimal("12.345"), "CNY")
 
     assert amount.quantize(unit, RoundingMode.HALF_UP).amount == expected
@@ -129,15 +119,15 @@ def test_money_normalizes_equivalent_power_of_ten_units(
 ) -> None:
     amount = Money(Decimal("12.345"), "CNY")
 
-    assert amount.quantize(
-        equivalent, RoundingMode.HALF_UP
-    ) == amount.quantize(canonical, RoundingMode.HALF_UP)
+    assert amount.quantize(equivalent, RoundingMode.HALF_UP) == amount.quantize(
+        canonical, RoundingMode.HALF_UP
+    )
 
 
 def test_money_arithmetic_preserves_currency_and_rejects_mismatch() -> None:
-    assert Money(Decimal("10.00"), "CNY") + Money(
-        Decimal("2.25"), "CNY"
-    ) == Money(Decimal("12.25"), "CNY")
+    assert Money(Decimal("10.00"), "CNY") + Money(Decimal("2.25"), "CNY") == Money(
+        Decimal("12.25"), "CNY"
+    )
 
     with pytest.raises(CurrencyMismatchError):
         Money(Decimal("10.00"), "CNY") + Money(Decimal("2.25"), "USD")
@@ -153,9 +143,9 @@ def test_money_arithmetic_is_independent_of_ambient_decimal_context() -> None:
 
         assert left + right == Money(Decimal("123456789.123456790"), "CNY")
         assert left - right == Money(Decimal("123456789.123456788"), "CNY")
-        assert Money(Decimal("10"), "CNY") - Money(
-            Decimal("0.123456789"), "CNY"
-        ) == Money(Decimal("9.876543211"), "CNY")
+        assert Money(Decimal("10"), "CNY") - Money(Decimal("0.123456789"), "CNY") == Money(
+            Decimal("9.876543211"), "CNY"
+        )
 
 
 def test_money_quantize_is_independent_of_ambient_decimal_context() -> None:
@@ -165,9 +155,9 @@ def test_money_quantize_is_independent_of_ambient_decimal_context() -> None:
         context.prec = 2
         context.rounding = ROUND_CEILING
 
-        assert amount.quantize(
-            Decimal("0.01"), RoundingMode.HALF_UP
-        ) == Money(Decimal("123456789.13"), "CNY")
+        assert amount.quantize(Decimal("0.01"), RoundingMode.HALF_UP) == Money(
+            Decimal("123456789.13"), "CNY"
+        )
 
 
 def test_money_operations_do_not_inherit_ambient_decimal_traps() -> None:
@@ -181,9 +171,9 @@ def test_money_operations_do_not_inherit_ambient_decimal_traps() -> None:
 
         assert left + right == Money(Decimal("123456789.130"), "CNY")
         assert left - right == Money(Decimal("123456789.120"), "CNY")
-        assert left.quantize(
-            Decimal("0.01"), RoundingMode.HALF_UP
-        ) == Money(Decimal("123456789.13"), "CNY")
+        assert left.quantize(Decimal("0.01"), RoundingMode.HALF_UP) == Money(
+            Decimal("123456789.13"), "CNY"
+        )
         assert ambient.traps[Inexact] is True
         assert ambient.traps[Rounded] is True
 

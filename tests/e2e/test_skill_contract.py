@@ -104,9 +104,7 @@ def test_skill_contains_no_inline_policy_calculations() -> None:
     text = SKILL_PATH.read_text(encoding="utf-8")
     assert "%" not in text, "SKILL.md must not hardcode rates/percentages"
     assert "2/3" not in text, "SKILL.md must not hardcode the subsidy ratio"
-    assert not re.search(r"\b\d+\.\d{2}\b", text), (
-        "SKILL.md must not hardcode money literals"
-    )
+    assert not re.search(r"\b\d+\.\d{2}\b", text), "SKILL.md must not hardcode money literals"
 
 
 def test_skill_documents_output_handling() -> None:
@@ -167,10 +165,7 @@ def test_eval_cases_cover_required_modes() -> None:
 
 
 def _fixture_paths() -> list[tuple[str, dict]]:
-    return [
-        (case["id"], case)
-        for case in load_eval_manifest()["cases"]
-    ]
+    return [(case["id"], case) for case in load_eval_manifest()["cases"]]
 
 
 def test_eval_fixtures_produce_expected_exit_codes(tmp_path, monkeypatch) -> None:
@@ -190,11 +185,7 @@ def test_eval_fixtures_produce_expected_exit_codes(tmp_path, monkeypatch) -> Non
 
 
 def test_privacy_block_fixture_produces_no_artifacts(tmp_path) -> None:
-    block = next(
-        case
-        for case in load_eval_manifest()["cases"]
-        if case["kind"] == "global_block"
-    )
+    block = next(case for case in load_eval_manifest()["cases"] if case["kind"] == "global_block")
     runs_dir = tmp_path / "runs"
     result = run_cli(
         "analyze",
@@ -209,9 +200,7 @@ def test_privacy_block_fixture_produces_no_artifacts(tmp_path) -> None:
 
 def test_privacy_redact_fixture_warns_and_never_leaks(tmp_path) -> None:
     redact = next(
-        case
-        for case in load_eval_manifest()["cases"]
-        if case["kind"] == "privacy_redact"
+        case for case in load_eval_manifest()["cases"] if case["kind"] == "privacy_redact"
     )
     runs_dir = tmp_path / "runs"
     result = run_cli(
@@ -316,18 +305,32 @@ def test_golden_case_runs_through_analyze_render_and_cleanup(tmp_path: Path) -> 
 
 
 def test_ci_matrix_covers_all_declared_python_versions() -> None:
-    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
-        encoding="utf-8"
-    )
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
 
     for version in ('"3.12"', '"3.13"', '"3.14"'):
         assert version in workflow
 
 
+def test_ci_has_reproducible_quality_gate() -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    quality = set(project["project"]["optional-dependencies"]["quality"])
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+    assert quality == {
+        "mypy==2.3.1",
+        "ruff==0.16.3",
+        "types-jsonschema==4.26.0.20260518",
+    }
+    assert "name: Quality" in workflow
+    assert 'python-version: "3.14"' in workflow
+    assert 'python -m pip install -e ".[test,quality]"' in workflow
+    assert "python -m ruff format --check ." in workflow
+    assert "python -m ruff check ." in workflow
+    assert "python -m mypy src/china_pension_strategy" in workflow
+
+
 def test_policy_expiry_workflow_is_scheduled_and_actionable() -> None:
-    workflow = (
-        ROOT / ".github" / "workflows" / "policy-expiry.yml"
-    ).read_text(encoding="utf-8")
+    workflow = (ROOT / ".github" / "workflows" / "policy-expiry.yml").read_text(encoding="utf-8")
 
     assert "schedule:" in workflow
     assert "issues: write" in workflow
@@ -347,12 +350,10 @@ def test_package_release_and_engine_semantics_are_independently_versioned() -> N
     assert versions.PACKAGE_VERSION == project["project"]["version"]
     assert versions.ENGINE_SEMANTICS_VERSION == "0.1.1"
 
-    from china_pension_strategy.entrypoints.cli.main import _build_parser
     from china_pension_strategy.adapters.regions import create_region_adapter
+    from china_pension_strategy.entrypoints.cli.main import _build_parser
 
-    args = _build_parser().parse_args(
-        ["analyze", "--input", "input.json", "--runs-dir", "runs"]
-    )
+    args = _build_parser().parse_args(["analyze", "--input", "input.json", "--runs-dir", "runs"])
     assert args.engine == versions.ENGINE_SEMANTICS_VERSION
     assert (
         inspect.signature(create_region_adapter).parameters["engine_version"].default

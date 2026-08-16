@@ -3,21 +3,20 @@
 import json
 import os
 import stat
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 
 import pytest
 
 from china_pension_strategy.adapters.audit.jsonl_audit import (
-    AuditLog,
     REDACTED_PLACEHOLDER,
+    AuditLog,
     safe_text,
 )
 from china_pension_strategy.adapters.persistence.retention import (
     RetentionManager,
 )
 
-FIXED_NOW = datetime(2026, 8, 11, 10, 0, 0, tzinfo=timezone.utc)
+FIXED_NOW = datetime(2026, 8, 11, 10, 0, 0, tzinfo=UTC)
 
 
 @pytest.fixture
@@ -29,11 +28,15 @@ def test_expiry_boundary_and_deletion_status(manager):
     record = {"deletion_status": "ACTIVE", "expires_at": "2026-08-11T10:00:00+00:00"}
 
     assert manager.is_expired(record, now=FIXED_NOW)
-    assert not manager.is_expired(record, now=datetime(2026, 8, 11, 9, 59, 59, tzinfo=timezone.utc))
-    assert not manager.is_expired({"deletion_status": "ACTIVE", "expires_at": "2027-01-01T00:00:00+00:00"}, now=FIXED_NOW)
+    assert not manager.is_expired(record, now=datetime(2026, 8, 11, 9, 59, 59, tzinfo=UTC))
+    assert not manager.is_expired(
+        {"deletion_status": "ACTIVE", "expires_at": "2027-01-01T00:00:00+00:00"}, now=FIXED_NOW
+    )
     assert not manager.is_expired({"deletion_status": "ACTIVE"}, now=FIXED_NOW)
     assert manager.is_expired({"deletion_status": "DELETED"}, now=FIXED_NOW)
-    assert manager.is_expired({"deletion_status": "EXPIRED", "expires_at": "2099-01-01T00:00:00+00:00"}, now=FIXED_NOW)
+    assert manager.is_expired(
+        {"deletion_status": "EXPIRED", "expires_at": "2099-01-01T00:00:00+00:00"}, now=FIXED_NOW
+    )
 
 
 def test_flag_expired_returns_marked_copy_without_mutating_input(manager):
@@ -88,7 +91,9 @@ def test_manifest_write_failure_cleans_up_temp(tmp_path, manager, monkeypatch):
     def fail_replace(source, target):
         raise OSError("synthetic replace failure")
 
-    monkeypatch.setattr("china_pension_strategy.adapters.persistence.retention.os.replace", fail_replace)
+    monkeypatch.setattr(
+        "china_pension_strategy.adapters.persistence.retention.os.replace", fail_replace
+    )
 
     with pytest.raises(OSError, match="synthetic replace failure"):
         manager.delete_artifacts(["inputs/case-001.json"])
@@ -125,7 +130,9 @@ def test_audit_append_writes_timestamped_jsonl_lines(tmp_path):
 
 def test_audit_log_is_append_only(tmp_path):
     path = tmp_path / "audit.jsonl"
-    path.write_text(json.dumps({"event": "preexisting", "case_id": "case-000"}) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps({"event": "preexisting", "case_id": "case-000"}) + "\n", encoding="utf-8"
+    )
     log = AuditLog(path)
 
     log.append({"event": "first"})

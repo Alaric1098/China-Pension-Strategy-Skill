@@ -1,35 +1,36 @@
 """Immutable executable policy sources, packages, and rules."""
 
+import re
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from itertools import product
 from math import prod
-import re
-from typing import Any, Iterable, Iterator, Mapping, TypeVar
+from typing import Any, cast
 
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.values import YearMonth
 
 
-class AnalysisMode(str, Enum):
+class AnalysisMode(StrEnum):
     LOCAL_MVP = "LOCAL_MVP"
     PRODUCTION = "PRODUCTION"
 
 
-class ReviewStatus(str, Enum):
+class ReviewStatus(StrEnum):
     MVP_REVIEWED = "MVP_REVIEWED"
     PRODUCTION_APPROVED = "PRODUCTION_APPROVED"
 
 
-class RuleType(str, Enum):
+class RuleType(StrEnum):
     POLICY_RULE = "POLICY_RULE"
     DECISION_TABLE = "DECISION_TABLE"
     PARAMETER_TABLE = "PARAMETER_TABLE"
 
 
-class ConditionOperator(str, Enum):
+class ConditionOperator(StrEnum):
     EQUAL = "="
     NOT_EQUAL = "!="
     LESS_THAN = "<"
@@ -38,13 +39,13 @@ class ConditionOperator(str, Enum):
     GREATER_THAN_OR_EQUAL = ">="
 
 
-class JurisdictionRole(str, Enum):
+class JurisdictionRole(StrEnum):
     NATIONAL_BASELINE = "NATIONAL_BASELINE"
     LOCAL_IMPLEMENTATION = "LOCAL_IMPLEMENTATION"
     LOCAL_EXCEPTION = "LOCAL_EXCEPTION"
 
 
-class LegalHierarchy(str, Enum):
+class LegalHierarchy(StrEnum):
     NATIONAL_LAW = "NATIONAL_LAW"
     NATIONAL_REGULATION = "NATIONAL_REGULATION"
     MINISTRY_RULE = "MINISTRY_RULE"
@@ -52,7 +53,6 @@ class LegalHierarchy(str, Enum):
     MUNICIPAL_IMPLEMENTING_RULE = "MUNICIPAL_IMPLEMENTING_RULE"
 
 
-T = TypeVar("T")
 FrozenValue = object
 _DIGEST = re.compile(r"^sha256:[0-9a-f]{64}$")
 _GOV_URL = re.compile(r"^https://(?:[A-Za-z0-9-]+\.)*gov\.cn(?::[0-9]+)?(?:/|$)")
@@ -66,9 +66,7 @@ _AUTHORITY_LEVELS = {
     "MUNICIPAL_HRSS",
 }
 
-VALUE_TYPES = frozenset(
-    {"STRING", "INTEGER", "DECIMAL", "BOOLEAN", "DATE", "YEAR_MONTH", "NULL"}
-)
+VALUE_TYPES = frozenset({"STRING", "INTEGER", "DECIMAL", "BOOLEAN", "DATE", "YEAR_MONTH", "NULL"})
 _NUMERIC_TYPES = frozenset({"INTEGER", "DECIMAL"})
 _ORDERED_TYPES = frozenset({"INTEGER", "DECIMAL", "DATE", "YEAR_MONTH", "STRING"})
 _ORDERING_OPERATORS = frozenset({"<", "<=", ">", ">="})
@@ -119,7 +117,7 @@ def _require_digest(value: object, field_name: str) -> None:
         raise DomainValidationError(f"{field_name} must be a sha256 digest")
 
 
-def _as_tuple(values: Iterable[T], field_name: str) -> tuple[T, ...]:
+def _as_tuple[T](values: Iterable[T], field_name: str) -> tuple[T, ...]:
     if isinstance(values, (str, bytes, bytearray)):
         raise DomainValidationError(f"{field_name} must be a collection")
     try:
@@ -144,7 +142,7 @@ def _freeze_records(
     records = _as_tuple(values, field_name)
     if not all(isinstance(record, Mapping) for record in records):
         raise DomainValidationError(f"{field_name} must contain mappings")
-    return tuple(_freeze(record) for record in records)  # type: ignore[return-value]
+    return tuple(cast(Mapping[str, object], _freeze(record)) for record in records)
 
 
 def _require_unique_text(values: tuple[str, ...], field_name: str) -> None:
@@ -154,13 +152,11 @@ def _require_unique_text(values: tuple[str, ...], field_name: str) -> None:
         raise DomainValidationError(f"{field_name} cannot contain duplicates")
 
 
-def _record_ids(
-    records: tuple[Mapping[str, object], ...], key: str, field_name: str
-) -> set[str]:
+def _record_ids(records: tuple[Mapping[str, object], ...], key: str, field_name: str) -> set[str]:
     values = tuple(record.get(key) for record in records)
     if not all(isinstance(value, str) and value.strip() for value in values):
         raise DomainValidationError(f"{field_name} must declare non-empty {key} values")
-    identifiers = tuple(values)  # type: ignore[assignment]
+    identifiers = tuple(cast(str, value) for value in values)
     if len(identifiers) != len(set(identifiers)):
         raise DomainValidationError(f"{field_name} {key} values must be unique")
     return set(identifiers)
@@ -184,14 +180,10 @@ def _validate_typed_scalar(value_type: object, value: object, field_name: str) -
     else:
         raise DomainValidationError(f"{field_name} value_type is not supported")
     if not matches:
-        raise DomainValidationError(
-            f"{field_name} value does not match its declared value_type"
-        )
+        raise DomainValidationError(f"{field_name} value does not match its declared value_type")
 
 
-def _validate_operator_for_type(
-    operator: object, value_type: object, field_name: str
-) -> None:
+def _validate_operator_for_type(operator: object, value_type: object, field_name: str) -> None:
     if operator in _EQUALS_OPERATORS:
         return
     if operator in _ORDERING_OPERATORS:
@@ -203,18 +195,14 @@ def _validate_operator_for_type(
     raise DomainValidationError(f"{field_name} operator is not supported")
 
 
-def _validate_condition(
-    condition: Mapping[str, object], input_types: Mapping[str, object]
-) -> None:
+def _validate_condition(condition: Mapping[str, object], input_types: Mapping[str, object]) -> None:
     operator = condition.get("operator")
     input_ref = condition.get("input_ref")
     value_type = condition.get("value_type")
     if input_ref not in input_types:
         raise DomainValidationError("condition input_ref must resolve")
-    if value_type != input_types[input_ref]:
-        raise DomainValidationError(
-            "condition value_type must match the referenced input"
-        )
+    if value_type != input_types[cast(str, input_ref)]:
+        raise DomainValidationError("condition value_type must match the referenced input")
     _validate_typed_scalar(value_type, condition.get("value"), "condition")
     _validate_operator_for_type(operator, value_type, "condition")
 
@@ -231,30 +219,24 @@ def _validate_expression(
     kind = expression.get("kind")
     value_type = expression.get("value_type")
     if value_type != expected_type:
-        raise DomainValidationError(
-            f"{field_name} expression type must match its declared type"
-        )
+        raise DomainValidationError(f"{field_name} expression type must match its declared type")
     if kind == "LITERAL":
         _validate_typed_scalar(value_type, expression.get("value"), f"{field_name} literal")
     elif kind == "REFERENCE":
         reference_type = expression.get("reference_type")
         reference_id = expression.get("reference_id")
         if reference_type == "INPUT":
-            declared = input_types.get(reference_id)
+            declared = input_types.get(cast(str, reference_id))
             if declared is None:
-                raise DomainValidationError(
-                    f"{field_name} expression INPUT reference must resolve"
-                )
+                raise DomainValidationError(f"{field_name} expression INPUT reference must resolve")
         elif reference_type == "PARAMETER":
-            declared = parameter_types.get(reference_id)
+            declared = parameter_types.get(cast(str, reference_id))
             if declared is None:
                 raise DomainValidationError(
                     f"{field_name} expression PARAMETER reference must resolve"
                 )
         else:
-            raise DomainValidationError(
-                f"{field_name} expression reference_type is not supported"
-            )
+            raise DomainValidationError(f"{field_name} expression reference_type is not supported")
         if declared != value_type:
             raise DomainValidationError(
                 f"{field_name} expression reference type must match its target"
@@ -267,9 +249,7 @@ def _validate_expression(
         if not isinstance(operands, tuple):
             raise DomainValidationError(f"{field_name} expression operands must be a collection")
         if len(operands) < 2:
-            raise DomainValidationError(
-                f"{field_name} expression requires at least two operands"
-            )
+            raise DomainValidationError(f"{field_name} expression requires at least two operands")
         if operator in {"SUBTRACT", "DIVIDE", "FLOOR_DIVIDE", "POWER"} and len(operands) != 2:
             raise DomainValidationError(
                 f"{field_name} expression {operator} requires exactly two operands"
@@ -279,17 +259,13 @@ def _validate_expression(
                 f"{field_name} expression FLOOR_DIVIDE requires INTEGER result"
             )
         if operator == "POWER" and value_type != "DECIMAL":
-            raise DomainValidationError(
-                f"{field_name} expression POWER requires DECIMAL result"
-            )
+            raise DomainValidationError(f"{field_name} expression POWER requires DECIMAL result")
         if operator in {"ADD", "SUBTRACT", "MULTIPLY"} and value_type not in _NUMERIC_TYPES:
             raise DomainValidationError(
                 f"{field_name} expression {operator} requires a numeric value_type"
             )
         if operator == "DIVIDE" and value_type != "DECIMAL":
-            raise DomainValidationError(
-                f"{field_name} expression DIVIDE requires DECIMAL"
-            )
+            raise DomainValidationError(f"{field_name} expression DIVIDE requires DECIMAL")
         if operator in {"MIN", "MAX"} and value_type not in _ORDERED_TYPES:
             raise DomainValidationError(
                 f"{field_name} expression {operator} requires an orderable value_type"
@@ -386,15 +362,17 @@ class ProductionApproval:
         if len(approvers) < 2:
             raise DomainValidationError("production approval requires at least two approvers")
         if self.domain_reviewer_id in approvers:
-            raise DomainValidationError(
-                "domain reviewer and approvers must be distinct"
-            )
+            raise DomainValidationError("domain reviewer and approvers must be distinct")
         object.__setattr__(self, "approver_ids", approvers)
         _require_datetime(self.approved_at, "approved_at")
         _require_datetime(self.published_at, "published_at")
         if self.published_at < self.approved_at:
             raise DomainValidationError("published_at cannot precede approved_at")
-        if not isinstance(self.signature, str) or not self.signature.startswith("sig:") or len(self.signature) == 4:
+        if (
+            not isinstance(self.signature, str)
+            or not self.signature.startswith("sig:")
+            or len(self.signature) == 4
+        ):
             raise DomainValidationError("signature must be a non-empty sig: value")
 
 
@@ -463,9 +441,7 @@ class PolicyRule:
         if not isinstance(self.rule_type, RuleType):
             raise DomainValidationError("rule_type must be a RuleType")
         if not isinstance(self.jurisdiction_role, JurisdictionRole):
-            raise DomainValidationError(
-                "jurisdiction_role must be a JurisdictionRole"
-            )
+            raise DomainValidationError("jurisdiction_role must be a JurisdictionRole")
         if not isinstance(self.legal_hierarchy, LegalHierarchy):
             raise DomainValidationError("legal_hierarchy must be a LegalHierarchy")
 
@@ -491,13 +467,8 @@ class PolicyRule:
             raise DomainValidationError("parameters must be a mapping")
         parameter_types: dict[str, object] = {}
         for name, declaration in self.parameters.items():
-            if (
-                not isinstance(declaration, Mapping)
-                or set(declaration) != {"value_type", "value"}
-            ):
-                raise DomainValidationError(
-                    f"parameter {name} must be a typed declaration"
-                )
+            if not isinstance(declaration, Mapping) or set(declaration) != {"value_type", "value"}:
+                raise DomainValidationError(f"parameter {name} must be a typed declaration")
             parameter_value_type = declaration.get("value_type")
             _validate_typed_scalar(
                 parameter_value_type,
@@ -535,8 +506,8 @@ class PolicyRule:
         for exception in self.exceptions:
             if exception.get("effect") not in _EXCEPTION_EFFECTS:
                 raise DomainValidationError("exception effect is not supported")
-            condition_refs = set(exception.get("condition_refs", ()))
-            result_refs = set(exception.get("result_refs", ()))
+            condition_refs = set(cast(tuple[str, ...], exception.get("condition_refs", ())))
+            result_refs = set(cast(tuple[str, ...], exception.get("result_refs", ())))
             if not condition_refs <= condition_ids:
                 raise DomainValidationError("exception condition_refs must resolve")
             if not result_refs <= result_ids:
@@ -556,21 +527,13 @@ class PolicyRule:
             vector_input = vector.get("input")
             vector_expected = vector.get("expected")
             if not isinstance(vector_input, Mapping) or set(vector_input) != input_ids:
-                raise DomainValidationError(
-                    "test vector input keys must match declared inputs"
-                )
+                raise DomainValidationError("test vector input keys must match declared inputs")
             if not isinstance(vector_expected, Mapping) or set(vector_expected) != output_fields:
-                raise DomainValidationError(
-                    "test vector expected keys must match declared results"
-                )
+                raise DomainValidationError("test vector expected keys must match declared results")
             for input_id, value in vector_input.items():
-                _validate_typed_scalar(
-                    input_types[input_id], value, "test vector input"
-                )
+                _validate_typed_scalar(input_types[input_id], value, "test vector input")
             for output_field, value in vector_expected.items():
-                _validate_typed_scalar(
-                    result_types[output_field], value, "test vector expected"
-                )
+                _validate_typed_scalar(result_types[output_field], value, "test vector expected")
 
         if self.rule_type is RuleType.DECISION_TABLE:
             self._validate_decision_table(input_ids, input_types, result_ids, parameter_types)
@@ -585,9 +548,7 @@ class PolicyRule:
         _require_datetime(self.transaction_from, "transaction_from")
         if self.transaction_to is not None:
             _require_datetime(self.transaction_to, "transaction_to")
-        _validate_interval(
-            self.effective_from, self.effective_to, "effective_from", "effective_to"
-        )
+        _validate_interval(self.effective_from, self.effective_to, "effective_from", "effective_to")
         _validate_interval(
             self.transaction_from,
             self.transaction_to,
@@ -600,9 +561,7 @@ class PolicyRule:
         _require_datetime(known_at, "known_at")
         return _in_half_open_interval(
             effective_on, self.effective_from, self.effective_to
-        ) and _in_half_open_interval(
-            known_at, self.transaction_from, self.transaction_to
-        )
+        ) and _in_half_open_interval(known_at, self.transaction_from, self.transaction_to)
 
     def _validate_decision_table(
         self,
@@ -612,23 +571,19 @@ class PolicyRule:
         parameter_types: Mapping[str, object],
     ) -> None:
         if not isinstance(self.input_domains, Mapping) or set(self.input_domains) != input_ids:
-            raise DomainValidationError(
-                "DECISION_TABLE input_domains must match declared inputs"
-            )
+            raise DomainValidationError("DECISION_TABLE input_domains must match declared inputs")
         domains: dict[str, tuple[object, ...]] = {}
         for input_id, raw_values in self.input_domains.items():
-            values = _as_tuple(raw_values, f"input domain {input_id}")
-            if not values:
+            domain_values = _as_tuple(raw_values, f"input domain {input_id}")
+            if not domain_values:
                 raise DomainValidationError("decision input domains cannot be empty")
-            if any(isinstance(value, (Mapping, tuple, list, set)) for value in values):
+            if any(isinstance(value, (Mapping, tuple, list, set)) for value in domain_values):
                 raise DomainValidationError("decision input domains must contain scalars")
-            if len({_canonical_scalar(value) for value in values}) != len(values):
+            if len({_canonical_scalar(value) for value in domain_values}) != len(domain_values):
                 raise DomainValidationError("decision input domains must be unique")
-            for value in values:
-                _validate_typed_scalar(
-                    input_types[input_id], value, f"input domain {input_id}"
-                )
-            domains[input_id] = values
+            for value in domain_values:
+                _validate_typed_scalar(input_types[input_id], value, f"input domain {input_id}")
+            domains[input_id] = domain_values
         combination_count = prod(len(values) for values in domains.values())
         if combination_count > MAX_DECISION_TABLE_COMBINATIONS:
             raise DomainValidationError(
@@ -651,16 +606,16 @@ class PolicyRule:
                 isinstance(condition, Mapping) for condition in conditions
             ):
                 raise DomainValidationError("decision row conditions must be a collection")
-            if not isinstance(results, tuple) or not results or not all(
-                isinstance(result, Mapping) for result in results
+            if (
+                not isinstance(results, tuple)
+                or not results
+                or not all(isinstance(result, Mapping) for result in results)
             ):
                 raise DomainValidationError("decision row results cannot be empty")
             _record_ids(conditions, "condition_id", "decision row conditions")
             row_result_ids = _record_ids(results, "result_id", "decision row results")
             if row_result_ids != result_ids:
-                raise DomainValidationError(
-                    "decision row results must match declared results"
-                )
+                raise DomainValidationError("decision row results must match declared results")
             for condition in conditions:
                 _validate_condition(condition, input_types)
             for result in results:
@@ -674,15 +629,15 @@ class PolicyRule:
             normalized_rows.append(row)
         object.__setattr__(self, "decision_rows", tuple(normalized_rows))
 
-        ordered_inputs = tuple(record["input_id"] for record in self.inputs)
+        ordered_inputs = tuple(cast(str, record["input_id"]) for record in self.inputs)
         for combination in product(*(domains[input_id] for input_id in ordered_inputs)):
-            values = dict(zip(ordered_inputs, combination))
+            row_values = dict(zip(ordered_inputs, combination, strict=True))
             matches = [
                 row
                 for row in normalized_rows
                 if all(
-                    _condition_matches(condition, values)
-                    for condition in row["conditions"]  # type: ignore[union-attr]
+                    _condition_matches(condition, row_values)
+                    for condition in cast(tuple[Mapping[str, object], ...], row["conditions"])
                 )
             ]
             if not matches:
@@ -781,15 +736,11 @@ class PolicyPackage:
                     )
 
         if not isinstance(self.engineering_review, EngineeringReview):
-            raise DomainValidationError(
-                "engineering_review must be an EngineeringReview"
-            )
+            raise DomainValidationError("engineering_review must be an EngineeringReview")
         if self.production_approval is not None and not isinstance(
             self.production_approval, ProductionApproval
         ):
-            raise DomainValidationError(
-                "production_approval must be a ProductionApproval or None"
-            )
+            raise DomainValidationError("production_approval must be a ProductionApproval or None")
 
         _require_date(self.effective_from, "effective_from")
         if self.effective_to is not None:
@@ -797,9 +748,7 @@ class PolicyPackage:
         _require_datetime(self.transaction_from, "transaction_from")
         if self.transaction_to is not None:
             _require_datetime(self.transaction_to, "transaction_to")
-        _validate_interval(
-            self.effective_from, self.effective_to, "effective_from", "effective_to"
-        )
+        _validate_interval(self.effective_from, self.effective_to, "effective_from", "effective_to")
         _validate_interval(
             self.transaction_from,
             self.transaction_to,
@@ -807,22 +756,16 @@ class PolicyPackage:
             "transaction_to",
         )
 
-        if self.transaction_from < max(
-            source.retrieved_at for source in self.provenance
-        ):
+        if self.transaction_from < max(source.retrieved_at for source in self.provenance):
             raise DomainValidationError(
                 "transaction_from cannot precede provenance source retrieval"
             )
         if self.transaction_from < self.engineering_review.reviewed_at:
-            raise DomainValidationError(
-                "transaction_from cannot precede engineering review"
-            )
+            raise DomainValidationError("transaction_from cannot precede engineering review")
         if self.production_approval is not None and (
             self.transaction_from < self.production_approval.published_at
         ):
-            raise DomainValidationError(
-                "transaction_from cannot precede production publication"
-            )
+            raise DomainValidationError("transaction_from cannot precede production publication")
 
         review_passed = (
             self.engineering_review.schema_validation_passed
@@ -836,23 +779,17 @@ class PolicyPackage:
                     "MVP_REVIEWED packages must be local-only LOCAL_MVP packages"
                 )
             if self.production_approval is not None:
-                raise DomainValidationError(
-                    "MVP_REVIEWED packages cannot have production approval"
-                )
+                raise DomainValidationError("MVP_REVIEWED packages cannot have production approval")
         elif self.local_only or AnalysisMode.PRODUCTION not in modes:
             raise DomainValidationError(
                 "PRODUCTION_APPROVED packages must permit production and not be local-only"
             )
         elif self.production_approval is None:
-            raise DomainValidationError(
-                "PRODUCTION_APPROVED packages require production approval"
-            )
+            raise DomainValidationError("PRODUCTION_APPROVED packages require production approval")
 
     def applies_at(self, effective_on: date, known_at: datetime) -> bool:
         _require_date(effective_on, "effective_on")
         _require_datetime(known_at, "known_at")
         return _in_half_open_interval(
             effective_on, self.effective_from, self.effective_to
-        ) and _in_half_open_interval(
-            known_at, self.transaction_from, self.transaction_to
-        )
+        ) and _in_half_open_interval(known_at, self.transaction_from, self.transaction_to)

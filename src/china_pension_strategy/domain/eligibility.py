@@ -1,35 +1,32 @@
 """Capability and eligibility assessments with mechanical state derivation."""
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Iterable, TypeVar
+from enum import StrEnum
 
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.facts import FactReference
 
 
-class CapabilityStatus(str, Enum):
+class CapabilityStatus(StrEnum):
     AVAILABLE = "AVAILABLE"
     PARTIAL = "PARTIAL"
     BLOCKED = "BLOCKED"
 
 
-class ConditionStatus(str, Enum):
+class ConditionStatus(StrEnum):
     SATISFIED = "SATISFIED"
     FAILED = "FAILED"
     UNVERIFIED = "UNVERIFIED"
 
 
-class EligibilityStatus(str, Enum):
+class EligibilityStatus(StrEnum):
     ELIGIBLE = "ELIGIBLE"
     INELIGIBLE = "INELIGIBLE"
     UNKNOWN = "UNKNOWN"
 
 
-T = TypeVar("T")
-
-
-def _tuple(values: Iterable[T], field_name: str) -> tuple[T, ...]:
+def _tuple[T](values: Iterable[T], field_name: str) -> tuple[T, ...]:
     if isinstance(values, (str, bytes, bytearray)):
         raise DomainValidationError(f"{field_name} must be a collection")
     try:
@@ -72,9 +69,7 @@ class CapabilityAssessment:
             "blocker_codes",
             "limitations",
         ):
-            object.__setattr__(
-                self, field_name, _tuple(getattr(self, field_name), field_name)
-            )
+            object.__setattr__(self, field_name, _tuple(getattr(self, field_name), field_name))
 
         for field_name in (
             "required_fact_ids",
@@ -101,9 +96,7 @@ class CapabilityAssessment:
                 )
         elif self.status is CapabilityStatus.PARTIAL:
             if not self.limitations:
-                raise DomainValidationError(
-                    "PARTIAL requires at least one limitation"
-                )
+                raise DomainValidationError("PARTIAL requires at least one limitation")
         elif not self.blocker_codes:
             raise DomainValidationError("BLOCKED requires at least one blocker code")
 
@@ -142,18 +135,12 @@ class EligibilityAssessment:
         _require_text(self.capability_id, "capability_id")
         _require_text(self.subject_scope, "subject_scope")
         object.__setattr__(self, "rule_ids", _tuple(self.rule_ids, "rule_ids"))
-        object.__setattr__(
-            self, "conditions", _tuple(self.conditions, "conditions")
-        )
+        object.__setattr__(self, "conditions", _tuple(self.conditions, "conditions"))
         _require_unique(self.rule_ids, "rule_ids")
         if not self.conditions:
             raise DomainValidationError("eligibility requires at least one condition")
-        if not all(
-            isinstance(condition, ConditionAssessment) for condition in self.conditions
-        ):
-            raise DomainValidationError(
-                "conditions must contain ConditionAssessment values"
-            )
+        if not all(isinstance(condition, ConditionAssessment) for condition in self.conditions):
+            raise DomainValidationError("conditions must contain ConditionAssessment values")
 
         statuses = {condition.status for condition in self.conditions}
         if ConditionStatus.FAILED in statuses:

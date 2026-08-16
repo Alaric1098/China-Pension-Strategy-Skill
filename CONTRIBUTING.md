@@ -10,8 +10,11 @@ Python 3.12 or newer is required.
 
 ```text
 python -m venv .venv
-python -m pip install -e ".[test]"
+python -m pip install -e ".[test,quality]"
 python -m pytest -q
+python -m ruff format --check .
+python -m ruff check .
+python -m mypy src/china_pension_strategy
 ```
 
 Use synthetic records in tests, examples, issue descriptions, and pull
@@ -111,6 +114,9 @@ Run these commands before opening a pull request:
 
 ```text
 python -m pytest -q
+python -m ruff format --check .
+python -m ruff check .
+python -m mypy src/china_pension_strategy
 python verify_design_docs.py
 python test_design_contracts.py
 python audit_architecture.py --gaps

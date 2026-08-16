@@ -2,6 +2,7 @@
 
 from collections.abc import Mapping
 from decimal import Decimal
+from typing import Any, cast
 
 
 class OutputSemanticValidationError(ValueError):
@@ -10,18 +11,17 @@ class OutputSemanticValidationError(ValueError):
 
 def validate_output_semantics(output: Mapping[str, object]) -> None:
     """Reject contradictory capability facts and recommendation dependencies."""
-    capability_items = output["capabilities"]
+    record = cast(dict[str, Any], output)
+    capability_items = record["capabilities"]
     seen_capability_ids = set()
-    for capability in capability_items:  # type: ignore[union-attr]
+    for capability in capability_items:
         capability_id = capability["capability_id"]
         if capability_id in seen_capability_ids:
-            raise OutputSemanticValidationError(
-                f"duplicate capability ID: {capability_id}"
-            )
+            raise OutputSemanticValidationError(f"duplicate capability ID: {capability_id}")
         seen_capability_ids.add(capability_id)
 
     capabilities = {}
-    for capability in capability_items:  # type: ignore[union-attr]
+    for capability in capability_items:
         capability_id = capability["capability_id"]
         required = capability["required_fact_ids"]
         satisfied = capability["satisfied_fact_ids"]
@@ -41,16 +41,10 @@ def validate_output_semantics(output: Mapping[str, object]) -> None:
         satisfied_set = set(satisfied)
         missing_set = set(missing)
         if satisfied_set & missing_set:
-            raise OutputSemanticValidationError(
-                f"fact partition overlap: {capability_id}"
-            )
+            raise OutputSemanticValidationError(f"fact partition overlap: {capability_id}")
         if satisfied_set | missing_set != required_set:
-            raise OutputSemanticValidationError(
-                f"fact partition mismatch: {capability_id}"
-            )
-        if capability["status"] == "AVAILABLE" and (
-            missing_set or satisfied_set != required_set
-        ):
+            raise OutputSemanticValidationError(f"fact partition mismatch: {capability_id}")
+        if capability["status"] == "AVAILABLE" and (missing_set or satisfied_set != required_set):
             raise OutputSemanticValidationError(
                 f"AVAILABLE capability facts incomplete: {capability_id}"
             )
@@ -65,14 +59,11 @@ def validate_output_semantics(output: Mapping[str, object]) -> None:
         "net_outflow",
     )
     outcome_fields = {field: f"total_{field}" for field in cash_fields}
-    for scenario in output.get("scenarios", []):  # type: ignore[union-attr]
+    for scenario in record.get("scenarios", []):
         totals = {field: Decimal("0.00") for field in cash_fields}
         cumulative = Decimal("0.00")
         for cash_flow in scenario["monthly_cash_flows"]:
-            amounts = {
-                field: Decimal(cash_flow[field]["amount"])
-                for field in cash_fields
-            }
+            amounts = {field: Decimal(cash_flow[field]["amount"]) for field in cash_fields}
             expected_net = (
                 amounts["pension_contribution"]
                 + amounts["medical_contribution"]
@@ -81,15 +72,13 @@ def validate_output_semantics(output: Mapping[str, object]) -> None:
             )
             if amounts["net_outflow"] != expected_net:
                 raise OutputSemanticValidationError(
-                    f"monthly net outflow mismatch: {scenario['scenario_id']} "
-                    f"{cash_flow['month']}"
+                    f"monthly net outflow mismatch: {scenario['scenario_id']} {cash_flow['month']}"
                 )
 
             cumulative += amounts["net_outflow"]
             if Decimal(cash_flow["cumulative_outflow"]["amount"]) != cumulative:
                 raise OutputSemanticValidationError(
-                    f"cumulative outflow mismatch: {scenario['scenario_id']} "
-                    f"{cash_flow['month']}"
+                    f"cumulative outflow mismatch: {scenario['scenario_id']} {cash_flow['month']}"
                 )
             for field in cash_fields:
                 totals[field] += amounts[field]
@@ -98,15 +87,14 @@ def validate_output_semantics(output: Mapping[str, object]) -> None:
             outcome = Decimal(scenario["outcomes"][outcome_field]["amount"])
             if outcome != totals[field]:
                 raise OutputSemanticValidationError(
-                    f"scenario outcome total mismatch: {scenario['scenario_id']} "
-                    f"{outcome_field}"
+                    f"scenario outcome total mismatch: {scenario['scenario_id']} {outcome_field}"
                 )
 
-    recommendation = output.get("recommendation")
+    recommendation = record.get("recommendation")
     if recommendation is None:
         return
 
-    for dependency in recommendation["capability_dependencies"]:  # type: ignore[index,union-attr]
+    for dependency in recommendation["capability_dependencies"]:
         capability_id = dependency["capability_id"]
         dependency_status = dependency["status"]
         if capability_id not in capabilities:
@@ -116,9 +104,7 @@ def validate_output_semantics(output: Mapping[str, object]) -> None:
 
         actual_status = capabilities[capability_id]
         if dependency_status == "BLOCKED" or actual_status == "BLOCKED":
-            raise OutputSemanticValidationError(
-                f"blocked capability dependency: {capability_id}"
-            )
+            raise OutputSemanticValidationError(f"blocked capability dependency: {capability_id}")
         if dependency_status != actual_status:
             raise OutputSemanticValidationError(
                 f"dependency status mismatch: {capability_id} declares "

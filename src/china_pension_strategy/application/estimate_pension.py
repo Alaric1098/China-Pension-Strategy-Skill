@@ -8,8 +8,8 @@ rule evaluation — no policy numbers are hardcoded here.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
+from typing import cast
 
 from china_pension_strategy.application.calculate_months import evaluate_rule
 from china_pension_strategy.domain.benefit import (
@@ -55,15 +55,11 @@ def derive_statutory_retirement(
     if rule_id is None:
         raise DomainValidationError(f"unsupported gender category {gender_category!r}")
     rule = _by_rule_id(rules, rule_id)
-    outputs = evaluate_rule(
-        rule, {"birth_year": birth.year, "birth_month": birth.month}
-    )
+    outputs = evaluate_rule(rule, {"birth_year": birth.year, "birth_month": birth.month})
     if not outputs or "delay_months" not in outputs:
-        raise DomainValidationError(
-            f"delay rule {rule_id} did not produce delay_months"
-        )
-    delay = int(outputs["delay_months"])
-    statutory_months = int(_parameter(rule, "statutory_months"))
+        raise DomainValidationError(f"delay rule {rule_id} did not produce delay_months")
+    delay = cast(int, outputs["delay_months"])
+    statutory_months = cast(int, _parameter(rule, "statutory_months"))
     retirement = birth.add_months(statutory_months + delay)
     return StatutoryRetirement(
         birth=birth,
@@ -105,9 +101,7 @@ def c_ping_for_retirement(
     rule = _by_rule_id(rules, "beijing-c-ping-table")
     outputs = evaluate_rule(rule, {"retirement_year": retirement_year})
     if not outputs or "c_ping" not in outputs:
-        raise DomainValidationError(
-            f"no c_ping published for retirement year {retirement_year}"
-        )
+        raise DomainValidationError(f"no c_ping published for retirement year {retirement_year}")
     return Money(Decimal(str(outputs["c_ping"])), "CNY"), retirement_year
 
 
@@ -157,16 +151,14 @@ def estimate_pension(
         rules, statutory.age_months // 12, statutory.age_months % 12
     )
 
-    c_ping, c_ping_year = c_ping_for_retirement(
-        rules, statutory.retirement.year, c_ping_override
-    )
+    c_ping, c_ping_year = c_ping_for_retirement(rules, statutory.retirement.year, c_ping_override)
 
     rate = interest_rate_override
     assumptions = []
     if rate is None:
         rate_rule = _by_rule_id(rules, "national-record-interest-rate")
         rate_outputs = evaluate_rule(rate_rule, {"months": 12})
-        rate = Decimal(str(rate_outputs["record_interest_rate"]))
+        rate = Decimal(str(cast(Mapping[str, object], rate_outputs)["record_interest_rate"]))
         assumptions.append(
             ProjectionAssumption(
                 name="record_interest_rate",
@@ -183,7 +175,9 @@ def estimate_pension(
             )
         )
 
-    stored = project_stored_balance(rules, account_balance, account_as_of, statutory.retirement, rate)
+    stored = project_stored_balance(
+        rules, account_balance, account_as_of, statutory.retirement, rate
+    )
 
     basic = evaluate_rule(
         _by_rule_id(rules, "national-basic-pension-formula"),
@@ -194,7 +188,9 @@ def estimate_pension(
         },
     )
     monthly_basic = (
-        Money(Decimal(str(basic["monthly_basic_pension"])), "CNY").quantize(_CENT, RoundingMode.HALF_UP)
+        Money(Decimal(str(basic["monthly_basic_pension"])), "CNY").quantize(
+            _CENT, RoundingMode.HALF_UP
+        )
         if basic
         else None
     )
@@ -204,7 +200,9 @@ def estimate_pension(
         {"stored_balance": str(stored.amount), "payment_months": str(payment_months)},
     )
     monthly_account = (
-        Money(Decimal(str(account["monthly_account_pension"])), "CNY").quantize(_CENT, RoundingMode.HALF_UP)
+        Money(Decimal(str(account["monthly_account_pension"])), "CNY").quantize(
+            _CENT, RoundingMode.HALF_UP
+        )
         if account
         else None
     )
@@ -230,7 +228,9 @@ def estimate_pension(
 
     parts = [v for v in (monthly_basic, monthly_account, monthly_transition) if v is not None]
     monthly_total = (
-        Money(sum(p.amount for p in parts), "CNY").quantize(_CENT, RoundingMode.HALF_UP)
+        Money(sum((p.amount for p in parts), Decimal("0.00")), "CNY").quantize(
+            _CENT, RoundingMode.HALF_UP
+        )
         if parts
         else None
     )

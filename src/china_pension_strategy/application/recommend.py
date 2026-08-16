@@ -1,6 +1,6 @@
 """Conditional recommendation from ranked scenarios."""
 
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 from china_pension_strategy.domain.scenario import Recommendation, Scenario
 

@@ -7,9 +7,10 @@ the composition use case.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
-from typing import Mapping, Sequence
+from typing import Any, cast
 
 from china_pension_strategy.application.analyze import AnalysisRequest, AnalysisRequestError
 from china_pension_strategy.application.resolve_policy import PolicyQuery
@@ -53,7 +54,7 @@ class ShenzhenRegionAdapter:
         analysis_mode: AnalysisMode,
     ) -> tuple[PolicyQuery, ...]:
         """Return the canonical query set for Shenzhen flexible employment."""
-        common = {
+        common: dict[str, Any] = {
             "as_of_effective_date": as_of_effective_date,
             "as_known_at": as_known_at,
             "engine_version": self._engine_version,
@@ -91,6 +92,7 @@ class ShenzhenRegionAdapter:
         person_input: Mapping[str, object],
     ) -> AnalysisRequest:
         """Map a validated person-input record into an analysis request."""
+        person_input = cast(dict[str, Any], person_input)
         created_at = datetime.fromisoformat(str(person_input["created_at"]))
         as_of = created_at.date()
         if "analysis_date" in person_input:

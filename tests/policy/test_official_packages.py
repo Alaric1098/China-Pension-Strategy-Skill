@@ -3,7 +3,7 @@
 import hashlib
 import json
 import re
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -23,7 +23,6 @@ from china_pension_strategy.domain.policy import (
 )
 from china_pension_strategy.domain.values import YearMonth
 
-
 ROOT = Path(__file__).resolve().parents[2]
 PACKAGES_DIR = ROOT / "policy-data" / "packages"
 SOURCES_DIR = ROOT / "policy-data" / "sources"
@@ -32,7 +31,7 @@ REFERENCE_FILES = (ROOT / "references" / "national-rules.md",) + tuple(
 )
 SCHEMA = "schemas/policy-package.schema.json"
 AS_OF_EFFECTIVE = date(2026, 8, 11)
-AS_KNOWN_AT = datetime(2026, 8, 14, 12, 0, tzinfo=timezone.utc)
+AS_KNOWN_AT = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)
 PACKAGE_PATHS = sorted(PACKAGES_DIR.glob("*.json"))
 
 
@@ -91,7 +90,10 @@ def convert_scalar(value_type: object, value: object) -> object:
 def convert_expression(expression: dict) -> dict:
     kind = expression.get("kind")
     if kind == "LITERAL":
-        return {**expression, "value": convert_scalar(expression["value_type"], expression["value"])}
+        return {
+            **expression,
+            "value": convert_scalar(expression["value_type"], expression["value"]),
+        }
     if kind == "EXPRESSION":
         return {
             **expression,
@@ -134,7 +136,8 @@ def build_rule(record: dict) -> PolicyRule:
         {
             "vector_id": vector["vector_id"],
             "input": {
-                key: convert_scalar(input_types[key], value) for key, value in vector["input"].items()
+                key: convert_scalar(input_types[key], value)
+                for key, value in vector["input"].items()
             },
             "expected": {
                 key: convert_scalar(result_types[key], value)
@@ -156,7 +159,9 @@ def build_rule(record: dict) -> PolicyRule:
         decision_rows = tuple(
             {
                 "row_id": row["row_id"],
-                "conditions": tuple(convert_condition(condition) for condition in row["conditions"]),
+                "conditions": tuple(
+                    convert_condition(condition) for condition in row["conditions"]
+                ),
                 "results": tuple(
                     {**result, "value": convert_expression(result["value"])}
                     for result in row["results"]
@@ -178,7 +183,9 @@ def build_rule(record: dict) -> PolicyRule:
         effective_from=date.fromisoformat(record["effective_from"]),
         effective_to=date.fromisoformat(record["effective_to"]) if record["effective_to"] else None,
         transaction_from=datetime.fromisoformat(record["transaction_from"]),
-        transaction_to=datetime.fromisoformat(record["transaction_to"]) if record["transaction_to"] else None,
+        transaction_to=datetime.fromisoformat(record["transaction_to"])
+        if record["transaction_to"]
+        else None,
         legal_hierarchy=LegalHierarchy(record["legal_hierarchy"]),
         explicit_override_refs=tuple(record["explicit_override_refs"]),
         source_refs=tuple(record["source_refs"]),
@@ -204,7 +211,9 @@ def build_package(record: dict) -> PolicyPackage:
         effective_from=date.fromisoformat(record["effective_from"]),
         effective_to=date.fromisoformat(record["effective_to"]) if record["effective_to"] else None,
         transaction_from=datetime.fromisoformat(record["transaction_from"]),
-        transaction_to=datetime.fromisoformat(record["transaction_to"]) if record["transaction_to"] else None,
+        transaction_to=datetime.fromisoformat(record["transaction_to"])
+        if record["transaction_to"]
+        else None,
         content_digest=record["content_digest"],
         provenance=tuple(build_source(source) for source in record["provenance"]),
         rules=tuple(build_rule(rule) for rule in record["rules"]),
@@ -222,9 +231,7 @@ def build_package(record: dict) -> PolicyPackage:
 @pytest.mark.parametrize("package_path", PACKAGE_PATHS, ids=lambda path: path.stem)
 def test_official_package_validates_against_policy_package_schema(package_path):
     package = load_json(package_path)
-    errors = sorted(
-        schema_validator().iter_errors(package), key=lambda error: list(error.path)
-    )
+    errors = sorted(schema_validator().iter_errors(package), key=lambda error: list(error.path))
     assert not errors, "\n".join(error.message for error in errors)
 
 
@@ -280,7 +287,9 @@ def test_official_package_source_digests_match_reference_sections(package_path):
     package = load_json(package_path)
     sections = reference_sections()
     for source in package["provenance"]:
-        assert source["source_id"] in sections, f"missing reference section for {source['source_id']}"
+        assert source["source_id"] in sections, (
+            f"missing reference section for {source['source_id']}"
+        )
         assert source["source_digest"] == canonical_source_digest(sections[source["source_id"]])
 
 

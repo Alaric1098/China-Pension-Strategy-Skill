@@ -3,7 +3,6 @@
 import pytest
 
 from china_pension_strategy.domain.retirement import (
-    RetirementSchedule,
     statutory_retirement,
 )
 from china_pension_strategy.domain.values import YearMonth

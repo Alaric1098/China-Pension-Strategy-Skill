@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
@@ -48,11 +49,7 @@ class OutputValidator:
     """Validates analysis-output documents against the JSON Schema."""
 
     def __init__(self, schema_path: str | Path | None = None) -> None:
-        schema_file = (
-            Path(schema_path)
-            if schema_path is not None
-            else _DEFAULT_OUTPUT_SCHEMA_PATH
-        )
+        schema_file = Path(schema_path) if schema_path is not None else _DEFAULT_OUTPUT_SCHEMA_PATH
         self._validator = Draft202012Validator(
             json.loads(schema_file.read_text(encoding="utf-8")),
             format_checker=FormatChecker(),
@@ -65,8 +62,7 @@ class OutputValidator:
         )
         if errors:
             details = "; ".join(
-                "/".join(str(part) for part in error.path) or "<root>"
-                for error in errors[:3]
+                "/".join(str(part) for part in error.path) or "<root>" for error in errors[:3]
             )
             raise OutputValidationError(details)
 
@@ -76,9 +72,7 @@ class EnvelopeValidator:
 
     def __init__(self, schema_path: str | Path | None = None) -> None:
         schema_file = (
-            Path(schema_path)
-            if schema_path is not None
-            else _DEFAULT_ENVELOPE_SCHEMA_PATH
+            Path(schema_path) if schema_path is not None else _DEFAULT_ENVELOPE_SCHEMA_PATH
         )
         self._validator = Draft202012Validator(
             json.loads(schema_file.read_text(encoding="utf-8")),
@@ -92,8 +86,7 @@ class EnvelopeValidator:
         )
         if errors:
             details = "; ".join(
-                "/".join(str(part) for part in error.path) or "<root>"
-                for error in errors[:3]
+                "/".join(str(part) for part in error.path) or "<root>" for error in errors[:3]
             )
             raise EnvelopeSchemaError(details)
 
@@ -122,8 +115,7 @@ def build_envelope(
             "artifact_ref": artifact_uri,
         },
         "warnings": [
-            {"code": "WARNING", "message": warning, "related_refs": []}
-            for warning in warnings
+            {"code": "WARNING", "message": warning, "related_refs": []} for warning in warnings
         ],
         "errors": list(errors),
         "provenance": [

@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -19,18 +19,13 @@ from china_pension_strategy.application.calculate_months import (
 from china_pension_strategy.domain.calculation import (
     GapResult,
     MonthlyContribution,
-    SubsidyAssessment,
 )
 from china_pension_strategy.domain.eligibility import EligibilityStatus
 from china_pension_strategy.domain.errors import DomainValidationError
 from china_pension_strategy.domain.policy import (
-    AnalysisMode,
-    EngineeringReview,
     JurisdictionRole,
     LegalHierarchy,
-    PolicyPackage,
     PolicyRule,
-    ReviewStatus,
     RuleType,
 )
 from china_pension_strategy.domain.values import Money, RoundingMode, YearMonth
@@ -41,16 +36,13 @@ CNY = "CNY"
 
 def load_rule(package_name: str, rule_id: str) -> PolicyRule:
     package = json.loads(
-        (ROOT / "policy-data" / "packages" / f"{package_name}.json").read_text(
-            encoding="utf-8"
-        )
+        (ROOT / "policy-data" / "packages" / f"{package_name}.json").read_text(encoding="utf-8")
     )
     record = next(rule for rule in package["rules"] if rule["rule_id"] == rule_id)
 
     def vector(entry: dict) -> dict:
         input_types = {
-            declaration["input_id"]: declaration["value_type"]
-            for declaration in record["inputs"]
+            declaration["input_id"]: declaration["value_type"] for declaration in record["inputs"]
         }
         result_types = {
             declaration["output_field"]: declaration["value_type"]
@@ -62,8 +54,7 @@ def load_rule(package_name: str, rule_id: str) -> PolicyRule:
                 key: scalar(input_types[key], value) for key, value in entry["input"].items()
             },
             "expected": {
-                key: scalar(result_types[key], value)
-                for key, value in entry["expected"].items()
+                key: scalar(result_types[key], value) for key, value in entry["expected"].items()
             },
         }
 
@@ -72,8 +63,7 @@ def load_rule(package_name: str, rule_id: str) -> PolicyRule:
     input_domains = None
     if rule_type is RuleType.DECISION_TABLE:
         input_types = {
-            declaration["input_id"]: declaration["value_type"]
-            for declaration in record["inputs"]
+            declaration["input_id"]: declaration["value_type"] for declaration in record["inputs"]
         }
         input_domains = {
             input_id: tuple(scalar(input_types[input_id], value) for value in values)
@@ -99,9 +89,7 @@ def load_rule(package_name: str, rule_id: str) -> PolicyRule:
         results=tuple(result(entry) for entry in record["results"]),
         exceptions=tuple(record["exceptions"]),
         effective_from=date.fromisoformat(record["effective_from"]),
-        effective_to=date.fromisoformat(record["effective_to"])
-        if record["effective_to"]
-        else None,
+        effective_to=date.fromisoformat(record["effective_to"]) if record["effective_to"] else None,
         transaction_from=datetime.fromisoformat(record["transaction_from"]),
         transaction_to=datetime.fromisoformat(record["transaction_to"])
         if record["transaction_to"]
@@ -176,7 +164,13 @@ def synthetic_rule(
     effective_to: date | None = None,
     inputs: tuple[dict, ...] = ({"input_id": "x", "value_type": "DECIMAL", "required": True},),
     conditions: tuple[dict, ...] = (
-        {"condition_id": "positive", "input_ref": "x", "operator": ">", "value_type": "DECIMAL", "value": "0.00"},
+        {
+            "condition_id": "positive",
+            "input_ref": "x",
+            "operator": ">",
+            "value_type": "DECIMAL",
+            "value": "0.00",
+        },
     ),
     results: tuple[dict, ...] = (
         {
@@ -188,7 +182,12 @@ def synthetic_rule(
                 "operator": "MULTIPLY",
                 "value_type": "DECIMAL",
                 "operands": [
-                    {"kind": "REFERENCE", "reference_type": "INPUT", "reference_id": "x", "value_type": "DECIMAL"},
+                    {
+                        "kind": "REFERENCE",
+                        "reference_type": "INPUT",
+                        "reference_id": "x",
+                        "value_type": "DECIMAL",
+                    },
                     {"kind": "LITERAL", "value_type": "DECIMAL", "value": "2.00"},
                 ],
             },
@@ -202,13 +201,8 @@ def synthetic_rule(
             declaration["input_id"]: sample_value(declaration["value_type"])
             for declaration in inputs
         }
-        expected = {
-            entry["output_field"]: sample_value(entry["value_type"])
-            for entry in results
-        }
-        test_vectors = (
-            {"vector_id": f"v-{rule_id}", "input": input_values, "expected": expected},
-        )
+        expected = {entry["output_field"]: sample_value(entry["value_type"]) for entry in results}
+        test_vectors = ({"vector_id": f"v-{rule_id}", "input": input_values, "expected": expected},)
     return PolicyRule(
         rule_id=rule_id,
         rule_type=rule_type,
@@ -222,7 +216,7 @@ def synthetic_rule(
         exceptions=(),
         effective_from=effective_from,
         effective_to=effective_to,
-        transaction_from=datetime(2026, 8, 11, tzinfo=timezone.utc),
+        transaction_from=datetime(2026, 8, 11, tzinfo=UTC),
         transaction_to=None,
         legal_hierarchy=LegalHierarchy.MUNICIPAL_REGULATION,
         explicit_override_refs=(),
@@ -281,7 +275,12 @@ def test_expression_evaluates_literal_reference_and_operators() -> None:
         {"kind": "LITERAL", "value_type": "DECIMAL", "value": "7.50"}, {}, parameters
     ) == Decimal("7.50")
     assert evaluate_expression(
-        {"kind": "REFERENCE", "reference_type": "PARAMETER", "reference_id": "rate", "value_type": "DECIMAL"},
+        {
+            "kind": "REFERENCE",
+            "reference_type": "PARAMETER",
+            "reference_id": "rate",
+            "value_type": "DECIMAL",
+        },
         {},
         parameters,
     ) == Decimal("0.20")
@@ -386,7 +385,9 @@ def test_monthly_contributions_require_pension_field() -> None:
     # Pension is mandatory; medical/unemployment are optional and default to
     # zero so regions without those coverages (e.g. Shanghai) still run.
     rules = (load_rule("shanghai-flex-employment", "shanghai-flex-pension-contribution"),)
-    schedule = monthly_contributions(rules, Decimal("7460.00"), (YearMonth(2026, 9),), RoundingMode.HALF_UP)
+    schedule = monthly_contributions(
+        rules, Decimal("7460.00"), (YearMonth(2026, 9),), RoundingMode.HALF_UP
+    )
     assert schedule[0].pension == money("1492.00")
     assert schedule[0].medical == money("0.00")
     assert schedule[0].unemployment == money("0.00")
@@ -429,9 +430,7 @@ def test_subsidy_eligible_full_period_and_amounts() -> None:
         "medical_paid": True,
         "unemployment_paid": True,
     }
-    assessment = assess_subsidy(
-        rules, inputs, YearMonth(2026, 8), RoundingMode.HALF_UP
-    )
+    assessment = assess_subsidy(rules, inputs, YearMonth(2026, 8), RoundingMode.HALF_UP)
     assert assessment.status is EligibilityStatus.ELIGIBLE
     assert assessment.monthly_subsidy == money("1392.63")
     assert assessment.start_month == YearMonth(2026, 9)
@@ -491,7 +490,10 @@ def test_subsidy_ineligible_when_not_recognized() -> None:
 def test_subsidy_unknown_when_evidence_missing() -> None:
     eligibility = load_rule("beijing-flex-subsidy", "beijing-subsidy-eligibility")
     assessment = assess_subsidy(
-        (eligibility,), {"employment_registration_days": 30}, YearMonth(2026, 8), RoundingMode.HALF_UP
+        (eligibility,),
+        {"employment_registration_days": 30},
+        YearMonth(2026, 8),
+        RoundingMode.HALF_UP,
     )
     assert assessment.status is EligibilityStatus.UNKNOWN
     assert assessment.monthly_subsidy is None
@@ -513,8 +515,18 @@ def test_annual_parameter_transition_selects_applicable_rules() -> None:
                     "operator": "MULTIPLY",
                     "value_type": "DECIMAL",
                     "operands": [
-                        {"kind": "REFERENCE", "reference_type": "INPUT", "reference_id": "x", "value_type": "DECIMAL"},
-                        {"kind": "REFERENCE", "reference_type": "PARAMETER", "reference_id": "rate", "value_type": "DECIMAL"},
+                        {
+                            "kind": "REFERENCE",
+                            "reference_type": "INPUT",
+                            "reference_id": "x",
+                            "value_type": "DECIMAL",
+                        },
+                        {
+                            "kind": "REFERENCE",
+                            "reference_type": "PARAMETER",
+                            "reference_id": "rate",
+                            "value_type": "DECIMAL",
+                        },
                     ],
                 },
             },
@@ -528,8 +540,12 @@ def test_annual_parameter_transition_selects_applicable_rules() -> None:
         results=first.results,
     )
     rules = (first, second)
-    assert [rule.rule_id for rule in choose_applicable_rules(rules, YearMonth(2025, 12))] == ["rate-2025"]
-    assert [rule.rule_id for rule in choose_applicable_rules(rules, YearMonth(2026, 1))] == ["rate-2026"]
+    assert [rule.rule_id for rule in choose_applicable_rules(rules, YearMonth(2025, 12))] == [
+        "rate-2025"
+    ]
+    assert [rule.rule_id for rule in choose_applicable_rules(rules, YearMonth(2026, 1))] == [
+        "rate-2026"
+    ]
     outputs = evaluate_rule(
         choose_applicable_rules(rules, YearMonth(2025, 12))[0], {"x": Decimal("1000.00")}
     )
@@ -665,9 +681,7 @@ def test_higher_subsidy_never_increases_net_outflow(base, low_subsidy, high_subs
         )[0].net_outflow.amount
         return gross - assessment.monthly_subsidy.amount
 
-    assert net_for(max(low_subsidy, high_subsidy)) <= net_for(
-        min(low_subsidy, high_subsidy)
-    )
+    assert net_for(max(low_subsidy, high_subsidy)) <= net_for(min(low_subsidy, high_subsidy))
 
 
 def test_identical_inputs_yield_identical_canonical_results() -> None:
